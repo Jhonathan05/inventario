@@ -20,7 +20,7 @@ services:
       timeout: 5s
       retries: 5
     ports:
-      - "5433:5432" # Puerto diferente para no chocar con local o prod
+      - "5434:5432" # Puerto modificado para evitar conflicto
 
   # Backend Node.js (con Nodemon para hot-reload)
   backend:
@@ -46,7 +46,7 @@ services:
       postgres:
         condition: service_healthy
     ports:
-      - "3001:3001"
+      - "3003:3001" # Puerto modificado para evitar conflicto
 
   # Frontend React (con Vite server para hot-reload)
   frontend:
@@ -61,11 +61,11 @@ services:
       - ./frontend:/app
       - /app/node_modules
     ports:
-      - "8081:5173"
+      - "8083:5173" # Puerto modificado para evitar conflicto
     networks:
       - inventario-network
     environment:
-      - VITE_API_URL=http://localhost:3001/api
+      - VITE_API_URL=http://localhost:3003/api
       - CHOKIDAR_USEPOLLING=true
 
   # Adminer Database GUI
@@ -74,7 +74,7 @@ services:
     container_name: inventario-db-admin-dev
     restart: unless-stopped
     ports:
-      - "8083:8080"
+      - "8084:8080" # Puerto modificado para evitar conflicto
     networks:
       - inventario-network
     depends_on:
