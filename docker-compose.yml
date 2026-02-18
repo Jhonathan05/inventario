@@ -1,0 +1,89 @@
+version: '3.8'
+
+services:
+  # Base de datos PostgreSQL
+  postgres:
+    image: postgres:15-alpine
+    container_name: inventario-db-dev
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: inventario_db
+      POSTGRES_USER: inventario_dev
+      POSTGRES_PASSWORD: dev_password_123
+    volumes:
+      - postgres_data_dev:/var/lib/postgresql/data
+    networks:
+      - inventario-network
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U inventario_dev -d inventario_db" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    ports:
+      - "5433:5432" # Puerto diferente para no chocar con local o prod
+
+  # Backend Node.js (con Nodemon para hot-reload)
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: inventario-api-dev
+    restart: unless-stopped
+    command: sh -c "npm install && npx prisma generate && npx prisma migrate deploy && npm run dev"
+    environment:
+      NODE_ENV: development
+      DATABASE_URL: postgresql://inventario_dev:dev_password_123@postgres:5432/inventario_db
+      JWT_SECRET: ${JWT_SECRET:-clave_secreta_desarrollo_inventario}
+      PORT: 3001
+      UPLOAD_DIR: /app/uploads
+    volumes:
+      - ./backend:/app
+      - /app/node_modules
+      - uploads_dev:/app/uploads
+    networks:
+      - inventario-network
+    depends_on:
+      postgres:
+        condition: service_healthy
+    ports:
+      - "3001:3001"
+
+  # Frontend React (con Vite server para hot-reload)
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+      target: builder
+    container_name: inventario-web-dev
+    restart: unless-stopped
+    command: npm run dev -- --host
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+    ports:
+      - "8081:5173"
+    networks:
+      - inventario-network
+    environment:
+      - VITE_API_URL=http://localhost:3001/api
+      - CHOKIDAR_USEPOLLING=true
+
+  # Adminer Database GUI
+  adminer:
+    image: adminer
+    container_name: inventario-db-admin-dev
+    restart: unless-stopped
+    ports:
+      - "8083:8080"
+    networks:
+      - inventario-network
+    depends_on:
+      - postgres
+
+networks:
+  inventario-network:
+    driver: bridge
+
+volumes:
+  postgres_data_dev:
+  uploads_dev:

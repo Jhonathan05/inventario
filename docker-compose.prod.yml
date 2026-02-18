@@ -1,0 +1,57 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:15-alpine
+    container_name: inventario-db-prod
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: inventario_db
+      POSTGRES_USER: inventario_prod
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+    volumes:
+      - postgres_data_prod:/var/lib/postgresql/data
+    networks:
+      - inventario-network
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U inventario_prod -d inventario_db" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  backend:
+    image: ${DOCKER_HUB_USER:-local}/inventario-backend:latest
+    container_name: inventario-api-prod
+    restart: unless-stopped
+    environment:
+      NODE_ENV: production
+      DATABASE_URL: postgresql://inventario_prod:${DB_PASSWORD}@postgres:5432/inventario_db
+      JWT_SECRET: ${JWT_SECRET}
+      PORT: 3001
+      UPLOAD_DIR: /app/uploads
+    volumes:
+      - uploads_prod:/app/uploads
+    networks:
+      - inventario-network
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  frontend:
+    image: ${DOCKER_HUB_USER:-local}/inventario-frontend:latest
+    container_name: inventario-web-prod
+    restart: unless-stopped
+    ports:
+      - "${FRONTEND_PORT:-8080}:80"
+    networks:
+      - inventario-network
+    depends_on:
+      - backend
+
+networks:
+  inventario-network:
+    driver: bridge
+
+volumes:
+  postgres_data_prod:
+  uploads_prod:

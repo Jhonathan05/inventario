@@ -1,0 +1,174 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ==========================================
+// CATEGORÍAS DE ACTIVOS
+// ==========================================
+model Categoria {
+  id      Int      @id @default(autoincrement())
+  nombre  String   @unique
+  icono   String?  // Nombre del icono para el frontend
+  activos Activo[]
+
+  @@map("categorias")
+}
+
+// ==========================================
+// ACTIVOS TECNOLÓGICOS
+// ==========================================
+model Activo {
+  id            Int          @id @default(autoincrement())
+  placa         String       @unique
+  serial        String?
+  marca         String
+  modelo        String
+  descripcion   String?
+  estado        EstadoActivo @default(DISPONIBLE)
+  categoriaId   Int
+  categoria     Categoria    @relation(fields: [categoriaId], references: [id])
+  // Campos adicionales opcionales
+  color         String?
+  ubicacion     String?      // Sede, piso, oficina
+  fechaCompra   DateTime?
+  valorCompra   Decimal?
+  garantiaHasta DateTime?
+  observaciones String?
+  // Relaciones
+  asignaciones  Asignacion[]
+  hojaVida      HojaVida[]
+  documentos    Documento[]
+  creadoEn      DateTime     @default(now())
+  actualizadoEn DateTime     @updatedAt
+
+  @@map("activos")
+}
+
+enum EstadoActivo {
+  DISPONIBLE
+  ASIGNADO
+  EN_MANTENIMIENTO
+  DADO_DE_BAJA
+}
+
+// ==========================================
+// FUNCIONARIOS
+// ==========================================
+model Funcionario {
+  id           Int          @id @default(autoincrement())
+  nombre       String
+  cedula       String       @unique
+  cargo        String?
+  area         String?
+  email        String?
+  telefono     String?
+  activo       Boolean      @default(true)
+  asignaciones Asignacion[]
+  creadoEn     DateTime     @default(now())
+
+  @@map("funcionarios")
+}
+
+// ==========================================
+// ASIGNACIONES (Historial de movimientos)
+// ==========================================
+model Asignacion {
+  id            Int            @id @default(autoincrement())
+  activoId      Int
+  activo        Activo         @relation(fields: [activoId], references: [id])
+  funcionarioId Int
+  funcionario   Funcionario    @relation(fields: [funcionarioId], references: [id])
+  fechaInicio   DateTime       @default(now())
+  fechaFin      DateTime?      // null = asignación activa
+  tipo          TipoMovimiento
+  observaciones String?
+  realizadoPor  String?        // Usuario del sistema que registró el movimiento
+  documentos    Documento[]
+
+  @@map("asignaciones")
+}
+
+enum TipoMovimiento {
+  ASIGNACION
+  TRASLADO
+  DEVOLUCION
+}
+
+// ==========================================
+// HOJA DE VIDA (Mantenimientos, reparaciones, suministros)
+// ==========================================
+model HojaVida {
+  id          Int          @id @default(autoincrement())
+  activoId    Int
+  activo      Activo       @relation(fields: [activoId], references: [id])
+  tipo        TipoServicio
+  descripcion String
+  tecnico     String?      // Nombre del técnico o empresa
+  costo       Decimal?
+  fecha       DateTime     @default(now())
+  proximoMantenimiento DateTime?
+  documentos  Documento[]
+  registradoPor String?   // Usuario del sistema
+
+  @@map("hoja_vida")
+}
+
+enum TipoServicio {
+  MANTENIMIENTO
+  REPARACION
+  SUMINISTRO
+  INSPECCION
+  ACTUALIZACION
+}
+
+// ==========================================
+// DOCUMENTOS ADJUNTOS (PDF, imágenes)
+// ==========================================
+model Documento {
+  id           Int         @id @default(autoincrement())
+  nombre       String      // Nombre original del archivo
+  nombreArchivo String     // Nombre en el servidor (UUID)
+  ruta         String      // Ruta relativa en el servidor
+  tipo         String      // MIME type: application/pdf, image/jpeg, etc.
+  tamano       Int?        // Tamaño en bytes
+  // Relaciones polimórficas
+  activoId     Int?
+  activo       Activo?     @relation(fields: [activoId], references: [id])
+  asignacionId Int?
+  asignacion   Asignacion? @relation(fields: [asignacionId], references: [id])
+  hojaVidaId   Int?
+  hojaVida     HojaVida?   @relation(fields: [hojaVidaId], references: [id])
+  creadoEn     DateTime    @default(now())
+
+  @@map("documentos")
+}
+
+// ==========================================
+// USUARIOS DEL SISTEMA
+// ==========================================
+model Usuario {
+  id        Int      @id @default(autoincrement())
+  nombre    String
+  email     String   @unique
+  password  String
+  rol       Rol      @default(TECNICO)
+  activo    Boolean  @default(true)
+  creadoEn  DateTime @default(now())
+  actualizadoEn DateTime @updatedAt
+
+  @@map("usuarios")
+}
+
+enum Rol {
+  ADMIN
+  TECNICO
+  CONSULTA
+}
