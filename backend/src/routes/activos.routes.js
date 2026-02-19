@@ -74,9 +74,13 @@ router.get('/:id', authMiddleware, async (req, res) => {
 router.post('/', authMiddleware, requireRole('ADMIN', 'TECNICO'), upload.single('imagen'), async (req, res) => {
     try {
         const data = req.body;
-        // Convertir campos numéricos si vienen como string (multipart/form-data lo envía todo como string)
+        // Convertir campos numéricos y de fecha (multipart/form-data los envía como string)
         if (data.categoriaId) data.categoriaId = parseInt(data.categoriaId);
         if (data.valorCompra) data.valorCompra = parseFloat(data.valorCompra);
+        if (data.fechaCompra) data.fechaCompra = new Date(data.fechaCompra);
+        if (data.garantiaHasta) data.garantiaHasta = new Date(data.garantiaHasta);
+        // Remove empty strings to allow DB defaults to work
+        if (data.categoriaId === '' || isNaN(data.categoriaId)) delete data.categoriaId;
 
         // Manejo de imagen
         if (req.file) {
@@ -88,7 +92,7 @@ router.post('/', authMiddleware, requireRole('ADMIN', 'TECNICO'), upload.single(
     } catch (err) {
         console.error(err);
         if (err.code === 'P2002') return res.status(400).json({ error: 'La placa ya existe' });
-        res.status(500).json({ error: 'Error al crear activo' });
+        res.status(500).json({ error: 'Error al crear activo', detail: err.message });
     }
 });
 
@@ -98,6 +102,9 @@ router.put('/:id', authMiddleware, requireRole('ADMIN', 'TECNICO'), upload.singl
         const data = req.body;
         if (data.categoriaId) data.categoriaId = parseInt(data.categoriaId);
         if (data.valorCompra) data.valorCompra = parseFloat(data.valorCompra);
+        if (data.fechaCompra) data.fechaCompra = new Date(data.fechaCompra);
+        if (data.garantiaHasta) data.garantiaHasta = new Date(data.garantiaHasta);
+        if (data.categoriaId === '' || isNaN(data.categoriaId)) delete data.categoriaId;
 
         if (req.file) {
             data.imagen = `uploads/${req.file.filename}`;
@@ -111,7 +118,7 @@ router.put('/:id', authMiddleware, requireRole('ADMIN', 'TECNICO'), upload.singl
         res.json(activo);
     } catch (err) {
         console.error(err);
-        res.status(500).json({ error: 'Error al actualizar activo' });
+        res.status(500).json({ error: 'Error al actualizar activo', detail: err.message });
     }
 });
 

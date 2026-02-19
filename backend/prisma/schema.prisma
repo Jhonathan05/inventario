@@ -33,8 +33,8 @@ model Activo {
   modelo        String
   descripcion   String?
   estado        EstadoActivo @default(DISPONIBLE)
-  categoriaId   Int
-  categoria     Categoria    @relation(fields: [categoriaId], references: [id])
+  categoriaId   Int?
+  categoria     Categoria?   @relation(fields: [categoriaId], references: [id])
   // Campos adicionales opcionales
   color         String?
   ubicacion     String?      // Sede, piso, oficina
@@ -43,6 +43,41 @@ model Activo {
   garantiaHasta DateTime?
   observaciones String?
   imagen        String?      // URL de la imagen principal
+
+  // ==========================================
+  // CAMPOS NUEVOS - ADMINISTRACIÓN
+  // ==========================================
+  empresaPropietaria   String?   @default("FEDERACION")
+  dependencia          String?   @default("SUCURSAL IBAGUE")
+  fuenteRecurso        String?   // FON1, FON2, FEPC
+  tipoRecurso          String?   // PAC, PROYECTO, RECURSO PROPIO
+  tipoControl          String?   @default("CONTROLADO") // CONTROLADO, ADMINISTRADO
+  estadoOperativo      String?   @default("EN OPERACIÓN") // ALMACENADO, TRÁNSITO, EN OPERACIÓN, BAJA, HURTO
+  razonEstado          String?   @default("DISPONIBLE") // DISPONIBLE, CUSTODIA, etc.
+
+  // ==========================================
+  // CAMPOS NUEVOS - FUNCIONARIO
+  // ==========================================
+  empresaFuncionario   String?   @default("FEDERACION")
+  tipoPersonal         String?   // EMPLEADO, CONTRATISTA
+  cedulaFuncionario    String?
+  shortname            String?
+  nombreFuncionario    String?
+  departamento         String?   @default("TOLIMA")
+  ciudad               String?   @default("IBAGUE")
+  cargo                String?
+  area                 String?
+
+  // ==========================================
+  // CAMPOS NUEVOS - ESPECIFICACIONES
+  // ==========================================
+  tipo                 String?   // EQUIPO ESCRITORIO, EQUIPO PORTATIL, etc.
+  nombreEquipo         String?   // Nombre de red del equipo
+  procesador           String?
+  memoriaRam           String?
+  discoDuro            String?
+  sistemaOperativo     String?
+
   // Relaciones
   asignaciones  Asignacion[]
   hojaVida      HojaVida[]
