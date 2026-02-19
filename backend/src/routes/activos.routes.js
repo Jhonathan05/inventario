@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const prisma = require('../lib/prisma');
 const { authMiddleware, requireRole } = require('../middleware/auth.middleware');
+const upload = require('../middleware/upload.middleware');
 
 // GET /api/activos - Listar con filtros
 router.get('/', authMiddleware, async (req, res) => {
@@ -63,26 +64,46 @@ router.get('/:id', authMiddleware, async (req, res) => {
 });
 
 // POST /api/activos
-router.post('/', authMiddleware, requireRole('ADMIN', 'TECNICO'), async (req, res) => {
+router.post('/', authMiddleware, requireRole('ADMIN', 'TECNICO'), upload.single('imagen'), async (req, res) => {
     try {
-        const activo = await prisma.activo.create({ data: req.body, include: { categoria: true } });
+        const data = req.body;
+        // Convertir campos numéricos si vienen como string (multipart/form-data lo envía todo como string)
+        if (data.categoriaId) data.categoriaId = parseInt(data.categoriaId);
+        if (data.valorCompra) data.valorCompra = parseFloat(data.valorCompra);
+
+        // Manejo de imagen
+        if (req.file) {
+            data.imagen = `uploads/${req.file.filename}`;
+        }
+
+        const activo = await prisma.activo.create({ data, include: { categoria: true } });
         res.status(201).json(activo);
     } catch (err) {
+        console.error(err);
         if (err.code === 'P2002') return res.status(400).json({ error: 'La placa ya existe' });
         res.status(500).json({ error: 'Error al crear activo' });
     }
 });
 
 // PUT /api/activos/:id
-router.put('/:id', authMiddleware, requireRole('ADMIN', 'TECNICO'), async (req, res) => {
+router.put('/:id', authMiddleware, requireRole('ADMIN', 'TECNICO'), upload.single('imagen'), async (req, res) => {
     try {
+        const data = req.body;
+        if (data.categoriaId) data.categoriaId = parseInt(data.categoriaId);
+        if (data.valorCompra) data.valorCompra = parseFloat(data.valorCompra);
+
+        if (req.file) {
+            data.imagen = `uploads/${req.file.filename}`;
+        }
+
         const activo = await prisma.activo.update({
             where: { id: parseInt(req.params.id) },
-            data: req.body,
+            data,
             include: { categoria: true },
         });
         res.json(activo);
     } catch (err) {
+        console.error(err);
         res.status(500).json({ error: 'Error al actualizar activo' });
     }
 });

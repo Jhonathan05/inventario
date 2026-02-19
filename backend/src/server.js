@@ -8,7 +8,7 @@ const PORT = process.env.PORT || 3001;
 
 // Middleware
 app.use(cors({
-  origin: process.env.FRONTEND_URL || '*',
+  origin: ['http://localhost:8083', 'http://localhost:5173', 'http://127.0.0.1:8083', process.env.FRONTEND_URL || '*'],
   credentials: true,
 }));
 app.use(express.json());
@@ -24,7 +24,7 @@ app.use('/api/categorias', require('./routes/categorias.routes'));
 app.use('/api/activos', require('./routes/activos.routes'));
 app.use('/api/funcionarios', require('./routes/funcionarios.routes'));
 app.use('/api/asignaciones', require('./routes/asignaciones.routes'));
-app.use('/api/hoja-vida', require('./routes/hojaVida.routes'));
+app.use('/api/hojavida', require('./routes/hojavida.routes'));
 app.use('/api/documentos', require('./routes/documentos.routes'));
 
 // Health check

@@ -29,7 +29,7 @@ services:
       dockerfile: Dockerfile
     container_name: inventario-api-dev
     restart: unless-stopped
-    command: sh -c "npm install && npx prisma generate && npx prisma migrate deploy && npm run dev"
+    command: sh -c "npm install && npx prisma generate && npx prisma db push && npm run dev"
     environment:
       NODE_ENV: development
       DATABASE_URL: postgresql://inventario_dev:dev_password_123@postgres:5432/inventario_db

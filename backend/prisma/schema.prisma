@@ -42,6 +42,7 @@ model Activo {
   valorCompra   Decimal?
   garantiaHasta DateTime?
   observaciones String?
+  imagen        String?      // URL de la imagen principal
   // Relaciones
   asignaciones  Asignacion[]
   hojaVida      HojaVida[]
@@ -111,12 +112,20 @@ model HojaVida {
   activo      Activo       @relation(fields: [activoId], references: [id])
   tipo        TipoServicio
   descripcion String
-  tecnico     String?      // Nombre del técnico o empresa
+  tecnico     String?      // Proveedor externo o detalle adicional
   costo       Decimal?
   fecha       DateTime     @default(now())
   proximoMantenimiento DateTime?
   documentos  Documento[]
-  registradoPor String?   // Usuario del sistema
+  registradoPor String?   // Usuario del sistema que creo el ticket
+  casoAranda    String?
+  estado        EstadoMantenimiento @default(EN_PROCESO)
+  trazas        TrazaHojaVida[]
+  
+  // Nuevos campos para el proceso
+  diagnostico   String?
+  responsableId Int?
+  responsable   Usuario?    @relation("ResponsableTicket", fields: [responsableId], references: [id])
 
   @@map("hoja_vida")
 }
@@ -127,6 +136,28 @@ enum TipoServicio {
   SUMINISTRO
   INSPECCION
   ACTUALIZACION
+}
+
+enum EstadoMantenimiento {
+  CREADO
+  EN_PROCESO
+  SUSPENDIDO
+  FINALIZADO
+  CERRADO // Mantener por compatibilidad si hay datos, o migrar
+}
+
+model TrazaHojaVida {
+  id              Int                 @id @default(autoincrement())
+  hojaVidaId      Int
+  hojaVida        HojaVida            @relation(fields: [hojaVidaId], references: [id])
+  estadoAnterior  EstadoMantenimiento?
+  estadoNuevo     EstadoMantenimiento
+  observacion     String
+  fecha           DateTime            @default(now())
+  usuarioId       Int?
+  usuario         Usuario?            @relation(fields: [usuarioId], references: [id])
+
+  @@map("trazas_hoja_vida")
 }
 
 // ==========================================
@@ -155,14 +186,16 @@ model Documento {
 // USUARIOS DEL SISTEMA
 // ==========================================
 model Usuario {
-  id        Int      @id @default(autoincrement())
+  id        Int             @id @default(autoincrement())
   nombre    String
-  email     String   @unique
+  email     String          @unique
   password  String
-  rol       Rol      @default(TECNICO)
-  activo    Boolean  @default(true)
-  creadoEn  DateTime @default(now())
-  actualizadoEn DateTime @updatedAt
+  rol       Rol             @default(TECNICO)
+  activo    Boolean         @default(true)
+  creadoEn  DateTime        @default(now())
+  actualizadoEn DateTime    @updatedAt
+  trazas    TrazaHojaVida[]
+  asignacionesResponsable HojaVida[] @relation("ResponsableTicket")
 
   @@map("usuarios")
 }
