@@ -201,14 +201,14 @@ const ActivoDetail = () => {
                                             <td className="whitespace-nowrap py-4 pl-4 pr-3 text-sm text-gray-900">{formatDate(hv.fecha)}</td>
                                             <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500">{hv.tipo}</td>
                                             <td className="px-3 py-4 text-sm text-gray-500">{hv.descripcion}</td>
-                                            <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500">{hv.tecnico}</td>
+                                            <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500">{hv.responsable?.nombre || hv.tecnico || '-'}</td>
                                             <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500">{formatCurrency(hv.costo)}</td>
                                             <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500">{hv.casoAranda || '-'}</td>
                                             <td className="whitespace-nowrap px-3 py-4 text-sm">
                                                 <span className={`inline-flex items-center rounded-md px-2 py-1 text-xs font-medium ring-1 ring-inset ${hv.estado === 'CREADO' ? 'bg-blue-50 text-blue-700 ring-blue-700/10' :
-                                                        hv.estado === 'EN_PROCESO' ? 'bg-yellow-50 text-yellow-800 ring-yellow-600/20' :
-                                                            (hv.estado === 'FINALIZADO' || hv.estado === 'CERRADO') ? 'bg-green-50 text-green-700 ring-green-600/20' :
-                                                                'bg-gray-50 text-gray-600 ring-gray-500/10'
+                                                    hv.estado === 'EN_PROCESO' ? 'bg-yellow-50 text-yellow-800 ring-yellow-600/20' :
+                                                        (hv.estado === 'FINALIZADO' || hv.estado === 'CERRADO') ? 'bg-green-50 text-green-700 ring-green-600/20' :
+                                                            'bg-gray-50 text-gray-600 ring-gray-500/10'
                                                     }`}>
                                                     {hv.estado?.replace('_', ' ') || 'EN PROCESO'}
                                                 </span>

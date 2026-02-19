@@ -125,6 +125,8 @@ const FuncionariosForm = ({ open, onClose, funcionario }) => {
                                 value={formData.email}
                                 onChange={handleChange}
                                 placeholder="ejemplo@empresa.com"
+                                pattern="[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,}$"
+                                title="Debe ser un correo válido: ejemplo@empresa.com"
                             />
                         </div>
                         <div>

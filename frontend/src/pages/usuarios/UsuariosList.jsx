@@ -1,10 +1,13 @@
 import { useState, useEffect } from 'react';
 import api from '../../lib/axios';
+import UsuarioForm from './components/UsuarioForm';
 
 const Usuarios = () => {
     const [usuarios, setUsuarios] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
+    const [isModalOpen, setIsModalOpen] = useState(false);
+    const [selectedUsuario, setSelectedUsuario] = useState(null);
 
     useEffect(() => {
         fetchUsuarios();
@@ -12,8 +15,10 @@ const Usuarios = () => {
 
     const fetchUsuarios = async () => {
         try {
+            setLoading(true);
             const response = await api.get('/usuarios');
             setUsuarios(response.data);
+            setError(null);
         } catch (err) {
             console.error(err);
             const msg = err.response?.data?.error || err.message || 'Error desconocido';
@@ -23,8 +28,25 @@ const Usuarios = () => {
         }
     };
 
-    if (loading) return <div className="p-4">Cargando usuarios...</div>;
-    if (error) return <div className="p-4 text-red-500">{error}</div>;
+    const handleCreate = () => {
+        setSelectedUsuario(null);
+        setIsModalOpen(true);
+    };
+
+    const handleEdit = (usuario) => {
+        setSelectedUsuario(usuario);
+        setIsModalOpen(true);
+    };
+
+    const handleCloseModal = (shouldRefresh) => {
+        setIsModalOpen(false);
+        setSelectedUsuario(null);
+        if (shouldRefresh) {
+            fetchUsuarios();
+        }
+    };
+
+    if (loading && usuarios.length === 0) return <div className="p-4">Cargando usuarios...</div>;
 
     return (
         <div>
@@ -38,12 +60,16 @@ const Usuarios = () => {
                 <div className="mt-4 sm:ml-16 sm:mt-0 sm:flex-none">
                     <button
                         type="button"
+                        onClick={handleCreate}
                         className="block rounded-md bg-indigo-600 px-3 py-2 text-center text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"
                     >
                         Agregar Usuario
                     </button>
                 </div>
             </div>
+
+            {error && <div className="mt-4 p-4 text-red-500 bg-red-50 rounded-md border border-red-200">{error}</div>}
+
             <div className="mt-8 flow-root">
                 <div className="-mx-4 -my-2 overflow-x-auto sm:-mx-6 lg:-mx-8">
                     <div className="inline-block min-w-full py-2 align-middle sm:px-6 lg:px-8">
@@ -88,9 +114,12 @@ const Usuarios = () => {
                                                 </span>
                                             </td>
                                             <td className="whitespace-nowrap py-4 pl-3 pr-4 text-right text-sm font-medium sm:pr-6">
-                                                <a href="#" className="text-indigo-600 hover:text-indigo-900">
+                                                <button
+                                                    onClick={() => handleEdit(usuario)}
+                                                    className="text-indigo-600 hover:text-indigo-900"
+                                                >
                                                     Editar<span className="sr-only">, {usuario.nombre}</span>
-                                                </a>
+                                                </button>
                                             </td>
                                         </tr>
                                     ))}
@@ -100,6 +129,14 @@ const Usuarios = () => {
                     </div>
                 </div>
             </div>
+
+            {isModalOpen && (
+                <UsuarioForm
+                    open={isModalOpen}
+                    onClose={handleCloseModal}
+                    usuario={selectedUsuario}
+                />
+            )}
         </div>
     );
 };

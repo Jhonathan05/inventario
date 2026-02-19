@@ -52,6 +52,7 @@ router.get('/:id', authMiddleware, async (req, res) => {
                 hojaVida: {
                     include: {
                         documentos: true,
+                        responsable: true, // Include the assigned user
                         trazas: {
                             include: { usuario: true },
                             orderBy: { fecha: 'desc' }
