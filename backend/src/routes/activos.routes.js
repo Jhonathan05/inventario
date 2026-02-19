@@ -50,7 +50,13 @@ router.get('/:id', authMiddleware, async (req, res) => {
                     orderBy: { fechaInicio: 'desc' },
                 },
                 hojaVida: {
-                    include: { documentos: true },
+                    include: {
+                        documentos: true,
+                        trazas: {
+                            include: { usuario: true },
+                            orderBy: { fecha: 'desc' }
+                        }
+                    },
                     orderBy: { fecha: 'desc' },
                 },
                 documentos: true,

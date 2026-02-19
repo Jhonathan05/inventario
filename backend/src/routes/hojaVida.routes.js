@@ -86,7 +86,12 @@ router.post('/', authMiddleware, requireRole('ADMIN', 'TECNICO'), upload.single(
 router.put('/:id/procesar', authMiddleware, requireRole('ADMIN', 'TECNICO'), upload.single('file'), async (req, res) => {
     try {
         const { id } = req.params;
-        const { tipo, responsableId, diagnostico, casoAranda, costo, estado } = req.body;
+        console.log('--- PROCESSING PUT /hojavida/:id/procesar ---');
+        console.log('ID:', id);
+        console.log('Body:', JSON.stringify(req.body, null, 2));
+        console.log('User:', req.user);
+
+        const { tipo, responsableId, diagnostico, casoAranda, costo, estado, nuevaNota } = req.body;
 
         const hv = await prisma.hojaVida.findUnique({ where: { id: parseInt(id) } });
         if (!hv) return res.status(404).json({ error: 'Registro no encontrado' });
@@ -98,6 +103,8 @@ router.put('/:id/procesar', authMiddleware, requireRole('ADMIN', 'TECNICO'), upl
         if (casoAranda) dataToUpdate.casoAranda = casoAranda;
         if (costo) dataToUpdate.costo = parseFloat(costo);
         if (estado) dataToUpdate.estado = estado;
+
+        console.log('Data to Update:', dataToUpdate);
 
         const actualizado = await prisma.hojaVida.update({
             where: { id: parseInt(id) },
@@ -119,27 +126,33 @@ router.put('/:id/procesar', authMiddleware, requireRole('ADMIN', 'TECNICO'), upl
             });
         }
 
-        // Crear traza si hubo cambio de estado o diagnóstico significativo
-        if (estado && estado !== hv.estado) {
-            await prisma.trazaHojaVida.create({
+        // Crear traza si hubo cambio de estado O si se envió una nueva nota de bitácora
+        const huboCambioEstado = estado && estado !== hv.estado;
+        const contenidoNota = nuevaNota || (diagnostico !== hv.diagnostico ? diagnostico : null);
+
+        console.log('Hubo cambio estado:', huboCambioEstado);
+        console.log('Nueva Nota Raw:', nuevaNota);
+        console.log('Contenido Nota Final:', contenidoNota);
+
+        if (huboCambioEstado || contenidoNota) {
+            console.log('Creating Traza...');
+            const traza = await prisma.trazaHojaVida.create({
                 data: {
                     hojaVidaId: parseInt(id),
                     estadoAnterior: hv.estado,
-                    estadoNuevo: estado,
-                    observacion: diagnostico ? `Actualización de estado. Diagnóstico: ${diagnostico.substring(0, 100)}...` : 'Cambio de estado',
+                    estadoNuevo: estado || hv.estado,
+                    observacion: contenidoNota || `Cambio de estado a ${estado}`,
                     usuarioId: req.user.id
                 }
             });
-        }
-
-        // Ver si necesitamos actualizar el estado del activo
-        if (estado === 'FINALIZADO') {
-            // Logica opcional para liberar activo
+            console.log('Traza created:', traza);
+        } else {
+            console.log('No condition met for Traza creation.');
         }
 
         res.json(actualizado);
     } catch (err) {
-        console.error(err);
+        console.error('Error in PUT /procesar:', err);
         res.status(500).json({ error: 'Error al procesar registro' });
     }
 });

@@ -8,7 +8,8 @@ const EstadoHojaVidaForm = ({ open, onClose, hojaVida }) => {
         responsableId: hojaVida?.responsableId || '',
         casoAranda: hojaVida?.casoAranda || '',
         costo: hojaVida?.costo || '',
-        estado: hojaVida?.estado || 'EN_PROCESO'
+        estado: hojaVida?.estado || 'EN_PROCESO',
+        nuevaNota: ''
     });
     const [usuarios, setUsuarios] = useState([]);
     const [file, setFile] = useState(null);
@@ -55,6 +56,7 @@ const EstadoHojaVidaForm = ({ open, onClose, hojaVida }) => {
             data.append('casoAranda', formData.casoAranda);
             data.append('costo', formData.costo);
             data.append('estado', formData.estado);
+            data.append('nuevaNota', formData.nuevaNota);
 
             if (file) {
                 data.append('file', file);
@@ -80,14 +82,22 @@ const EstadoHojaVidaForm = ({ open, onClose, hojaVida }) => {
                 <div className="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity" onClick={() => onClose(false)}></div>
                 <span className="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
                 <div className="relative inline-block align-bottom bg-white rounded-lg px-4 pt-5 pb-4 text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-2xl sm:w-full sm:p-6">
-                    <h3 className="text-xl font-bold text-gray-900 mb-4">
-                        Gestionar Evento
-                    </h3>
+                    <div className="flex justify-between items-center mb-4">
+                        <h3 className="text-xl font-bold text-gray-900">
+                            Gestionar Evento
+                        </h3>
+                        <span className={`inline-flex items-center rounded-md px-2 py-1 text-xs font-medium ring-1 ring-inset ${hojaVida.estado === 'CREADO' ? 'bg-blue-50 text-blue-700 ring-blue-700/10' :
+                            hojaVida.estado === 'EN_PROCESO' ? 'bg-yellow-50 text-yellow-800 ring-yellow-600/20' :
+                                'bg-green-50 text-green-700 ring-green-600/20'
+                            }`}>
+                            ID: #{hojaVida.id} - {hojaVida.estado}
+                        </span>
+                    </div>
 
                     {error && <div className="mb-4 text-sm text-red-600 font-medium">{error}</div>}
 
                     <div className="mb-6 bg-gray-50 p-3 rounded-md border border-gray-200">
-                        <h4 className="font-semibold text-gray-700 text-sm mb-2">Detalles Iniciales (Solo Lectura)</h4>
+                        <h4 className="font-semibold text-gray-700 text-sm mb-2">Detalles Iniciales</h4>
                         <div className="grid grid-cols-2 gap-4 text-sm">
                             <div>
                                 <span className="block text-gray-500">Fecha de Creación</span>
@@ -99,8 +109,8 @@ const EstadoHojaVidaForm = ({ open, onClose, hojaVida }) => {
                             </div>
                         </div>
                         <div className="mt-2 text-sm">
-                            <span className="block text-gray-500">Descripción Inicial</span>
-                            <p className="mt-1 text-gray-800 whitespace-pre-wrap">{hojaVida.descripcion}</p>
+                            <span className="block text-gray-500">Descripción Original</span>
+                            <p className="mt-1 text-gray-800 whitespace-pre-wrap italic">"{hojaVida.descripcion}"</p>
                         </div>
                     </div>
 
@@ -110,7 +120,8 @@ const EstadoHojaVidaForm = ({ open, onClose, hojaVida }) => {
                                 <label className="block text-sm font-medium text-gray-700">Tipo de Evento</label>
                                 <select
                                     name="tipo"
-                                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm border p-2 bg-white"
+                                    disabled={hojaVida.estado === 'FINALIZADO'}
+                                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm border p-2 bg-white disabled:bg-gray-100"
                                     value={formData.tipo}
                                     onChange={handleChange}
                                 >
@@ -126,7 +137,8 @@ const EstadoHojaVidaForm = ({ open, onClose, hojaVida }) => {
                                 <label className="block text-sm font-medium text-gray-700">TI Asignado</label>
                                 <select
                                     name="responsableId"
-                                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm border p-2 bg-white"
+                                    disabled={hojaVida.estado === 'FINALIZADO'}
+                                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm border p-2 bg-white disabled:bg-gray-100"
                                     value={formData.responsableId}
                                     onChange={handleChange}
                                 >
@@ -139,25 +151,47 @@ const EstadoHojaVidaForm = ({ open, onClose, hojaVida }) => {
                         </div>
 
                         <div>
-                            <label className="block text-sm font-medium text-gray-700">Diagnóstico / Tareas Realizadas</label>
-                            <textarea
-                                name="diagnostico"
-                                rows="3"
-                                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm border p-2 text-gray-900"
-                                value={formData.diagnostico}
-                                onChange={handleChange}
-                                placeholder="Describa el trabajo realizado..."
-                            ></textarea>
+                            <label className="block text-sm font-medium text-gray-700">
+                                {hojaVida.estado === 'FINALIZADO' ? 'Diagnóstico Final' : 'Agregar Nota de Avance (Bitácora)'}
+                            </label>
+                            {hojaVida.estado !== 'FINALIZADO' ? (
+                                <textarea
+                                    name="nuevaNota"
+                                    rows="2"
+                                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm border p-2 text-gray-900"
+                                    value={formData.nuevaNota}
+                                    onChange={handleChange}
+                                    placeholder="Describa el avance realizado ahora..."
+                                ></textarea>
+                            ) : (
+                                <div className="mt-1 block w-full rounded-md border border-gray-200 p-2 text-sm text-gray-700 bg-gray-50 whitespace-pre-wrap">
+                                    {hojaVida.diagnostico || 'Sin diagnóstico final'}
+                                </div>
+                            )}
                         </div>
+
+                        {hojaVida.estado !== 'FINALIZADO' && (
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700">Resumen / Diagnóstico acumulado</label>
+                                <textarea
+                                    name="diagnostico"
+                                    rows="2"
+                                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm border p-2 text-gray-900 bg-gray-50"
+                                    value={formData.diagnostico}
+                                    onChange={handleChange}
+                                    placeholder="Resumen general del estado..."
+                                ></textarea>
+                            </div>
+                        )}
 
                         <div className="grid grid-cols-2 gap-4">
                             <div>
                                 <label className="block text-sm font-medium text-gray-700">Caso Aranda</label>
-                                <input type="text" name="casoAranda" className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm border p-2" value={formData.casoAranda} onChange={handleChange} />
+                                <input type="text" name="casoAranda" disabled={hojaVida.estado === 'FINALIZADO'} className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm border p-2 disabled:bg-gray-100" value={formData.casoAranda} onChange={handleChange} />
                             </div>
                             <div>
                                 <label className="block text-sm font-medium text-gray-700">Costo Total</label>
-                                <input type="number" name="costo" className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm border p-2" value={formData.costo} onChange={handleChange} />
+                                <input type="number" name="costo" disabled={hojaVida.estado === 'FINALIZADO'} className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm border p-2 disabled:bg-gray-100" value={formData.costo} onChange={handleChange} />
                             </div>
                         </div>
 
@@ -167,7 +201,8 @@ const EstadoHojaVidaForm = ({ open, onClose, hojaVida }) => {
                                 <select
                                     name="estado"
                                     required
-                                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm border p-2 bg-white font-medium"
+                                    disabled={hojaVida.estado === 'FINALIZADO'}
+                                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm border p-2 bg-white font-medium disabled:bg-gray-100"
                                     value={formData.estado}
                                     onChange={handleChange}
                                 >
@@ -179,17 +214,43 @@ const EstadoHojaVidaForm = ({ open, onClose, hojaVida }) => {
 
                             <div>
                                 <label className="block text-sm font-medium text-gray-700">Soporte (Img/PDF)</label>
-                                <input type="file" onChange={handleFileChange} className="mt-1 block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100" accept=".jpg,.jpeg,.png,.pdf" />
+                                <input type="file" disabled={hojaVida.estado === 'FINALIZADO'} onChange={handleFileChange} className="mt-1 block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100 disabled:opacity-50" accept=".jpg,.jpeg,.png,.pdf" />
+                            </div>
+                        </div>
+
+                        {/* Bitácora / Historia */}
+                        <div className="mt-8">
+                            <h4 className="text-sm font-bold text-gray-900 border-b pb-2 mb-3">Bitácora de Avances</h4>
+                            <div className="space-y-4 max-h-60 overflow-y-auto pr-2">
+                                {hojaVida.trazas && hojaVida.trazas.length > 0 ? (
+                                    hojaVida.trazas.map((traza, idx) => (
+                                        <div key={traza.id} className="relative pl-6 pb-2 border-l-2 border-indigo-200 last:border-0 last:pb-0">
+                                            <div className="absolute -left-[9px] top-1 w-4 h-4 rounded-full bg-indigo-500"></div>
+                                            <div className="text-xs text-gray-500 flex justify-between">
+                                                <span>{new Date(traza.fecha).toLocaleString()}</span>
+                                                <span className="font-semibold text-indigo-600 uppercase">{traza.estadoNuevo}</span>
+                                            </div>
+                                            <p className="text-sm text-gray-800 mt-1">{traza.observacion}</p>
+                                            <div className="text-[10px] text-gray-400 mt-1">
+                                                Por: {traza.usuario?.nombre || 'Semejante'}
+                                            </div>
+                                        </div>
+                                    ))
+                                ) : (
+                                    <p className="text-xs text-gray-500 italic">No hay historial registrado aún.</p>
+                                )}
                             </div>
                         </div>
 
                         <div className="mt-6 flex justify-end gap-3">
                             <button type="button" onClick={() => onClose(false)} className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50">
-                                Cancelar
+                                {hojaVida.estado === 'FINALIZADO' ? 'Cerrar' : 'Cancelar'}
                             </button>
-                            <button type="submit" disabled={loading} className="px-4 py-2 text-sm font-medium text-white bg-indigo-600 rounded-md hover:bg-indigo-700 disabled:opacity-50">
-                                {loading ? 'Guardando...' : 'Actualizar y Procesar'}
-                            </button>
+                            {hojaVida.estado !== 'FINALIZADO' && (
+                                <button type="submit" disabled={loading} className="px-4 py-2 text-sm font-medium text-white bg-indigo-600 rounded-md hover:bg-indigo-700 disabled:opacity-50">
+                                    {loading ? 'Guardando...' : 'Guardar Avance'}
+                                </button>
+                            )}
                         </div>
                     </form>
                 </div>
