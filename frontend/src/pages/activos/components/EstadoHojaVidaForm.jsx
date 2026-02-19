@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react';
 import api from '../../../lib/axios';
+import { generateMaintenanceReport } from '../reports/MaintenanceReport';
 
-const EstadoHojaVidaForm = ({ open, onClose, hojaVida }) => {
+const EstadoHojaVidaForm = ({ open, onClose, hojaVida, activo }) => {
     const [formData, setFormData] = useState({
         tipo: hojaVida?.tipo || 'MANTENIMIENTO',
         diagnostico: hojaVida?.diagnostico || '',
@@ -243,6 +244,13 @@ const EstadoHojaVidaForm = ({ open, onClose, hojaVida }) => {
                         </div>
 
                         <div className="mt-6 flex justify-end gap-3">
+                            <button
+                                type="button"
+                                onClick={() => generateMaintenanceReport(activo, hojaVida)}
+                                className="px-4 py-2 text-sm font-medium text-indigo-700 bg-indigo-50 border border-indigo-200 rounded-md hover:bg-indigo-100"
+                            >
+                                📄 Descargar Reporte PDF
+                            </button>
                             <button type="button" onClick={() => onClose(false)} className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50">
                                 {hojaVida.estado === 'FINALIZADO' ? 'Cerrar' : 'Cancelar'}
                             </button>

@@ -1,9 +1,10 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import api from '../../lib/axios';
-import { getImageUrl, formatCurrency } from '../../lib/utils';
+import { getImageUrl } from '../../lib/utils';
 import ActivosForm from './ActivosForm';
 import AsignarActivoModal from './AsignarActivoModal';
+import { exportToExcel } from '../../lib/exportUtils';
 
 const ActivosList = () => {
     const [activos, setActivos] = useState([]);
@@ -58,6 +59,23 @@ const ActivosList = () => {
         }
     };
 
+    const handleExport = () => {
+        const dataToExport = activos.map(a => ({
+            ID: a.id,
+            Placa: a.placa,
+            Serial: a.serial,
+            Marca: a.marca,
+            Modelo: a.modelo,
+            Categoría: a.categoria?.nombre || 'N/A',
+            Estado: a.estado,
+            Ubicación: a.ubicacion,
+            'Asignado A': a.asignaciones?.[0]?.funcionario?.nombre || 'Sin Asignar',
+            'Valor Compra': a.valorCompra,
+            'Fecha Compra': a.fechaCompra ? new Date(a.fechaCompra).toLocaleDateString() : ''
+        }));
+        exportToExcel(dataToExport, 'Inventario_Activos');
+    };
+
     const handleCloseModal = (shouldRefresh = false) => {
         setIsModalOpen(false);
         if (shouldRefresh) {
@@ -74,7 +92,14 @@ const ActivosList = () => {
                         Inventario completo de equipos. Busca por placa, serial o modelo.
                     </p>
                 </div>
-                <div className="mt-4 sm:ml-16 sm:mt-0 sm:flex-none">
+                <div className="mt-4 sm:ml-16 sm:mt-0 sm:flex-none flex gap-3">
+                    <button
+                        type="button"
+                        onClick={handleExport}
+                        className="block rounded-md bg-white px-3 py-2 text-center text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50 from-slate-50"
+                    >
+                        📤 Exportar Excel
+                    </button>
                     <button
                         type="button"
                         onClick={handleCreate}

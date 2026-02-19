@@ -262,6 +262,7 @@ const ActivoDetail = () => {
                     open={isStatusModalOpen}
                     onClose={() => { setIsStatusModalOpen(false); fetchActivo(); }}
                     hojaVida={selectedHV}
+                    activo={activo}
                 />
             )}
         </div>
