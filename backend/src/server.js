@@ -24,8 +24,9 @@ app.use('/api/categorias', require('./routes/categorias.routes'));
 app.use('/api/activos', require('./routes/activos.routes'));
 app.use('/api/funcionarios', require('./routes/funcionarios.routes'));
 app.use('/api/asignaciones', require('./routes/asignaciones.routes'));
-app.use('/api/hojavida', require('./routes/hojavida.routes'));
+app.use('/api/hojavida', require('./routes/hojaVida.routes'));
 app.use('/api/documentos', require('./routes/documentos.routes'));
+app.use('/api/dashboard', require('./routes/dashboard.routes'));
 
 // Health check
 app.get('/api/health', (req, res) => {
