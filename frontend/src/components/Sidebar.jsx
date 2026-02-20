@@ -1,7 +1,7 @@
 import { Link, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 
-const Sidebar = ({ isOpen, toggleSidebar }) => {
+const Sidebar = ({ isOpen, toggleSidebar, onNavigate }) => {
     const { user, logout } = useAuth();
     const location = useLocation();
 
@@ -10,10 +10,16 @@ const Sidebar = ({ isOpen, toggleSidebar }) => {
         { name: 'Activos', href: '/activos', icon: '💻' },
         { name: 'Funcionarios', href: '/funcionarios', icon: '👤' },
         { name: 'Categorías', href: '/categorias', icon: '🏷️' },
+        { name: 'Reportes', href: '/reportes', icon: '📋' },
         { name: 'Usuarios', href: '/usuarios', icon: '👥' },
     ];
 
     const isActive = (path) => location.pathname === path;
+
+    const handleNavClick = () => {
+        // Cerrar sidebar automáticamente en mobile al navegar
+        if (onNavigate) onNavigate();
+    };
 
     return (
         <>
@@ -40,6 +46,7 @@ const Sidebar = ({ isOpen, toggleSidebar }) => {
                         <Link
                             key={item.name}
                             to={item.href}
+                            onClick={handleNavClick}
                             className={`
                 group flex items-center px-4 py-3 text-sm font-medium rounded-md transition-colors
                 ${isActive(item.href)

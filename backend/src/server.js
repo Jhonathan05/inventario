@@ -27,6 +27,7 @@ app.use('/api/asignaciones', require('./routes/asignaciones.routes'));
 app.use('/api/hojavida', require('./routes/hojaVida.routes'));
 app.use('/api/documentos', require('./routes/documentos.routes'));
 app.use('/api/dashboard', require('./routes/dashboard.routes'));
+app.use('/api/reportes', require('./routes/reportes.routes'));
 
 // Health check
 app.get('/api/health', (req, res) => {

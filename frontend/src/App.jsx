@@ -9,6 +9,7 @@ import Categorias from './pages/categorias/CategoriasList';
 import Activos from './pages/activos/ActivosList';
 import ActivoDetail from './pages/activos/ActivoDetail';
 import Funcionarios from './pages/funcionarios/FuncionariosList';
+import Reportes from './pages/reportes/Reportes';
 
 function App() {
     return (
@@ -25,6 +26,7 @@ function App() {
                             <Route path="/funcionarios" element={<Funcionarios />} />
                             <Route path="/usuarios" element={<Usuarios />} />
                             <Route path="/categorias" element={<Categorias />} />
+                            <Route path="/reportes" element={<Reportes />} />
                             <Route path="*" element={<Navigate to="/" replace />} />
                         </Route>
                     </Route>

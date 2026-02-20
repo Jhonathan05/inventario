@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Outlet, useNavigate } from 'react-router-dom';
+import { Outlet, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import Sidebar from '../components/Sidebar';
 
@@ -13,14 +13,17 @@ const MainLayout = () => {
         navigate('/login');
     };
 
+    // Cerrar sidebar al navegar en mobile
+    const closeSidebar = () => setSidebarOpen(false);
+
     return (
         <div className="min-h-screen bg-gray-100 flex overflow-hidden">
             {/* Sidebar Component */}
-            <Sidebar isOpen={sidebarOpen} toggleSidebar={() => setSidebarOpen(!sidebarOpen)} />
+            <Sidebar isOpen={sidebarOpen} toggleSidebar={() => setSidebarOpen(!sidebarOpen)} onNavigate={closeSidebar} />
 
             {/* Content Area */}
             <div className="flex-1 flex flex-col min-w-0">
-                <header className="bg-white shadow px-4 py-3 md:hidden flex justify-between items-center bg-indigo-600 text-white">
+                <header className="bg-indigo-600 shadow px-4 py-3 md:hidden flex justify-between items-center text-white">
                     <div className="flex items-center gap-2">
                         <button
                             onClick={() => setSidebarOpen(true)}
@@ -34,7 +37,7 @@ const MainLayout = () => {
                     </div>
                 </header>
 
-                <main className="flex-1 p-6 overflow-auto">
+                <main className="flex-1 p-3 sm:p-4 md:p-6 overflow-auto">
                     <Outlet />
                 </main>
             </div>

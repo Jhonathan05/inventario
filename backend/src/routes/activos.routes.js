@@ -7,16 +7,21 @@ const upload = require('../middleware/upload.middleware');
 // GET /api/activos - Listar con filtros
 router.get('/', authMiddleware, async (req, res) => {
     try {
-        const { categoriaId, estado, search } = req.query;
+        const { categoriaId, estado, search, empresaPropietaria, estadoOperativo, tipo } = req.query;
         const where = {};
         if (categoriaId) where.categoriaId = parseInt(categoriaId);
         if (estado) where.estado = estado;
+        if (empresaPropietaria) where.empresaPropietaria = empresaPropietaria;
+        if (estadoOperativo) where.estadoOperativo = estadoOperativo;
+        if (tipo) where.tipo = tipo;
         if (search) {
             where.OR = [
                 { placa: { contains: search, mode: 'insensitive' } },
                 { serial: { contains: search, mode: 'insensitive' } },
                 { marca: { contains: search, mode: 'insensitive' } },
                 { modelo: { contains: search, mode: 'insensitive' } },
+                { nombreFuncionario: { contains: search, mode: 'insensitive' } },
+                { cedulaFuncionario: { contains: search, mode: 'insensitive' } },
             ];
         }
 

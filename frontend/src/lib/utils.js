@@ -1,9 +1,16 @@
+export const getApiBaseUrl = () => {
+    if (import.meta.env.VITE_API_URL && import.meta.env.VITE_API_URL !== 'http://localhost:3003/api') {
+        return import.meta.env.VITE_API_URL;
+    }
+    const protocol = window.location.protocol;
+    const hostname = window.location.hostname;
+    return `${protocol}//${hostname}:3003/api`;
+};
+
 export const getImageUrl = (path) => {
     if (!path) return 'https://via.placeholder.com/150?text=No+Image';
     if (path.startsWith('http')) return path;
-    // Assumes VITE_API_URL ends with /api. We need the root.
-    const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:3003/api';
-    const rootUrl = apiUrl.replace('/api', '');
+    const rootUrl = getApiBaseUrl().replace('/api', '');
     return `${rootUrl}/${path}`;
 };
 

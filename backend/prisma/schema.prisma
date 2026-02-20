@@ -240,3 +240,19 @@ enum Rol {
   TECNICO
   CONSULTA
 }
+
+// ==========================================
+// PERFILES DE REPORTE
+// ==========================================
+model PerfilReporte {
+  id            Int      @id @default(autoincrement())
+  nombre        String   @unique
+  descripcion   String?
+  tipoReporte   String   // 'inventario', 'asignaciones', etc.
+  columnas      Json     // Array de { key, label, order }
+  esPredefinido Boolean  @default(false)
+  creadoEn      DateTime @default(now())
+  actualizadoEn DateTime @updatedAt
+
+  @@map("perfiles_reporte")
+}
