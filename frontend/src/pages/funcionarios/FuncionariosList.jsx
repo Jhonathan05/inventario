@@ -89,6 +89,7 @@ const FuncionariosList = () => {
                                 <tr>
                                     <th scope="col" className="py-3.5 pl-4 pr-3 text-left text-sm font-semibold text-gray-900 sm:pl-6">Nombre</th>
                                     <th scope="col" className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">Cédula</th>
+                                    <th scope="col" className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">Cód. Personal</th>
                                     <th scope="col" className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">Cargo / Área</th>
                                     <th scope="col" className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">Activos Asignados</th>
                                     <th scope="col" className="relative py-3.5 pl-3 pr-4 sm:pr-6">
@@ -103,6 +104,7 @@ const FuncionariosList = () => {
                                             {f.nombre}
                                         </td>
                                         <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500">{f.cedula}</td>
+                                        <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500">{f.codigoPersonal || '-'}</td>
                                         <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
                                             <div className="text-gray-900">{f.cargo}</div>
                                             <div className="text-gray-500 text-xs">{f.area}</div>

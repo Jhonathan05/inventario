@@ -51,10 +51,20 @@ router.get('/:id', authMiddleware, async (req, res) => {
 // POST /api/funcionarios
 router.post('/', authMiddleware, requireRole('ADMIN', 'TECNICO'), async (req, res) => {
     try {
-        const funcionario = await prisma.funcionario.create({ data: req.body });
+        const data = req.body;
+        if (data.codigoPersonal === '') data.codigoPersonal = null;
+
+        const funcionario = await prisma.funcionario.create({ data });
         res.status(201).json(funcionario);
     } catch (err) {
-        if (err.code === 'P2002') return res.status(400).json({ error: 'La cédula ya existe' });
+        if (err.code === 'P2002') {
+            const field = err.meta?.target?.[0];
+            return res.status(400).json({
+                error: field === 'cedula' ? 'La cédula ya existe' :
+                    field === 'codigoPersonal' ? 'El código personal ya existe' :
+                        'Dato duplicado'
+            });
+        }
         res.status(500).json({ error: 'Error al crear funcionario' });
     }
 });
@@ -62,12 +72,23 @@ router.post('/', authMiddleware, requireRole('ADMIN', 'TECNICO'), async (req, re
 // PUT /api/funcionarios/:id
 router.put('/:id', authMiddleware, requireRole('ADMIN', 'TECNICO'), async (req, res) => {
     try {
+        const data = req.body;
+        if (data.codigoPersonal === '') data.codigoPersonal = null;
+
         const funcionario = await prisma.funcionario.update({
             where: { id: parseInt(req.params.id) },
-            data: req.body,
+            data,
         });
         res.json(funcionario);
     } catch (err) {
+        if (err.code === 'P2002') {
+            const field = err.meta?.target?.[0];
+            return res.status(400).json({
+                error: field === 'cedula' ? 'La cédula ya existe' :
+                    field === 'codigoPersonal' ? 'El código personal ya existe' :
+                        'Dato duplicado'
+            });
+        }
         res.status(500).json({ error: 'Error al actualizar funcionario' });
     }
 });

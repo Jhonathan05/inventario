@@ -6,6 +6,7 @@ const FuncionariosForm = ({ open, onClose, funcionario }) => {
     const [formData, setFormData] = useState({
         nombre: '',
         cedula: '',
+        codigoPersonal: '',
         cargo: '',
         area: '',
         email: '',
@@ -20,6 +21,7 @@ const FuncionariosForm = ({ open, onClose, funcionario }) => {
             setFormData({
                 nombre: funcionario.nombre || '',
                 cedula: funcionario.cedula || '',
+                codigoPersonal: funcionario.codigoPersonal || '',
                 cargo: funcionario.cargo || '',
                 area: funcionario.area || '',
                 email: funcionario.email || '',
@@ -28,7 +30,7 @@ const FuncionariosForm = ({ open, onClose, funcionario }) => {
             });
         } else {
             setFormData({
-                nombre: '', cedula: '', cargo: '', area: '', email: '', telefono: '', activo: true
+                nombre: '', cedula: '', codigoPersonal: '', cargo: '', area: '', email: '', telefono: '', activo: true
             });
         }
     }, [funcionario]);
@@ -105,6 +107,10 @@ const FuncionariosForm = ({ open, onClose, funcionario }) => {
                         <div>
                             <label className="block text-sm font-medium text-gray-700">Cédula / ID *</label>
                             <input type="text" name="cedula" required className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm border p-2" value={formData.cedula} onChange={handleChange} />
+                        </div>
+                        <div>
+                            <label className="block text-sm font-medium text-gray-700">Código Personal (Interno)</label>
+                            <input type="text" name="codigoPersonal" className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm border p-2" value={formData.codigoPersonal} onChange={handleChange} />
                         </div>
                         <div className="grid grid-cols-2 gap-4">
                             <div>

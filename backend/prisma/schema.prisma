@@ -102,6 +102,7 @@ model Funcionario {
   id           Int          @id @default(autoincrement())
   nombre       String
   cedula       String       @unique
+  codigoPersonal String?    @unique
   cargo        String?
   area         String?
   email        String?

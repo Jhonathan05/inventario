@@ -87,7 +87,8 @@ router.post('/generar', authMiddleware, async (req, res) => {
         const funcionarioDatos = {
             nombre: funcionario.nombre,
             cargo: funcionario.cargo || 'Funcionario',
-            dependencia: funcionario.area || 'General'
+            dependencia: funcionario.area || 'General',
+            codigoPersonal: funcionario.codigoPersonal || ''
         };
 
         if (tipo === 'ASIGNACION') {
@@ -111,7 +112,8 @@ router.post('/generar', authMiddleware, async (req, res) => {
             quienRecibe = {
                 nombre: funcionarioDestino.nombre,
                 cargo: funcionarioDestino.cargo,
-                dependencia: funcionarioDestino.area
+                dependencia: funcionarioDestino.area,
+                codigoPersonal: funcionarioDestino.codigoPersonal || ''
             };
             tipoNovedadExcel = 'Cambio de responsable';
         }
@@ -164,9 +166,11 @@ router.post('/generar', authMiddleware, async (req, res) => {
         // Llenar Firmas
         setCell('E28', quienEntrega.nombre);
         setCell('K28', quienEntrega.cargo);
+        setCell('J28', quienEntrega.codigoPersonal || '');
 
         setCell('E31', quienRecibe.nombre);
         setCell('K31', quienRecibe.cargo);
+        setCell('J31', quienRecibe.codigoPersonal || '');
 
         // Guardar archivo generated
         await workbook.xlsx.writeFile(outputPath);
