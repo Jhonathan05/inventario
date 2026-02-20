@@ -8,7 +8,7 @@ const PORT = process.env.PORT || 3001;
 
 // Middleware
 app.use(cors({
-  origin: ['http://localhost:8083', 'http://localhost:5173', 'http://127.0.0.1:8083', process.env.FRONTEND_URL || '*'],
+  origin: true, // Permitir cualquier origen (necesario para acceso desde IP de LAN/móvil)
   credentials: true,
 }));
 app.use(express.json());
