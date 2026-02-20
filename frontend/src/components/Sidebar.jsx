@@ -1,4 +1,5 @@
 import { Link, useLocation } from 'react-router-dom';
+import { DocumentTextIcon, ClipboardDocumentCheckIcon } from '@heroicons/react/24/outline';
 import { useAuth } from '../context/AuthContext';
 
 const Sidebar = ({ isOpen, toggleSidebar, onNavigate }) => {
@@ -6,12 +7,13 @@ const Sidebar = ({ isOpen, toggleSidebar, onNavigate }) => {
     const location = useLocation();
 
     const navigation = [
-        { name: 'Dashboard', href: '/', icon: '📊' },
-        { name: 'Activos', href: '/activos', icon: '💻' },
-        { name: 'Funcionarios', href: '/funcionarios', icon: '👤' },
-        { name: 'Categorías', href: '/categorias', icon: '🏷️' },
-        { name: 'Reportes', href: '/reportes', icon: '📋' },
-        { name: 'Usuarios', href: '/usuarios', icon: '👥' },
+        { name: 'Dashboard', href: '/', icon: '📊', type: 'emoji' },
+        { name: 'Activos', href: '/activos', icon: '💻', type: 'emoji' },
+        { name: 'Funcionarios', href: '/funcionarios', icon: '👤', type: 'emoji' },
+        { name: 'Categorías', href: '/categorias', icon: '🏷️', type: 'emoji' },
+        { name: 'Reportes', href: '/reportes', icon: DocumentTextIcon, type: 'component' },
+        { name: 'Actas', href: '/actas', icon: ClipboardDocumentCheckIcon, type: 'component' },
+        { name: 'Usuarios', href: '/usuarios', icon: '👥', type: 'emoji' },
     ];
 
     const isActive = (path) => location.pathname === path;
@@ -54,7 +56,12 @@ const Sidebar = ({ isOpen, toggleSidebar, onNavigate }) => {
                                     : 'text-gray-700 hover:bg-gray-100 hover:text-gray-900'}
               `}
                         >
-                            <span className="mr-3 text-xl">{item.icon}</span>
+                            {/* Render icon based on type */}
+                            {item.type === 'component' ? (
+                                <item.icon className="mr-3 h-6 w-6" aria-hidden="true" />
+                            ) : (
+                                <span className="mr-3 text-xl">{item.icon}</span>
+                            )}
                             {item.name}
                         </Link>
                     ))}

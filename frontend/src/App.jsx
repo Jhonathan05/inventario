@@ -10,6 +10,8 @@ import Activos from './pages/activos/ActivosList';
 import ActivoDetail from './pages/activos/ActivoDetail';
 import Funcionarios from './pages/funcionarios/FuncionariosList';
 import Reportes from './pages/reportes/Reportes';
+import ActasList from './pages/actas/ActasList';
+import GenerarActa from './pages/actas/GenerarActa';
 
 function App() {
     return (
@@ -27,6 +29,9 @@ function App() {
                             <Route path="/usuarios" element={<Usuarios />} />
                             <Route path="/categorias" element={<Categorias />} />
                             <Route path="/reportes" element={<Reportes />} />
+                            <Route path="/actas" element={<ActasList />} />
+                            <Route path="/actas/generar" element={<GenerarActa />} />
+
                             <Route path="*" element={<Navigate to="/" replace />} />
                         </Route>
                     </Route>

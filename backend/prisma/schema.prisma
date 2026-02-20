@@ -108,6 +108,7 @@ model Funcionario {
   telefono     String?
   activo       Boolean      @default(true)
   asignaciones Asignacion[]
+  actas        Acta[]
   creadoEn     DateTime     @default(now())
 
   @@map("funcionarios")
@@ -231,6 +232,7 @@ model Usuario {
   actualizadoEn DateTime    @updatedAt
   trazas    TrazaHojaVida[]
   asignacionesResponsable HojaVida[] @relation("ResponsableTicket")
+  actasCreadas Acta[]
 
   @@map("usuarios")
 }
@@ -255,4 +257,22 @@ model PerfilReporte {
   actualizadoEn DateTime @updatedAt
 
   @@map("perfiles_reporte")
+}
+
+// ==========================================
+// ACTAS Y NOVEDADES
+// ==========================================
+model Acta {
+  id             Int      @id @default(autoincrement())
+  tipo           String   // 'ASIGNACION', 'DEVOLUCION', 'TRASLADO'
+  fecha          DateTime @default(now())
+  archivoUrl     String?  // Ruta del Excel generado
+  observaciones  String?
+  creadoPorId    Int
+  creadoPor      Usuario  @relation(fields: [creadoPorId], references: [id])
+  funcionarioId  Int?     // Funcionario principal (Recibe en Asig/Traslado, Entrega en Dev)
+  funcionario    Funcionario? @relation(fields: [funcionarioId], references: [id])
+  detalles       Json     // Array de { activoId, placa, serial, nombre, marca, modelo }
+
+  @@map("actas")
 }
