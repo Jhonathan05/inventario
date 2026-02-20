@@ -3,7 +3,6 @@ import { Link } from 'react-router-dom';
 import api from '../../lib/axios';
 import { getImageUrl } from '../../lib/utils';
 import ActivosForm from './ActivosForm';
-import AsignarActivoModal from './AsignarActivoModal';
 import { EMPRESAS_PROPIETARIAS, ESTADOS_OPERATIVOS, TIPOS_EQUIPO } from './ActivosFormData';
 
 const ActivosList = () => {
@@ -12,7 +11,6 @@ const ActivosList = () => {
     const [search, setSearch] = useState('');
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [selectedActivo, setSelectedActivo] = useState(null);
-    const [isAssignModalOpen, setIsAssignModalOpen] = useState(false);
     const [showFilters, setShowFilters] = useState(false);
 
     // Filtros avanzados
@@ -59,21 +57,6 @@ const ActivosList = () => {
         setIsModalOpen(true);
     };
 
-    const handleAssign = (activo) => {
-        setSelectedActivo(activo);
-        setIsAssignModalOpen(true);
-    };
-
-    const handleReturn = async (activo) => {
-        if (window.confirm(`¿Está seguro de marcar el equipo ${activo.placa} como devuelto a TI?`)) {
-            try {
-                await api.post('/asignaciones/devolucion', { activoId: activo.id, observaciones: 'Devolución rápida desde lista' });
-                fetchActivos();
-            } catch (err) {
-                alert('Error al procesar devolución');
-            }
-        }
-    };
 
 
 
@@ -254,21 +237,6 @@ const ActivosList = () => {
                                         </td>
                                         <td className="whitespace-nowrap py-4 pl-3 pr-4 text-right text-sm font-medium sm:pr-6">
                                             <div className="flex justify-end gap-3">
-                                                {activo.estado === 'DISPONIBLE' && (
-                                                    <button onClick={() => handleAssign(activo)} className="text-green-600 hover:text-green-900">
-                                                        Asignar
-                                                    </button>
-                                                )}
-                                                {activo.estado === 'ASIGNADO' && (
-                                                    <>
-                                                        <button onClick={() => handleAssign(activo)} className="text-blue-600 hover:text-blue-900">
-                                                            Trasladar
-                                                        </button>
-                                                        <button onClick={() => handleReturn(activo)} className="text-orange-600 hover:text-orange-900">
-                                                            Devolver
-                                                        </button>
-                                                    </>
-                                                )}
                                                 <button
                                                     onClick={() => handleEdit(activo)}
                                                     className="text-indigo-600 hover:text-indigo-900"
@@ -328,21 +296,6 @@ const ActivosList = () => {
                             </div>
                             {/* Action buttons */}
                             <div className="flex flex-wrap gap-2 mt-3 pt-3 border-t border-gray-100">
-                                {activo.estado === 'DISPONIBLE' && (
-                                    <button onClick={() => handleAssign(activo)} className="text-xs text-green-700 bg-green-50 rounded-md px-2.5 py-1.5 font-medium hover:bg-green-100">
-                                        Asignar
-                                    </button>
-                                )}
-                                {activo.estado === 'ASIGNADO' && (
-                                    <>
-                                        <button onClick={() => handleAssign(activo)} className="text-xs text-blue-700 bg-blue-50 rounded-md px-2.5 py-1.5 font-medium hover:bg-blue-100">
-                                            Trasladar
-                                        </button>
-                                        <button onClick={() => handleReturn(activo)} className="text-xs text-orange-700 bg-orange-50 rounded-md px-2.5 py-1.5 font-medium hover:bg-orange-100">
-                                            Devolver
-                                        </button>
-                                    </>
-                                )}
                                 <button onClick={() => handleEdit(activo)} className="text-xs text-indigo-700 bg-indigo-50 rounded-md px-2.5 py-1.5 font-medium hover:bg-indigo-100">
                                     Editar
                                 </button>
@@ -363,13 +316,7 @@ const ActivosList = () => {
                 />
             )}
 
-            {isAssignModalOpen && (
-                <AsignarActivoModal
-                    open={isAssignModalOpen}
-                    onClose={() => { setIsAssignModalOpen(false); fetchActivos(); }}
-                    activo={selectedActivo}
-                />
-            )}
+
         </div>
     );
 };
