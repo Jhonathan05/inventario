@@ -13,6 +13,8 @@ import Reportes from './pages/reportes/Reportes';
 import ActasList from './pages/actas/ActasList';
 import GenerarActa from './pages/actas/GenerarActa';
 import ImportarDatos from './pages/importar/ImportarDatos';
+import Catalogos from './pages/configuracion/CatalogosList';
+
 
 function App() {
     return (
@@ -33,6 +35,8 @@ function App() {
                             <Route path="/actas" element={<ActasList />} />
                             <Route path="/actas/generar" element={<GenerarActa />} />
                             <Route path="/importar" element={<ImportarDatos />} />
+                            <Route path="/configuracion/catalogos" element={<Catalogos />} />
+
 
                             <Route path="*" element={<Navigate to="/" replace />} />
                         </Route>

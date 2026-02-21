@@ -37,31 +37,30 @@ router.get('/', authMiddleware, async (req, res) => {
     }
 });
 
-// GET /api/funcionarios/opciones  — valores únicos para filtros
+// GET /api/funcionarios/opciones  — valores únicos para filtros (desde Catálogos)
 router.get('/opciones', authMiddleware, async (req, res) => {
     try {
         const [areasRaw, cargosRaw] = await Promise.all([
-            prisma.funcionario.findMany({
-                where: { area: { not: null } },
-                select: { area: true },
-                distinct: ['area'],
-                orderBy: { area: 'asc' },
+            prisma.catalogo.findMany({
+                where: { dominio: 'AREA', activo: true },
+                select: { valor: true },
+                orderBy: { valor: 'asc' },
             }),
-            prisma.funcionario.findMany({
-                where: { cargo: { not: null } },
-                select: { cargo: true },
-                distinct: ['cargo'],
-                orderBy: { cargo: 'asc' },
+            prisma.catalogo.findMany({
+                where: { dominio: 'CARGO', activo: true },
+                select: { valor: true },
+                orderBy: { valor: 'asc' },
             }),
         ]);
         res.json({
-            areas: areasRaw.map(r => r.area).filter(Boolean),
-            cargos: cargosRaw.map(r => r.cargo).filter(Boolean),
+            areas: areasRaw.map(r => r.valor),
+            cargos: cargosRaw.map(r => r.valor),
         });
     } catch (err) {
         res.status(500).json({ error: 'Error al obtener opciones' });
     }
 });
+
 
 // GET /api/funcionarios/:id
 router.get('/:id', authMiddleware, async (req, res) => {

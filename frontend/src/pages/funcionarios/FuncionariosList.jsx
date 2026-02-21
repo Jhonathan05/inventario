@@ -128,6 +128,7 @@ const FuncionariosList = () => {
                                     <option key={area} value={area}>{area}</option>
                                 ))}
                             </select>
+
                         </div>
 
                         <div>
@@ -142,6 +143,7 @@ const FuncionariosList = () => {
                                     <option key={cargo} value={cargo}>{cargo}</option>
                                 ))}
                             </select>
+
                         </div>
 
                         <div>
@@ -195,7 +197,7 @@ const FuncionariosList = () => {
                                     <th scope="col" className="py-3.5 pl-4 pr-3 text-left text-sm font-semibold text-gray-900 sm:pl-6">Nombre</th>
                                     <th scope="col" className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">Cédula</th>
                                     <th scope="col" className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">Cód. Personal</th>
-                                    <th scope="col" className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">Cargo / Área</th>>
+                                    <th scope="col" className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">Cargo / Área</th>
                                     <th scope="col" className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">Vinculación</th>
                                     <th scope="col" className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">Activos</th>
                                     <th scope="col" className="relative py-3.5 pl-3 pr-4 sm:pr-6">

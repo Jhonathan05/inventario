@@ -15,7 +15,9 @@ const Sidebar = ({ isOpen, toggleSidebar, onNavigate }) => {
         { name: 'Actas', href: '/actas', icon: ClipboardDocumentCheckIcon, type: 'component' },
         { name: 'Importar Datos', href: '/importar', icon: '📥', type: 'emoji' },
         { name: 'Usuarios', href: '/usuarios', icon: '👥', type: 'emoji' },
+        { name: 'Catálogos', href: '/configuracion/catalogos', icon: '⚙️', type: 'emoji' },
     ];
+
 
     const isActive = (path) => location.pathname === path;
 

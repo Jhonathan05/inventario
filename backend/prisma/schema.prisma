@@ -11,6 +11,21 @@ datasource db {
 }
 
 // ==========================================
+// CATÁLOGOS DEL SISTEMA (Listas desplegables)
+// ==========================================
+model Catalogo {
+  id          Int      @id @default(autoincrement())
+  dominio     String   // Ej: 'AREA', 'CARGO'
+  valor       String   // Ej: 'EXTENSION RURAL', 'ANALISTA'
+  descripcion String?
+  activo      Boolean  @default(true)
+  creadoEn    DateTime @default(now())
+
+  @@unique([dominio, valor])
+  @@map("catalogos")
+}
+
+// ==========================================
 // CATEGORÍAS DE ACTIVOS
 // ==========================================
 model Categoria {
