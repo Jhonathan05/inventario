@@ -29,6 +29,7 @@ app.use('/api/documentos', require('./routes/documentos.routes'));
 app.use('/api/dashboard', require('./routes/dashboard.routes'));
 app.use('/api/reportes', require('./routes/reportes.routes'));
 app.use('/api/actas', require('./routes/actas.routes'));
+app.use('/api/importar', require('./routes/importar.routes'));
 
 
 // Health check

@@ -12,6 +12,7 @@ import Funcionarios from './pages/funcionarios/FuncionariosList';
 import Reportes from './pages/reportes/Reportes';
 import ActasList from './pages/actas/ActasList';
 import GenerarActa from './pages/actas/GenerarActa';
+import ImportarDatos from './pages/importar/ImportarDatos';
 
 function App() {
     return (
@@ -31,6 +32,7 @@ function App() {
                             <Route path="/reportes" element={<Reportes />} />
                             <Route path="/actas" element={<ActasList />} />
                             <Route path="/actas/generar" element={<GenerarActa />} />
+                            <Route path="/importar" element={<ImportarDatos />} />
 
                             <Route path="*" element={<Navigate to="/" replace />} />
                         </Route>

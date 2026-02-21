@@ -13,6 +13,7 @@ const Sidebar = ({ isOpen, toggleSidebar, onNavigate }) => {
         { name: 'Categorías', href: '/categorias', icon: '🏷️', type: 'emoji' },
         { name: 'Reportes', href: '/reportes', icon: DocumentTextIcon, type: 'component' },
         { name: 'Actas', href: '/actas', icon: ClipboardDocumentCheckIcon, type: 'component' },
+        { name: 'Importar Datos', href: '/importar', icon: '📥', type: 'emoji' },
         { name: 'Usuarios', href: '/usuarios', icon: '👥', type: 'emoji' },
     ];
 

@@ -85,6 +85,14 @@ model Activo {
   creadoEn      DateTime     @default(now())
   actualizadoEn DateTime     @updatedAt
 
+  // ==========================================
+  // CAMPOS NUEVOS - ADICIONALES
+  // ==========================================
+  tiempoUso        String?   // Ej. "3"
+  tipoPropietario  String?   // PROPIO, ARRENDADO, etc.
+  checklist        String?   // Responsable TI (Checklist)
+  ordenRemision    String?   // Número de orden de remisión
+
   @@map("activos")
 }
 
@@ -108,6 +116,21 @@ model Funcionario {
   email        String?
   telefono     String?
   activo       Boolean      @default(true)
+
+  // ==========================================
+  // CAMPOS NUEVOS - PERFIL EXTENDIDO
+  // ==========================================
+  shortname          String?
+  vinculacion        String?   // EMPLEADO, CONTRATISTA
+  empresaFuncionario String?
+  proyecto           String?
+  departamento       String?
+  ciudad             String?
+  seccional          String?
+  municipio          String?
+  ubicacion          String?
+  piso               String?
+
   asignaciones Asignacion[]
   actas        Acta[]
   creadoEn     DateTime     @default(now())

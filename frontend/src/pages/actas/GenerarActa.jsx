@@ -1,6 +1,95 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import axios from '../../lib/axios';
 import { useNavigate } from 'react-router-dom';
+
+// Combobox de búsqueda de funcionarios por nombre o documento
+const FuncionarioSearch = ({ label, funcionarios, value, onChange, excludeId = null, placeholder = '-- Buscar funcionario --' }) => {
+    const [query, setQuery] = useState('');
+    const [open, setOpen] = useState(false);
+    const ref = useRef(null);
+
+    const selected = funcionarios.find(f => f.id == value);
+
+    const filtered = funcionarios
+        .filter(f => excludeId == null || f.id !== parseInt(excludeId))
+        .filter(f => {
+            if (!query) return true;
+            const q = query.toLowerCase();
+            return (
+                f.nombre?.toLowerCase().includes(q) ||
+                f.codigoPersonal?.toLowerCase().includes(q) ||
+                f.cargo?.toLowerCase().includes(q)
+            );
+        });
+
+    // Cerrar al hacer clic fuera
+    useEffect(() => {
+        const handleClick = (e) => { if (ref.current && !ref.current.contains(e.target)) setOpen(false); };
+        document.addEventListener('mousedown', handleClick);
+        return () => document.removeEventListener('mousedown', handleClick);
+    }, []);
+
+    const handleSelect = (f) => {
+        onChange(f.id);
+        setQuery('');
+        setOpen(false);
+    };
+
+    const handleClear = () => {
+        onChange('');
+        setQuery('');
+    };
+
+    return (
+        <div ref={ref} className="relative">
+            <label className="block text-sm font-medium text-gray-700 mb-2">{label}</label>
+            {selected ? (
+                // Chip del funcionario seleccionado
+                <div className="flex items-center gap-2 p-2 border border-indigo-300 rounded-md bg-indigo-50">
+                    <div className="flex-1">
+                        <span className="font-medium text-indigo-900">{selected.nombre}</span>
+                        {selected.codigoPersonal && <span className="ml-2 text-xs text-indigo-600">Doc: {selected.codigoPersonal}</span>}
+                        {selected.cargo && <span className="ml-2 text-xs text-gray-500">— {selected.cargo}</span>}
+                    </div>
+                    <button type="button" onClick={handleClear} className="text-indigo-400 hover:text-red-500 text-lg leading-none" title="Cambiar funcionario">✕</button>
+                </div>
+            ) : (
+                // Input de búsqueda
+                <div>
+                    <input
+                        type="text"
+                        autoComplete="off"
+                        className="w-full border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 p-2 text-sm"
+                        placeholder={placeholder}
+                        value={query}
+                        onFocus={() => setOpen(true)}
+                        onChange={(e) => { setQuery(e.target.value); setOpen(true); }}
+                    />
+                    {open && (
+                        <div className="absolute z-50 w-full mt-1 bg-white border border-gray-200 rounded-md shadow-lg max-h-60 overflow-y-auto">
+                            {filtered.length === 0 ? (
+                                <div className="px-4 py-3 text-sm text-gray-500">No se encontraron resultados</div>
+                            ) : (
+                                filtered.map(f => (
+                                    <button
+                                        key={f.id}
+                                        type="button"
+                                        className="w-full text-left px-4 py-2.5 text-sm hover:bg-indigo-50 border-b border-gray-100 last:border-0"
+                                        onClick={() => handleSelect(f)}
+                                    >
+                                        <span className="font-medium text-gray-900">{f.nombre}</span>
+                                        {f.codigoPersonal && <span className="ml-2 text-xs text-gray-500">Doc: {f.codigoPersonal}</span>}
+                                        {f.cargo && <span className="ml-2 text-xs text-gray-400">— {f.cargo}</span>}
+                                    </button>
+                                ))
+                            )}
+                        </div>
+                    )}
+                </div>
+            )}
+        </div>
+    );
+};
 
 const GenerarActa = () => {
     const navigate = useNavigate();
@@ -199,41 +288,26 @@ const GenerarActa = () => {
                             </div>
                         </div>
 
-                        <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-2">
-                                {formData.tipo === 'ASIGNACION' ? 'Funcionario que Recibe' :
-                                    formData.tipo === 'TRASLADO' ? 'Funcionario Origen (Entrega)' : 'Funcionario que Entrega'}
-                            </label>
-                            <select
-                                className="w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 p-2 border"
-                                value={formData.funcionarioId}
-                                onChange={e => setFormData({ ...formData, funcionarioId: e.target.value, activosIds: [], funcionarioDestinoId: '' })}
-                            >
-                                <option value="">-- Seleccione Funcionario --</option>
-                                {funcionarios.map(f => (
-                                    <option key={f.id} value={f.id}>{f.nombre} - {f.cargo}</option>
-                                ))}
-                            </select>
-                        </div>
+                        <FuncionarioSearch
+                            label={
+                                formData.tipo === 'ASIGNACION' ? 'Funcionario que Recibe' :
+                                    formData.tipo === 'TRASLADO' ? 'Funcionario Origen (Entrega)' : 'Funcionario que Entrega'
+                            }
+                            funcionarios={funcionarios}
+                            value={formData.funcionarioId}
+                            onChange={(id) => setFormData({ ...formData, funcionarioId: id, activosIds: [], funcionarioDestinoId: '' })}
+                            placeholder="🔍 Buscar por nombre, documento o cargo..."
+                        />
 
                         {formData.tipo === 'TRASLADO' && (
-                            <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-2">
-                                    Funcionario Destino (Recibe)
-                                </label>
-                                <select
-                                    className="w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 p-2 border"
-                                    value={formData.funcionarioDestinoId}
-                                    onChange={e => setFormData({ ...formData, funcionarioDestinoId: e.target.value })}
-                                >
-                                    <option value="">-- Seleccione Funcionario Destino --</option>
-                                    {funcionarios
-                                        .filter(f => f.id !== parseInt(formData.funcionarioId))
-                                        .map(f => (
-                                            <option key={f.id} value={f.id}>{f.nombre} - {f.cargo}</option>
-                                        ))}
-                                </select>
-                            </div>
+                            <FuncionarioSearch
+                                label="Funcionario Destino (Recibe)"
+                                funcionarios={funcionarios}
+                                value={formData.funcionarioDestinoId}
+                                onChange={(id) => setFormData({ ...formData, funcionarioDestinoId: id })}
+                                excludeId={formData.funcionarioId}
+                                placeholder="🔍 Buscar por nombre, documento o cargo..."
+                            />
                         )}
 
                         <div className="flex justify-end mt-6">

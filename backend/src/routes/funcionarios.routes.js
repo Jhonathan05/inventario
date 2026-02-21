@@ -6,16 +6,24 @@ const { authMiddleware, requireRole } = require('../middleware/auth.middleware')
 // GET /api/funcionarios
 router.get('/', authMiddleware, async (req, res) => {
     try {
-        const { search, activo } = req.query;
+        const { search, activo, area, cargo, vinculacion } = req.query;
         const where = {};
+
         if (activo !== undefined) where.activo = activo === 'true';
+        if (area) where.area = { contains: area, mode: 'insensitive' };
+        if (cargo) where.cargo = { contains: cargo, mode: 'insensitive' };
+        if (vinculacion) where.vinculacion = { contains: vinculacion, mode: 'insensitive' };
+
         if (search) {
             where.OR = [
                 { nombre: { contains: search, mode: 'insensitive' } },
                 { cedula: { contains: search, mode: 'insensitive' } },
+                { codigoPersonal: { contains: search, mode: 'insensitive' } },
                 { area: { contains: search, mode: 'insensitive' } },
+                { cargo: { contains: search, mode: 'insensitive' } },
             ];
         }
+
         const funcionarios = await prisma.funcionario.findMany({
             where,
             include: {
@@ -26,6 +34,32 @@ router.get('/', authMiddleware, async (req, res) => {
         res.json(funcionarios);
     } catch (err) {
         res.status(500).json({ error: 'Error al obtener funcionarios' });
+    }
+});
+
+// GET /api/funcionarios/opciones  — valores únicos para filtros
+router.get('/opciones', authMiddleware, async (req, res) => {
+    try {
+        const [areasRaw, cargosRaw] = await Promise.all([
+            prisma.funcionario.findMany({
+                where: { area: { not: null } },
+                select: { area: true },
+                distinct: ['area'],
+                orderBy: { area: 'asc' },
+            }),
+            prisma.funcionario.findMany({
+                where: { cargo: { not: null } },
+                select: { cargo: true },
+                distinct: ['cargo'],
+                orderBy: { cargo: 'asc' },
+            }),
+        ]);
+        res.json({
+            areas: areasRaw.map(r => r.area).filter(Boolean),
+            cargos: cargosRaw.map(r => r.cargo).filter(Boolean),
+        });
+    } catch (err) {
+        res.status(500).json({ error: 'Error al obtener opciones' });
     }
 });
 
