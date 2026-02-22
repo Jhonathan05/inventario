@@ -29,4 +29,21 @@ api.interceptors.request.use((config) => {
     return config;
 });
 
+// Interceptar respuestas para manejar expiración de token
+api.interceptors.response.use(
+    (response) => response,
+    (error) => {
+        if (error.response && (error.response.status === 401 || error.response.status === 403)) {
+            // Token inválido o expirado
+            localStorage.removeItem('token');
+            localStorage.removeItem('user');
+            // Redirigir al inicio de sesión si no estamos ya allí
+            if (window.location.pathname !== '/login') {
+                window.location.href = '/login';
+            }
+        }
+        return Promise.reject(error);
+    }
+);
+
 export default api;
