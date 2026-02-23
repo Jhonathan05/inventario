@@ -155,46 +155,16 @@ const GenerarActa = () => {
                 };
             }
 
-            // Usamos el endpoint de reportes/inventario que ya soporta filtros, o activos simple
-            // Vamos a usar /activos con filtros si soporta, o reportes
-            // En reportes.routes.js: /inventario soporta 'estado'
-            // /por-funcionario soporta ?funcionarioId=X
-
             let url = '/activos';
             if (formData.tipo === 'ASIGNACION') {
                 url = '/activos?estado=DISPONIBLE';
             } else {
-                // Para devolución/traslado, necesitamos saber qué tiene asignado
-                // Usamos el endpoint de reportes por funcionario que devuelve { funcionario, activos: [] }
-                // Ojo: ese endpoint devuelve estructura jerárquica
-                // Mejor usemos /activos?asignadoA=ID si existe, si no, lo implementamos o usamos filtro en cliente
-                // Revisando rutas activos: router.get('/', ...) filtra por estado, sucursal, etc. pero no explícitamente por funcionario asignado en query params estándar
-                // REVISAR SI EL BACKEND SOPORTA FILTER POR ASIGNADO
-                // Si no, podríamos traer todos los ASIGNADOS y filtrar en front (costoso)
-                // O usar el endpoint de reportes/inventario que trae 'asignaciones'
-
-                // Opción rápida y limpia: Usar endpoint de reportes para obtener activos del funcionario
-                url = `/reportes/por-funcionario?funcionarioId=${formData.funcionarioId}`;
+                url = `/activos?funcionarioId=${formData.funcionarioId}`;
             }
 
             const res = await axios.get(url);
 
-            let activos = [];
-            if (formData.tipo === 'ASIGNACION') {
-                activos = res.data; // Lista de activos disponibles
-            } else {
-                // Endpoint reporte por funcionario devuelve array de funcionarios con sus activos
-                const data = res.data;
-                // Si filtramos por ID, debería ser un array con 1 elemento o vacío
-                if (data.length > 0 && data[0].asignaciones) {
-                    // Mapear asignaciones a activos
-                    activos = data[0].asignaciones.map(asig => asig.activo);
-                } else if (data.length > 0 && data[0].activos) {
-                    // Si el endpoint devuelve estructura directa
-                    activos = data[0].activos;
-                }
-            }
-            setActivosDisponibles(activos || []);
+            setActivosDisponibles(res.data || []);
 
         } catch (err) {
             console.error('Error cargando activos', err);

@@ -7,13 +7,21 @@ const upload = require('../middleware/upload.middleware');
 // GET /api/activos - Listar con filtros
 router.get('/', authMiddleware, async (req, res) => {
     try {
-        const { categoriaId, estado, search, empresaPropietaria, estadoOperativo, tipo } = req.query;
+        const { categoriaId, estado, search, empresaPropietaria, estadoOperativo, tipo, funcionarioId } = req.query;
         const where = {};
         if (categoriaId) where.categoriaId = parseInt(categoriaId);
         if (estado) where.estado = estado;
         if (empresaPropietaria) where.empresaPropietaria = empresaPropietaria;
         if (estadoOperativo) where.estadoOperativo = estadoOperativo;
         if (tipo) where.tipo = tipo;
+        if (funcionarioId) {
+            where.asignaciones = {
+                some: {
+                    funcionarioId: parseInt(funcionarioId),
+                    fechaFin: null
+                }
+            };
+        }
         if (search) {
             where.OR = [
                 { placa: { contains: search, mode: 'insensitive' } },
@@ -40,6 +48,23 @@ router.get('/', authMiddleware, async (req, res) => {
         res.json(activos);
     } catch (err) {
         res.status(500).json({ error: 'Error al obtener activos' });
+    }
+});
+
+// GET /api/activos/historial/:funcionarioId - Historial de activos de un funcionario
+router.get('/historial/:funcionarioId', authMiddleware, async (req, res) => {
+    try {
+        const id = parseInt(req.params.funcionarioId);
+        const asignaciones = await prisma.asignacion.findMany({
+            where: { funcionarioId: id },
+            include: {
+                activo: { include: { categoria: true } }
+            },
+            orderBy: { fechaInicio: 'desc' }
+        });
+        res.json(asignaciones);
+    } catch (err) {
+        res.status(500).json({ error: 'Error al cargar historial' });
     }
 });
 

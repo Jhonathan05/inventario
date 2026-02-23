@@ -23,7 +23,7 @@ const MainLayout = () => {
 
             {/* Content Area */}
             <div className="flex-1 flex flex-col min-w-0">
-                <header className="bg-indigo-600 shadow px-4 py-3 md:hidden flex justify-between items-center text-white">
+                <header className="bg-fnc-600 shadow px-4 py-3 md:hidden flex justify-between items-center text-white">
                     <div className="flex items-center gap-2">
                         <button
                             onClick={() => setSidebarOpen(true)}
@@ -33,7 +33,7 @@ const MainLayout = () => {
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
                             </svg>
                         </button>
-                        <span className="font-bold text-white">Inventario</span>
+                        <span className="font-bold text-white text-sm">Inventario TIC FNC Tolima</span>
                     </div>
                 </header>
 

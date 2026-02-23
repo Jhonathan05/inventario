@@ -10,6 +10,7 @@ const Sidebar = ({ isOpen, toggleSidebar, onNavigate }) => {
         { name: 'Dashboard', href: '/', icon: '📊', type: 'emoji' },
         { name: 'Activos', href: '/activos', icon: '💻', type: 'emoji' },
         { name: 'Funcionarios', href: '/funcionarios', icon: '👤', type: 'emoji' },
+        { name: 'Mantenimientos', href: '/mantenimientos', icon: '🔧', type: 'emoji' },
         { name: 'Categorías', href: '/categorias', icon: '🏷️', type: 'emoji' },
         { name: 'Reportes', href: '/reportes', icon: DocumentTextIcon, type: 'component' },
         { name: 'Actas', href: '/actas', icon: ClipboardDocumentCheckIcon, type: 'component' },
@@ -18,11 +19,9 @@ const Sidebar = ({ isOpen, toggleSidebar, onNavigate }) => {
         { name: 'Catálogos', href: '/configuracion/catalogos', icon: '⚙️', type: 'emoji' },
     ];
 
-
     const isActive = (path) => location.pathname === path;
 
     const handleNavClick = () => {
-        // Cerrar sidebar automáticamente en mobile al navegar
         if (onNavigate) onNavigate();
     };
 
@@ -31,58 +30,65 @@ const Sidebar = ({ isOpen, toggleSidebar, onNavigate }) => {
             {/* Mobile overlay */}
             {isOpen && (
                 <div
-                    className="fixed inset-0 bg-gray-600 bg-opacity-75 z-20 md:hidden"
+                    className="fixed inset-0 bg-charcoal-900 bg-opacity-60 z-20 md:hidden"
                     onClick={toggleSidebar}
-                ></div>
+                />
             )}
 
-            {/* Sidebar component */}
+            {/* Sidebar */}
             <aside className={`
-        fixed inset-y-0 left-0 z-30 w-64 bg-white shadow-lg transform transition-transform duration-300 ease-in-out
-        ${isOpen ? 'translate-x-0' : '-translate-x-full'}
-        md:relative md:translate-x-0
-      `}>
-                <div className="flex h-16 items-center justify-center border-b px-4">
-                    <h1 className="text-xl font-bold text-indigo-600">Inventario</h1>
+                fixed inset-y-0 left-0 z-30 w-64 bg-white shadow-lg transform transition-transform duration-300 ease-in-out
+                ${isOpen ? 'translate-x-0' : '-translate-x-full'}
+                md:relative md:translate-x-0 flex flex-col
+            `}>
+                {/* Logo / Brand */}
+                <div className="flex flex-col items-center justify-center border-b border-fnc-100 px-4 py-4 bg-gradient-to-b from-fnc-600 to-fnc-700">
+                    <h1 className="text-base font-bold text-white leading-tight text-center tracking-wide">Inventario TIC</h1>
+                    <p className="text-xs text-fnc-200 text-center leading-tight mt-0.5 font-medium">FNC Tolima</p>
                 </div>
 
-                <nav className="flex-1 space-y-1 px-2 py-4">
+                {/* Nav Items */}
+                <nav className="flex-1 overflow-y-auto space-y-0.5 px-2 py-3">
                     {navigation.map((item) => (
                         <Link
                             key={item.name}
                             to={item.href}
                             onClick={handleNavClick}
                             className={`
-                group flex items-center px-4 py-3 text-sm font-medium rounded-md transition-colors
-                ${isActive(item.href)
-                                    ? 'bg-indigo-50 text-indigo-600'
-                                    : 'text-gray-700 hover:bg-gray-100 hover:text-gray-900'}
-              `}
+                                group flex items-center px-3 py-2.5 text-sm font-medium rounded-md transition-all duration-150
+                                ${isActive(item.href)
+                                    ? 'bg-fnc-600 text-white shadow-sm'
+                                    : 'text-charcoal-700 hover:bg-fnc-50 hover:text-fnc-700'
+                                }
+                            `}
                         >
-                            {/* Render icon based on type */}
                             {item.type === 'component' ? (
-                                <item.icon className="mr-3 h-6 w-6" aria-hidden="true" />
+                                <item.icon className={`mr-3 h-5 w-5 flex-shrink-0 ${isActive(item.href) ? 'text-fnc-200' : 'text-charcoal-400 group-hover:text-fnc-600'}`} aria-hidden="true" />
                             ) : (
-                                <span className="mr-3 text-xl">{item.icon}</span>
+                                <span className="mr-3 text-lg leading-none">{item.icon}</span>
                             )}
-                            {item.name}
+                            <span>{item.name}</span>
+                            {isActive(item.href) && (
+                                <span className="ml-auto h-1.5 w-1.5 rounded-full bg-fnc-300" />
+                            )}
                         </Link>
                     ))}
                 </nav>
 
-                <div className="border-t p-4">
-                    <div className="flex items-center gap-3 mb-4">
-                        <div className="h-10 w-10 rounded-full bg-indigo-100 flex items-center justify-center text-indigo-600 font-bold">
-                            {user?.nombre?.[0] || 'U'}
+                {/* User section */}
+                <div className="border-t border-gray-100 p-4 bg-charcoal-50">
+                    <div className="flex items-center gap-3 mb-3">
+                        <div className="h-9 w-9 rounded-full bg-fnc-100 flex items-center justify-center text-fnc-700 font-bold text-sm flex-shrink-0">
+                            {user?.nombre?.[0]?.toUpperCase() || 'U'}
                         </div>
                         <div className="overflow-hidden">
-                            <p className="truncate text-sm font-medium text-gray-900">{user?.nombre || 'Usuario'}</p>
-                            <p className="truncate text-xs text-gray-500">{user?.email}</p>
+                            <p className="truncate text-sm font-semibold text-charcoal-800">{user?.nombre || 'Usuario'}</p>
+                            <p className="truncate text-xs text-charcoal-400">{user?.email}</p>
                         </div>
                     </div>
                     <button
                         onClick={logout}
-                        className="flex w-full items-center justify-center rounded-md border border-transparent bg-red-50 px-4 py-2 text-sm font-medium text-red-700 hover:bg-red-100 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2"
+                        className="flex w-full items-center justify-center rounded-md border border-fnc-200 bg-white px-4 py-2 text-sm font-medium text-fnc-700 hover:bg-fnc-50 hover:border-fnc-400 transition-colors focus:outline-none focus:ring-2 focus:ring-fnc-500 focus:ring-offset-2"
                     >
                         Cerrar Sesión
                     </button>

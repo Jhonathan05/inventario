@@ -14,6 +14,7 @@ import ActasList from './pages/actas/ActasList';
 import GenerarActa from './pages/actas/GenerarActa';
 import ImportarDatos from './pages/importar/ImportarDatos';
 import Catalogos from './pages/configuracion/CatalogosList';
+import MantenimientosList from './pages/mantenimientos/MantenimientosList';
 
 
 function App() {
@@ -36,6 +37,7 @@ function App() {
                             <Route path="/actas/generar" element={<GenerarActa />} />
                             <Route path="/importar" element={<ImportarDatos />} />
                             <Route path="/configuracion/catalogos" element={<Catalogos />} />
+                            <Route path="/mantenimientos" element={<MantenimientosList />} />
 
 
                             <Route path="*" element={<Navigate to="/" replace />} />

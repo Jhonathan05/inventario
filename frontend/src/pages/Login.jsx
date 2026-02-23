@@ -21,23 +21,30 @@ const Login = () => {
     };
 
     return (
-        <div className="flex min-h-screen flex-1 flex-col justify-center px-6 py-12 lg:px-8 bg-gray-50">
-            <div className="sm:mx-auto sm:w-full sm:max-w-sm">
-                <h2 className="mt-10 text-center text-2xl font-bold leading-9 tracking-tight text-gray-900">
-                    Inventario Tecnológico
-                </h2>
-                <p className="mt-2 text-center text-sm leading-6 text-gray-500">
-                    Inicia sesión para continuar
-                </p>
-            </div>
+        <div className="flex min-h-screen flex-1 flex-col justify-center bg-charcoal-50">
+            {/* Top accent bar */}
+            <div className="h-1.5 w-full bg-gradient-to-r from-fnc-700 via-fnc-600 to-fnc-500 fixed top-0 left-0" />
 
-            <div className="mt-10 sm:mx-auto sm:w-full sm:max-w-sm">
-                <form className="space-y-6" onSubmit={handleSubmit}>
-                    <div>
-                        <label htmlFor="email" className="block text-sm font-medium leading-6 text-gray-900">
-                            Correo Electrónico
-                        </label>
-                        <div className="mt-2">
+            <div className="sm:mx-auto sm:w-full sm:max-w-md px-6">
+                {/* Logo block */}
+                <div className="text-center mb-8">
+                    <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-fnc-600 shadow-lg mb-4">
+                        <span className="text-2xl">☕</span>
+                    </div>
+                    <h1 className="text-2xl font-bold text-fnc-700 tracking-wide">Inventario TIC</h1>
+                    <p className="text-sm text-charcoal-500 font-medium mt-0.5">Federación Nacional de Cafeteros — Tolima</p>
+                </div>
+
+                {/* Card */}
+                <div className="bg-white rounded-xl shadow-md ring-1 ring-black/5 p-8">
+                    <h2 className="text-lg font-semibold text-charcoal-800 mb-1">Iniciar sesión</h2>
+                    <p className="text-sm text-charcoal-400 mb-6">Ingresa tus credenciales para continuar</p>
+
+                    <form className="space-y-5" onSubmit={handleSubmit}>
+                        <div>
+                            <label htmlFor="email" className="block text-sm font-medium text-charcoal-700 mb-1.5">
+                                Correo Electrónico
+                            </label>
                             <input
                                 id="email"
                                 name="email"
@@ -46,18 +53,15 @@ const Login = () => {
                                 required
                                 value={email}
                                 onChange={(e) => setEmail(e.target.value)}
-                                className="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6 px-3"
+                                className="block w-full rounded-md border-0 py-2 px-3 text-charcoal-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-fnc-600 sm:text-sm"
+                                placeholder="usuario@cafedecolombia.com"
                             />
                         </div>
-                    </div>
 
-                    <div>
-                        <div className="flex items-center justify-between">
-                            <label htmlFor="password" className="block text-sm font-medium leading-6 text-gray-900">
+                        <div>
+                            <label htmlFor="password" className="block text-sm font-medium text-charcoal-700 mb-1.5">
                                 Contraseña
                             </label>
-                        </div>
-                        <div className="mt-2">
                             <input
                                 id="password"
                                 name="password"
@@ -66,26 +70,29 @@ const Login = () => {
                                 required
                                 value={password}
                                 onChange={(e) => setPassword(e.target.value)}
-                                className="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6 px-3"
+                                className="block w-full rounded-md border-0 py-2 px-3 text-charcoal-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-fnc-600 sm:text-sm"
+                                placeholder="••••••••"
                             />
                         </div>
-                    </div>
 
-                    {error && (
-                        <div className="text-red-500 text-sm text-center font-medium">
-                            {error}
-                        </div>
-                    )}
+                        {error && (
+                            <div className="rounded-md bg-fnc-50 border border-fnc-200 p-3 text-sm text-fnc-700 font-medium text-center">
+                                {error}
+                            </div>
+                        )}
 
-                    <div>
                         <button
                             type="submit"
-                            className="flex w-full justify-center rounded-md bg-indigo-600 px-3 py-1.5 text-sm font-semibold leading-6 text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"
+                            className="flex w-full justify-center rounded-md bg-fnc-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-fnc-700 active:bg-fnc-800 transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-fnc-600"
                         >
                             Ingresar
                         </button>
-                    </div>
-                </form>
+                    </form>
+                </div>
+
+                <p className="mt-6 text-center text-xs text-charcoal-400">
+                    © {new Date().getFullYear()} Federación Nacional de Cafeteros de Colombia
+                </p>
             </div>
         </div>
     );

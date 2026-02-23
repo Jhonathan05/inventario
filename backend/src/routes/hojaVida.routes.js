@@ -4,8 +4,41 @@ const prisma = require('../lib/prisma');
 const { authMiddleware, requireRole } = require('../middleware/auth.middleware');
 const upload = require('../middleware/upload.middleware');
 
+// GET /api/hojavida  -- Listado global de todos los mantenimientos con filtros
+router.get('/', authMiddleware, async (req, res) => {
+    try {
+        const { estado, tipo, search } = req.query;
+        const where = {};
+        if (estado) where.estado = estado;
+        if (tipo) where.tipo = tipo;
+        if (search) {
+            where.OR = [
+                { descripcion: { contains: search, mode: 'insensitive' } },
+                { casoAranda: { contains: search, mode: 'insensitive' } },
+                { activo: { placa: { contains: search, mode: 'insensitive' } } },
+                { activo: { marca: { contains: search, mode: 'insensitive' } } },
+                { activo: { modelo: { contains: search, mode: 'insensitive' } } },
+            ];
+        }
+        const registros = await prisma.hojaVida.findMany({
+            where,
+            include: {
+                activo: { select: { id: true, placa: true, marca: true, modelo: true, serial: true, categoria: { select: { nombre: true } } } },
+                responsable: { select: { id: true, nombre: true } },
+                trazas: { orderBy: { fecha: 'desc' }, take: 1 }
+            },
+            orderBy: { fecha: 'desc' }
+        });
+        res.json(registros);
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ error: 'Error al obtener mantenimientos' });
+    }
+});
+
 // GET /api/hojavida/activo/:activoId
 router.get('/activo/:activoId', authMiddleware, async (req, res) => {
+
     try {
         const registros = await prisma.hojaVida.findMany({
             where: { activoId: parseInt(req.params.activoId) },

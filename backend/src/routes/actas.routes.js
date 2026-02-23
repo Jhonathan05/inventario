@@ -31,6 +31,15 @@ router.post('/generar', authMiddleware, async (req, res) => {
         const funcionario = await prisma.funcionario.findUnique({ where: { id: parseInt(funcionarioId) } });
         if (!funcionario) return res.status(404).json({ error: 'Funcionario no encontrado' });
 
+        let funcionarioDestino = null;
+        if (tipo === 'TRASLADO') {
+            if (!funcionarioDestinoId) {
+                return res.status(400).json({ error: 'Se requiere funcionario destino para TRASLADO' });
+            }
+            funcionarioDestino = await prisma.funcionario.findUnique({ where: { id: parseInt(funcionarioDestinoId) } });
+            if (!funcionarioDestino) return res.status(404).json({ error: 'Funcionario destino no encontrado' });
+        }
+
         // 1. Obtener activos y validar sus estados
         const activos = await prisma.activo.findMany({
             where: { id: { in: activosIds } }
@@ -102,12 +111,6 @@ router.post('/generar', authMiddleware, async (req, res) => {
             tipoNovedadExcel = 'Inventario Físico';
 
         } else if (tipo === 'TRASLADO') {
-            if (!funcionarioDestinoId) {
-                return res.status(400).json({ error: 'Se requiere funcionario destino para TRASLADO' });
-            }
-            const funcionarioDestino = await prisma.funcionario.findUnique({ where: { id: parseInt(funcionarioDestinoId) } });
-            if (!funcionarioDestino) return res.status(404).json({ error: 'Funcionario destino no encontrado' });
-
             quienEntrega = funcionarioDatos;
             quienRecibe = {
                 nombre: funcionarioDestino.nombre,
@@ -193,7 +196,18 @@ router.post('/generar', authMiddleware, async (req, res) => {
                 if (tipo === 'ASIGNACION') {
                     await tx.activo.update({
                         where: { id: activo.id },
-                        data: { estado: 'ASIGNADO' }
+                        data: {
+                            estado: 'ASIGNADO',
+                            empresaFuncionario: funcionario.empresaFuncionario,
+                            tipoPersonal: funcionario.vinculacion,
+                            cedulaFuncionario: funcionario.cedula,
+                            shortname: funcionario.shortname,
+                            nombreFuncionario: funcionario.nombre,
+                            departamento: funcionario.departamento,
+                            ciudad: funcionario.ciudad,
+                            cargo: funcionario.cargo,
+                            area: funcionario.area
+                        }
                     });
                     await tx.asignacion.create({
                         data: {
@@ -220,7 +234,18 @@ router.post('/generar', authMiddleware, async (req, res) => {
                     });
                     await tx.activo.update({
                         where: { id: activo.id },
-                        data: { estado: 'DISPONIBLE' }
+                        data: {
+                            estado: 'DISPONIBLE',
+                            empresaFuncionario: null,
+                            tipoPersonal: null,
+                            cedulaFuncionario: null,
+                            shortname: null,
+                            nombreFuncionario: null,
+                            departamento: null,
+                            ciudad: null,
+                            cargo: null,
+                            area: null
+                        }
                     });
 
                 } else if (tipo === 'TRASLADO') {
@@ -235,6 +260,23 @@ router.post('/generar', authMiddleware, async (req, res) => {
                             observaciones: `Traslado a ${quienRecibe.nombre}`
                         }
                     });
+
+                    await tx.activo.update({
+                        where: { id: activo.id },
+                        data: {
+                            estado: 'ASIGNADO',
+                            empresaFuncionario: funcionarioDestino.empresaFuncionario,
+                            tipoPersonal: funcionarioDestino.vinculacion,
+                            cedulaFuncionario: funcionarioDestino.cedula,
+                            shortname: funcionarioDestino.shortname,
+                            nombreFuncionario: funcionarioDestino.nombre,
+                            departamento: funcionarioDestino.departamento,
+                            ciudad: funcionarioDestino.ciudad,
+                            cargo: funcionarioDestino.cargo,
+                            area: funcionarioDestino.area
+                        }
+                    });
+
                     await tx.asignacion.create({
                         data: {
                             activoId: activo.id,
