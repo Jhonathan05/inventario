@@ -1,8 +1,13 @@
 import { useState, useEffect } from 'react';
 import api from '../../../lib/axios';
+import { useAuth } from '../../../context/AuthContext';
 import { generateMaintenanceReport } from '../reports/MaintenanceReport';
 
 const EstadoHojaVidaForm = ({ open, onClose, hojaVida, activo }) => {
+    const { user } = useAuth();
+    const canEdit = user?.rol === 'ADMIN' || user?.rol === 'TECNICO';
+    const isReadOnly = !canEdit || hojaVida.estado === 'FINALIZADO';
+
     const [formData, setFormData] = useState({
         tipo: hojaVida?.tipo || 'MANTENIMIENTO',
         diagnostico: hojaVida?.diagnostico || '',
@@ -121,7 +126,7 @@ const EstadoHojaVidaForm = ({ open, onClose, hojaVida, activo }) => {
                                 <label className="block text-sm font-medium text-gray-700">Tipo de Evento</label>
                                 <select
                                     name="tipo"
-                                    disabled={hojaVida.estado === 'FINALIZADO'}
+                                    disabled={isReadOnly}
                                     className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm border p-2 bg-white disabled:bg-gray-100"
                                     value={formData.tipo}
                                     onChange={handleChange}
@@ -138,7 +143,7 @@ const EstadoHojaVidaForm = ({ open, onClose, hojaVida, activo }) => {
                                 <label className="block text-sm font-medium text-gray-700">TI Asignado</label>
                                 <select
                                     name="responsableId"
-                                    disabled={hojaVida.estado === 'FINALIZADO'}
+                                    disabled={isReadOnly}
                                     className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm border p-2 bg-white disabled:bg-gray-100"
                                     value={formData.responsableId}
                                     onChange={handleChange}
@@ -159,7 +164,8 @@ const EstadoHojaVidaForm = ({ open, onClose, hojaVida, activo }) => {
                                 <textarea
                                     name="nuevaNota"
                                     rows="2"
-                                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm border p-2 text-gray-900"
+                                    disabled={isReadOnly}
+                                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm border p-2 text-gray-900 disabled:bg-gray-100"
                                     value={formData.nuevaNota}
                                     onChange={handleChange}
                                     placeholder="Describa el avance realizado ahora..."
@@ -177,7 +183,8 @@ const EstadoHojaVidaForm = ({ open, onClose, hojaVida, activo }) => {
                                 <textarea
                                     name="diagnostico"
                                     rows="2"
-                                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm border p-2 text-gray-900 bg-gray-50"
+                                    disabled={isReadOnly}
+                                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm border p-2 text-gray-900 bg-gray-50 disabled:bg-gray-100"
                                     value={formData.diagnostico}
                                     onChange={handleChange}
                                     placeholder="Resumen general del estado..."
@@ -188,11 +195,11 @@ const EstadoHojaVidaForm = ({ open, onClose, hojaVida, activo }) => {
                         <div className="grid grid-cols-2 gap-4">
                             <div>
                                 <label className="block text-sm font-medium text-gray-700">Caso Aranda</label>
-                                <input type="text" name="casoAranda" disabled={hojaVida.estado === 'FINALIZADO'} className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm border p-2 disabled:bg-gray-100" value={formData.casoAranda} onChange={handleChange} />
+                                <input type="text" name="casoAranda" disabled={isReadOnly} className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm border p-2 disabled:bg-gray-100" value={formData.casoAranda} onChange={handleChange} />
                             </div>
                             <div>
                                 <label className="block text-sm font-medium text-gray-700">Costo Total</label>
-                                <input type="number" name="costo" disabled={hojaVida.estado === 'FINALIZADO'} className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm border p-2 disabled:bg-gray-100" value={formData.costo} onChange={handleChange} />
+                                <input type="number" name="costo" disabled={isReadOnly} className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm border p-2 disabled:bg-gray-100" value={formData.costo} onChange={handleChange} />
                             </div>
                         </div>
 
@@ -202,7 +209,7 @@ const EstadoHojaVidaForm = ({ open, onClose, hojaVida, activo }) => {
                                 <select
                                     name="estado"
                                     required
-                                    disabled={hojaVida.estado === 'FINALIZADO'}
+                                    disabled={isReadOnly}
                                     className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm border p-2 bg-white font-medium disabled:bg-gray-100"
                                     value={formData.estado}
                                     onChange={handleChange}
@@ -215,7 +222,7 @@ const EstadoHojaVidaForm = ({ open, onClose, hojaVida, activo }) => {
 
                             <div>
                                 <label className="block text-sm font-medium text-gray-700">Soporte (Img/PDF)</label>
-                                <input type="file" disabled={hojaVida.estado === 'FINALIZADO'} onChange={handleFileChange} className="mt-1 block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100 disabled:opacity-50" accept=".jpg,.jpeg,.png,.pdf" />
+                                <input type="file" disabled={isReadOnly} onChange={handleFileChange} className="mt-1 block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100 disabled:opacity-50" accept=".jpg,.jpeg,.png,.pdf" />
                             </div>
                         </div>
 
@@ -252,9 +259,9 @@ const EstadoHojaVidaForm = ({ open, onClose, hojaVida, activo }) => {
                                 📄 Descargar Reporte PDF
                             </button>
                             <button type="button" onClick={() => onClose(false)} className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50">
-                                {hojaVida.estado === 'FINALIZADO' ? 'Cerrar' : 'Cancelar'}
+                                {isReadOnly ? 'Cerrar' : 'Cancelar'}
                             </button>
-                            {hojaVida.estado !== 'FINALIZADO' && (
+                            {!isReadOnly && (
                                 <button type="submit" disabled={loading} className="px-4 py-2 text-sm font-medium text-white bg-indigo-600 rounded-md hover:bg-indigo-700 disabled:opacity-50">
                                     {loading ? 'Guardando...' : 'Guardar Avance'}
                                 </button>

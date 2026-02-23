@@ -1,7 +1,11 @@
 import { useState } from 'react';
 import api from '../../../lib/axios';
+import { useAuth } from '../../../context/AuthContext';
 
 const DocumentosList = ({ activoId, documentos, onUpdate }) => {
+    const { user } = useAuth();
+    const canEdit = user?.rol === 'ADMIN' || user?.rol === 'TECNICO';
+
     const [uploading, setUploading] = useState(false);
     const [error, setError] = useState('');
 
@@ -53,20 +57,22 @@ const DocumentosList = ({ activoId, documentos, onUpdate }) => {
         <div>
             <div className="flex justify-between items-center mb-4">
                 <h3 className="text-lg font-medium leading-6 text-gray-900">Documentos Adjuntos</h3>
-                <div>
-                    <label htmlFor="file-upload" className={`cursor-pointer inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 ${uploading ? 'opacity-50 cursor-not-allowed' : ''}`}>
-                        {uploading ? 'Subiendo...' : '+ Subir Documento'}
-                    </label>
-                    <input
-                        id="file-upload"
-                        name="file-upload"
-                        type="file"
-                        className="sr-only"
-                        onChange={handleFileUpload}
-                        disabled={uploading}
-                        accept=".pdf,.jpg,.jpeg,.png,.doc,.docx"
-                    />
-                </div>
+                {canEdit && (
+                    <div>
+                        <label htmlFor="file-upload" className={`cursor-pointer inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 ${uploading ? 'opacity-50 cursor-not-allowed' : ''}`}>
+                            {uploading ? 'Subiendo...' : '+ Subir Documento'}
+                        </label>
+                        <input
+                            id="file-upload"
+                            name="file-upload"
+                            type="file"
+                            className="sr-only"
+                            onChange={handleFileUpload}
+                            disabled={uploading}
+                            accept=".pdf,.jpg,.jpeg,.png,.doc,.docx"
+                        />
+                    </div>
+                )}
             </div>
 
             {error && <div className="text-red-600 text-sm mb-2">{error}</div>}
@@ -78,7 +84,7 @@ const DocumentosList = ({ activoId, documentos, onUpdate }) => {
                             <th className="py-3.5 pl-4 pr-3 text-left text-sm font-semibold text-gray-900">Nombre</th>
                             <th className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">Tipo</th>
                             <th className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">Fecha</th>
-                            <th className="px-3 py-3.5 text-right text-sm font-semibold text-gray-900">Acciones</th>
+                            {canEdit && <th className="px-3 py-3.5 text-right text-sm font-semibold text-gray-900">Acciones</th>}
                         </tr>
                     </thead>
                     <tbody className="divide-y divide-gray-200 bg-white">
@@ -91,11 +97,13 @@ const DocumentosList = ({ activoId, documentos, onUpdate }) => {
                                 </td>
                                 <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500">{doc.tipo.split('/')[1]}</td>
                                 <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500">{new Date(doc.creadoEn).toLocaleDateString()}</td>
-                                <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500 text-right">
-                                    <button onClick={() => handleDelete(doc.id)} className="text-red-600 hover:text-red-900 ml-4">
-                                        Eliminar
-                                    </button>
-                                </td>
+                                {canEdit && (
+                                    <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500 text-right">
+                                        <button onClick={() => handleDelete(doc.id)} className="text-red-600 hover:text-red-900 ml-4">
+                                            Eliminar
+                                        </button>
+                                    </td>
+                                )}
                             </tr>
                         ))}
                         {(!documentos || documentos.length === 0) && (

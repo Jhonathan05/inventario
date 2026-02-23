@@ -4,6 +4,7 @@ const multer = require('multer');
 const XLSX = require('xlsx');
 const { PrismaClient } = require('@prisma/client');
 const prisma = new PrismaClient();
+const { authMiddleware, requireRole } = require('../middleware/auth.middleware');
 
 // Multer en memoria para no guardar el archivo en disco
 const upload = multer({ storage: multer.memoryStorage() });
@@ -259,7 +260,7 @@ router.get('/plantilla/cmdb', (req, res) => {
 // ──────────────────────────────────────────────────────────────────────────────
 // POST /api/importar/activos  — procesa archivo xlsx de activos
 // ──────────────────────────────────────────────────────────────────────────────
-router.post('/activos', upload.single('archivo'), async (req, res) => {
+router.post('/activos', authMiddleware, requireRole('ADMIN', 'TECNICO'), upload.single('archivo'), async (req, res) => {
     if (!req.file) return res.status(400).json({ error: 'No se recibió ningún archivo.' });
 
     try {
@@ -354,7 +355,7 @@ router.post('/activos', upload.single('archivo'), async (req, res) => {
 // ──────────────────────────────────────────────────────────────────────────────
 // POST /api/importar/funcionarios  — procesa archivo xlsx de funcionarios
 // ──────────────────────────────────────────────────────────────────────────────
-router.post('/funcionarios', upload.single('archivo'), async (req, res) => {
+router.post('/funcionarios', authMiddleware, requireRole('ADMIN', 'TECNICO'), upload.single('archivo'), async (req, res) => {
     if (!req.file) return res.status(400).json({ error: 'No se recibió ningún archivo.' });
 
     try {
@@ -436,7 +437,7 @@ router.post('/funcionarios', upload.single('archivo'), async (req, res) => {
 // ──────────────────────────────────────────────────────────────────────────────
 // POST /api/importar/cmdb  — procesa importación unificada (CMDB)
 // ──────────────────────────────────────────────────────────────────────────────
-router.post('/cmdb', upload.single('archivo'), async (req, res) => {
+router.post('/cmdb', authMiddleware, requireRole('ADMIN', 'TECNICO'), upload.single('archivo'), async (req, res) => {
     if (!req.file) return res.status(400).json({ error: 'No se recibió ningún archivo.' });
 
     try {

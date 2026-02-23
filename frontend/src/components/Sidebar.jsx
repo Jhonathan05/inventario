@@ -7,16 +7,17 @@ const Sidebar = ({ isOpen, toggleSidebar, onNavigate }) => {
     const location = useLocation();
 
     const navigation = [
-        { name: 'Dashboard', href: '/', icon: '📊', type: 'emoji' },
-        { name: 'Activos', href: '/activos', icon: '💻', type: 'emoji' },
-        { name: 'Funcionarios', href: '/funcionarios', icon: '👤', type: 'emoji' },
-        { name: 'Mantenimientos', href: '/mantenimientos', icon: '🔧', type: 'emoji' },
-        { name: 'Categorías', href: '/categorias', icon: '🏷️', type: 'emoji' },
-        { name: 'Reportes', href: '/reportes', icon: DocumentTextIcon, type: 'component' },
-        { name: 'Actas', href: '/actas', icon: ClipboardDocumentCheckIcon, type: 'component' },
-        { name: 'Importar Datos', href: '/importar', icon: '📥', type: 'emoji' },
-        { name: 'Usuarios', href: '/usuarios', icon: '👥', type: 'emoji' },
-        { name: 'Catálogos', href: '/configuracion/catalogos', icon: '⚙️', type: 'emoji' },
+        { name: 'Dashboard', href: '/', icon: '📊', type: 'emoji', roles: ['ADMIN', 'TECNICO', 'CONSULTA'] },
+        { name: 'Activos', href: '/activos', icon: '💻', type: 'emoji', roles: ['ADMIN', 'TECNICO', 'CONSULTA'] },
+        { name: 'Funcionarios', href: '/funcionarios', icon: '👤', type: 'emoji', roles: ['ADMIN', 'TECNICO', 'CONSULTA'] },
+        { name: 'Mantenimientos', href: '/mantenimientos', icon: '🔧', type: 'emoji', roles: ['ADMIN', 'TECNICO', 'CONSULTA'] },
+        { name: 'Categorías', href: '/categorias', icon: '🏷️', type: 'emoji', roles: ['ADMIN', 'TECNICO', 'CONSULTA'] },
+        { name: 'Reportes', href: '/reportes', icon: DocumentTextIcon, type: 'component', roles: ['ADMIN', 'TECNICO', 'CONSULTA'] },
+        { name: 'Actas', href: '/actas', icon: ClipboardDocumentCheckIcon, type: 'component', roles: ['ADMIN', 'TECNICO', 'CONSULTA'] },
+        { name: 'Importar Datos', href: '/importar', icon: '📥', type: 'emoji', roles: ['ADMIN', 'TECNICO'] },
+        { name: 'Usuarios', href: '/usuarios', icon: '👥', type: 'emoji', roles: ['ADMIN'] },
+        { name: 'Respaldos', href: '/soporte', icon: '💾', type: 'emoji', roles: ['ADMIN'] },
+        { name: 'Catálogos', href: '/configuracion/catalogos', icon: '⚙️', type: 'emoji', roles: ['ADMIN', 'TECNICO', 'CONSULTA'] },
     ];
 
     const isActive = (path) => location.pathname === path;
@@ -49,7 +50,7 @@ const Sidebar = ({ isOpen, toggleSidebar, onNavigate }) => {
 
                 {/* Nav Items */}
                 <nav className="flex-1 overflow-y-auto space-y-0.5 px-2 py-3">
-                    {navigation.map((item) => (
+                    {navigation.filter(item => item.roles.includes(user?.rol)).map((item) => (
                         <Link
                             key={item.name}
                             to={item.href}

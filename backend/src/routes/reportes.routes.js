@@ -2,7 +2,7 @@ const express = require('express');
 const router = express.Router();
 const { PrismaClient } = require('@prisma/client');
 const prisma = new PrismaClient();
-const { authMiddleware } = require('../middleware/auth.middleware');
+const { authMiddleware, requireRole } = require('../middleware/auth.middleware');
 
 // GET /api/reportes/inventario - Todos los activos con relaciones
 router.get('/inventario', authMiddleware, async (req, res) => {
@@ -229,7 +229,7 @@ router.get('/perfiles/:id', authMiddleware, async (req, res) => {
 });
 
 // POST /api/reportes/perfiles - Crear perfil
-router.post('/perfiles', authMiddleware, async (req, res) => {
+router.post('/perfiles', authMiddleware, requireRole('ADMIN', 'TECNICO'), async (req, res) => {
     try {
         const { nombre, descripcion, tipoReporte, columnas } = req.body;
         const perfil = await prisma.perfilReporte.create({
@@ -246,7 +246,7 @@ router.post('/perfiles', authMiddleware, async (req, res) => {
 });
 
 // PUT /api/reportes/perfiles/:id - Actualizar perfil
-router.put('/perfiles/:id', authMiddleware, async (req, res) => {
+router.put('/perfiles/:id', authMiddleware, requireRole('ADMIN', 'TECNICO'), async (req, res) => {
     try {
         const { nombre, descripcion, tipoReporte, columnas } = req.body;
         const perfil = await prisma.perfilReporte.update({
@@ -264,7 +264,7 @@ router.put('/perfiles/:id', authMiddleware, async (req, res) => {
 });
 
 // DELETE /api/reportes/perfiles/:id - Eliminar perfil
-router.delete('/perfiles/:id', authMiddleware, async (req, res) => {
+router.delete('/perfiles/:id', authMiddleware, requireRole('ADMIN', 'TECNICO'), async (req, res) => {
     try {
         const perfil = await prisma.perfilReporte.findUnique({
             where: { id: parseInt(req.params.id) },
@@ -282,7 +282,7 @@ router.delete('/perfiles/:id', authMiddleware, async (req, res) => {
 });
 
 // POST /api/reportes/perfiles/seed - Crear perfiles predefinidos
-router.post('/perfiles/seed', authMiddleware, async (req, res) => {
+router.post('/perfiles/seed', authMiddleware, requireRole('ADMIN', 'TECNICO'), async (req, res) => {
     try {
         const existing = await prisma.perfilReporte.findFirst({ where: { nombre: 'CMDB USUARIO FINAL' } });
         if (existing) return res.json({ message: 'Perfiles predefinidos ya existen', perfil: existing });

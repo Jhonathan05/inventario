@@ -1,8 +1,12 @@
 import { useState, useEffect } from 'react';
 import api from '../../lib/axios';
+import { useAuth } from '../../context/AuthContext';
 import FuncionariosForm from './FuncionariosForm';
 
 const FuncionariosList = () => {
+    const { user } = useAuth();
+    const canEdit = user?.rol === 'ADMIN' || user?.rol === 'TECNICO';
+
     const [funcionarios, setFuncionarios] = useState([]);
     const [loading, setLoading] = useState(true);
     const [search, setSearch] = useState('');
@@ -79,13 +83,15 @@ const FuncionariosList = () => {
                         Listado de personal ({funcionarios.length} registros)
                     </p>
                 </div>
-                <button
-                    type="button"
-                    onClick={handleCreate}
-                    className="rounded-md bg-indigo-600 px-3 py-2 text-center text-sm font-semibold text-white shadow-sm hover:bg-indigo-500"
-                >
-                    + Nuevo Funcionario
-                </button>
+                {canEdit && (
+                    <button
+                        type="button"
+                        onClick={handleCreate}
+                        className="rounded-md bg-indigo-600 px-3 py-2 text-center text-sm font-semibold text-white shadow-sm hover:bg-indigo-500"
+                    >
+                        + Nuevo Funcionario
+                    </button>
+                )}
             </div>
 
             {/* Buscador + Toggle Filtros */}
@@ -200,9 +206,11 @@ const FuncionariosList = () => {
                                     <th scope="col" className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">Cargo / Área</th>
                                     <th scope="col" className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">Vinculación</th>
                                     <th scope="col" className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">Activos</th>
-                                    <th scope="col" className="relative py-3.5 pl-3 pr-4 sm:pr-6">
-                                        <span className="sr-only">Acciones</span>
-                                    </th>
+                                    {canEdit && (
+                                        <th scope="col" className="relative py-3.5 pl-3 pr-4 sm:pr-6">
+                                            <span className="sr-only">Acciones</span>
+                                        </th>
+                                    )}
                                 </tr>
                             </thead>
                             <tbody className="divide-y divide-gray-200 bg-white">
@@ -233,14 +241,16 @@ const FuncionariosList = () => {
                                                 {f._count?.asignaciones || 0} equipos
                                             </span>
                                         </td>
-                                        <td className="whitespace-nowrap py-4 pl-3 pr-4 text-right text-sm font-medium sm:pr-6">
-                                            <button
-                                                onClick={() => handleEdit(f)}
-                                                className="text-indigo-600 hover:text-indigo-900"
-                                            >
-                                                Editar
-                                            </button>
-                                        </td>
+                                        {canEdit && (
+                                            <td className="whitespace-nowrap py-4 pl-3 pr-4 text-right text-sm font-medium sm:pr-6">
+                                                <button
+                                                    onClick={() => handleEdit(f)}
+                                                    className="text-indigo-600 hover:text-indigo-900"
+                                                >
+                                                    Editar
+                                                </button>
+                                            </td>
+                                        )}
                                     </tr>
                                 ))}
                                 {funcionarios.length === 0 && (
@@ -299,14 +309,16 @@ const FuncionariosList = () => {
                                 </div>
                             )}
 
-                            <div className="mt-3 pt-3 border-t border-gray-100 flex justify-end">
-                                <button
-                                    onClick={() => handleEdit(f)}
-                                    className="text-xs text-indigo-700 bg-indigo-50 rounded-md px-3 py-1.5 font-medium hover:bg-indigo-100"
-                                >
-                                    Editar
-                                </button>
-                            </div>
+                            {canEdit && (
+                                <div className="mt-3 pt-3 border-t border-gray-100 flex justify-end">
+                                    <button
+                                        onClick={() => handleEdit(f)}
+                                        className="text-xs text-indigo-700 bg-indigo-50 rounded-md px-3 py-1.5 font-medium hover:bg-indigo-100"
+                                    >
+                                        Editar
+                                    </button>
+                                </div>
+                            )}
                         </div>
                     ))}
                 </div>

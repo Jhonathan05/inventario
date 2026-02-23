@@ -11,6 +11,8 @@ RUN npm install --omit=dev
 # Etapa 2: Producción
 FROM node:20-alpine
 
+RUN apk add --no-cache postgresql-client
+
 WORKDIR /app
 
 COPY --from=builder /app/node_modules ./node_modules

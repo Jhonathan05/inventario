@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import api from '../../lib/axios';
 import { getImageUrl, formatCurrency, formatDate } from '../../lib/utils';
+import { useAuth } from '../../context/AuthContext';
 import ActivosForm from './ActivosForm';
 import HojaVidaForm from './components/HojaVidaForm';
 import EstadoHojaVidaForm from './components/EstadoHojaVidaForm';
@@ -10,6 +11,9 @@ import DocumentosList from './components/DocumentosList';
 const ActivoDetail = () => {
     const { id } = useParams();
     const navigate = useNavigate();
+    const { user } = useAuth();
+    const canEdit = user?.rol === 'ADMIN' || user?.rol === 'TECNICO';
+
     const [activo, setActivo] = useState(null);
     const [loading, setLoading] = useState(true);
     const [activeTab, setActiveTab] = useState('general');
@@ -90,12 +94,14 @@ const ActivoDetail = () => {
                         <span className={`inline-flex items-center rounded-md px-2 py-1 text-xs font-medium ring-1 ring-inset ${getStatusBadge(activo.estado)}`}>
                             {activo.estado?.replace('_', ' ')}
                         </span>
-                        <button
-                            onClick={() => setIsEditModalOpen(true)}
-                            className="rounded-md bg-indigo-600 px-3 py-2 text-sm font-semibold text-white hover:bg-indigo-500"
-                        >
-                            Editar
-                        </button>
+                        {canEdit && (
+                            <button
+                                onClick={() => setIsEditModalOpen(true)}
+                                className="rounded-md bg-indigo-600 px-3 py-2 text-sm font-semibold text-white hover:bg-indigo-500"
+                            >
+                                Editar
+                            </button>
+                        )}
                     </div>
                 </div>
             </div>
@@ -249,12 +255,14 @@ const ActivoDetail = () => {
                     <div>
                         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 mb-4">
                             <h3 className="text-lg font-medium text-gray-900">Mantenimientos y Eventos</h3>
-                            <button
-                                onClick={() => setIsHVModalOpen(true)}
-                                className="cursor-pointer inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700"
-                            >
-                                + Registrar Evento
-                            </button>
+                            {canEdit && (
+                                <button
+                                    onClick={() => setIsHVModalOpen(true)}
+                                    className="cursor-pointer inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700"
+                                >
+                                    + Registrar Evento
+                                </button>
+                            )}
                         </div>
                         {/* Desktop table */}
                         <div className="hidden md:block overflow-x-auto shadow ring-1 ring-black ring-opacity-5 rounded-lg">
@@ -290,7 +298,7 @@ const ActivoDetail = () => {
                                                     onClick={() => { setSelectedHV(hv); setIsStatusModalOpen(true); }}
                                                     className="text-indigo-600 hover:text-indigo-900 font-medium"
                                                 >
-                                                    {(hv.estado === 'FINALIZADO' || hv.estado === 'CERRADO') ? 'Ver' : 'Gestionar'}
+                                                    {(hv.estado === 'FINALIZADO' || hv.estado === 'CERRADO' || !canEdit) ? 'Ver' : 'Gestionar'}
                                                 </button>
                                             </td>
                                         </tr>
@@ -328,7 +336,7 @@ const ActivoDetail = () => {
                                             onClick={() => { setSelectedHV(hv); setIsStatusModalOpen(true); }}
                                             className="text-xs text-indigo-700 bg-indigo-50 rounded-md px-3 py-1.5 font-medium hover:bg-indigo-100"
                                         >
-                                            {(hv.estado === 'FINALIZADO' || hv.estado === 'CERRADO') ? 'Ver Detalles' : 'Gestionar'}
+                                            {(hv.estado === 'FINALIZADO' || hv.estado === 'CERRADO' || !canEdit) ? 'Ver Detalles' : 'Gestionar'}
                                         </button>
                                     </div>
                                 </div>

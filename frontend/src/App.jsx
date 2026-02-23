@@ -15,6 +15,7 @@ import GenerarActa from './pages/actas/GenerarActa';
 import ImportarDatos from './pages/importar/ImportarDatos';
 import Catalogos from './pages/configuracion/CatalogosList';
 import MantenimientosList from './pages/mantenimientos/MantenimientosList';
+import BackupSoporte from './pages/backup/BackupSoporte';
 
 
 function App() {
@@ -24,24 +25,32 @@ function App() {
                 <Routes>
                     <Route path="/login" element={<Login />} />
 
-                    <Route element={<ProtectedRoute />}>
-                        <Route element={<MainLayout />}>
+                    <Route element={<MainLayout />}>
+                        <Route element={<ProtectedRoute />}>
                             <Route path="/" element={<Dashboard />} />
                             <Route path="/activos" element={<Activos />} />
                             <Route path="/activos/:id" element={<ActivoDetail />} />
                             <Route path="/funcionarios" element={<Funcionarios />} />
-                            <Route path="/usuarios" element={<Usuarios />} />
                             <Route path="/categorias" element={<Categorias />} />
                             <Route path="/reportes" element={<Reportes />} />
                             <Route path="/actas" element={<ActasList />} />
-                            <Route path="/actas/generar" element={<GenerarActa />} />
-                            <Route path="/importar" element={<ImportarDatos />} />
                             <Route path="/configuracion/catalogos" element={<Catalogos />} />
                             <Route path="/mantenimientos" element={<MantenimientosList />} />
-
-
-                            <Route path="*" element={<Navigate to="/" replace />} />
                         </Route>
+
+                        {/* Solo ADMIN y TECNICO */}
+                        <Route element={<ProtectedRoute allowedRoles={['ADMIN', 'TECNICO']} />}>
+                            <Route path="/actas/generar" element={<GenerarActa />} />
+                            <Route path="/importar" element={<ImportarDatos />} />
+                        </Route>
+
+                        {/* Solo ADMIN */}
+                        <Route element={<ProtectedRoute allowedRoles={['ADMIN']} />}>
+                            <Route path="/usuarios" element={<Usuarios />} />
+                            <Route path="/soporte" element={<BackupSoporte />} />
+                        </Route>
+
+                        <Route path="*" element={<Navigate to="/" replace />} />
                     </Route>
                 </Routes>
             </AuthProvider>

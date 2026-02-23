@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import api from '../../lib/axios';
+import { useAuth } from '../../context/AuthContext';
 import { getImageUrl } from '../../lib/utils';
 import ActivosForm from './ActivosForm';
 import { EMPRESAS_PROPIETARIAS, ESTADOS_OPERATIVOS, TIPOS_EQUIPO } from './ActivosFormData';
@@ -9,6 +10,9 @@ import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 
 const ActivosList = () => {
+    const { user } = useAuth();
+    const canEdit = user?.rol === 'ADMIN' || user?.rol === 'TECNICO';
+
     const [activos, setActivos] = useState([]);
     const [loading, setLoading] = useState(true);
     const [search, setSearch] = useState('');
@@ -250,13 +254,15 @@ const ActivosList = () => {
                             </button>
                         </>
                     )}
-                    <button
-                        type="button"
-                        onClick={handleCreate}
-                        className="rounded-md bg-indigo-600 px-3 py-2 text-center text-sm font-semibold text-white shadow-sm hover:bg-indigo-500"
-                    >
-                        + Nuevo
-                    </button>
+                    {canEdit && (
+                        <button
+                            type="button"
+                            onClick={handleCreate}
+                            className="rounded-md bg-indigo-600 px-3 py-2 text-center text-sm font-semibold text-white shadow-sm hover:bg-indigo-500"
+                        >
+                            + Nuevo
+                        </button>
+                    )}
                 </div>
             </div>
 
@@ -367,9 +373,11 @@ const ActivosList = () => {
                                     <th scope="col" className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">Estado</th>
                                     <th scope="col" className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">Ubicación</th>
                                     <th scope="col" className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">Asignado A</th>
-                                    <th scope="col" className="relative py-3.5 pl-3 pr-4 sm:pr-6">
-                                        <span className="sr-only">Acciones</span>
-                                    </th>
+                                    {canEdit && (
+                                        <th scope="col" className="relative py-3.5 pl-3 pr-4 sm:pr-6">
+                                            <span className="sr-only">Acciones</span>
+                                        </th>
+                                    )}
                                 </tr>
                             </thead>
                             <tbody className="divide-y divide-gray-200 bg-white">
@@ -405,16 +413,18 @@ const ActivosList = () => {
                                         <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
                                             {activo.asignaciones?.[0]?.funcionario?.nombre || 'Sin asignar'}
                                         </td>
-                                        <td className="whitespace-nowrap py-4 pl-3 pr-4 text-right text-sm font-medium sm:pr-6">
-                                            <div className="flex justify-end gap-3">
-                                                <button
-                                                    onClick={() => handleEdit(activo)}
-                                                    className="text-indigo-600 hover:text-indigo-900"
-                                                >
-                                                    Editar
-                                                </button>
-                                            </div>
-                                        </td>
+                                        {canEdit && (
+                                            <td className="whitespace-nowrap py-4 pl-3 pr-4 text-right text-sm font-medium sm:pr-6">
+                                                <div className="flex justify-end gap-3">
+                                                    <button
+                                                        onClick={() => handleEdit(activo)}
+                                                        className="text-indigo-600 hover:text-indigo-900"
+                                                    >
+                                                        Editar
+                                                    </button>
+                                                </div>
+                                            </td>
+                                        )}
                                     </tr>
                                 ))}
                                 {activos.length === 0 && (
@@ -465,14 +475,22 @@ const ActivosList = () => {
                                 </div>
                             </div>
                             {/* Action buttons */}
-                            <div className="flex flex-wrap gap-2 mt-3 pt-3 border-t border-gray-100">
-                                <button onClick={() => handleEdit(activo)} className="text-xs text-indigo-700 bg-indigo-50 rounded-md px-2.5 py-1.5 font-medium hover:bg-indigo-100">
-                                    Editar
-                                </button>
-                                <Link to={`/activos/${activo.id}`} className="text-xs text-gray-700 bg-gray-100 rounded-md px-2.5 py-1.5 font-medium hover:bg-gray-200 ml-auto">
-                                    Ver Detalle →
-                                </Link>
-                            </div>
+                            {canEdit ? (
+                                <div className="flex flex-wrap gap-2 mt-3 pt-3 border-t border-gray-100">
+                                    <button onClick={() => handleEdit(activo)} className="text-xs text-indigo-700 bg-indigo-50 rounded-md px-2.5 py-1.5 font-medium hover:bg-indigo-100">
+                                        Editar
+                                    </button>
+                                    <Link to={`/activos/${activo.id}`} className="text-xs text-gray-700 bg-gray-100 rounded-md px-2.5 py-1.5 font-medium hover:bg-gray-200 ml-auto">
+                                        Ver Detalle →
+                                    </Link>
+                                </div>
+                            ) : (
+                                <div className="flex flex-wrap gap-2 mt-3 pt-3 border-t border-gray-100">
+                                    <Link to={`/activos/${activo.id}`} className="text-xs text-gray-700 bg-gray-100 rounded-md px-2.5 py-1.5 font-medium hover:bg-gray-200 ml-auto">
+                                        Ver Detalle →
+                                    </Link>
+                                </div>
+                            )}
                         </div>
                     ))}
                 </div>

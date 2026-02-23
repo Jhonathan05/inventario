@@ -2,7 +2,7 @@ const express = require('express');
 const router = express.Router();
 const { PrismaClient } = require('@prisma/client');
 const prisma = new PrismaClient();
-const { authMiddleware } = require('../middleware/auth.middleware');
+const { authMiddleware, requireRole } = require('../middleware/auth.middleware');
 const path = require('path');
 const fs = require('fs');
 // const XLSX = require('xlsx'); // Reemplazado por exceljs
@@ -19,7 +19,7 @@ const getFormattedDate = () => {
 };
 
 // Generar Novedad
-router.post('/generar', authMiddleware, async (req, res) => {
+router.post('/generar', authMiddleware, requireRole('ADMIN', 'TECNICO'), async (req, res) => {
     try {
         const { tipo, funcionarioId, activosIds, observaciones, funcionarioDestinoId } = req.body;
         const usuario = req.user; // Usuario logueado (TI)

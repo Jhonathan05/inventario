@@ -37,7 +37,13 @@ router.post('/', authMiddleware, requireRole('ADMIN'), async (req, res) => {
 router.put('/:id', authMiddleware, requireRole('ADMIN'), async (req, res) => {
     try {
         const { nombre, email, rol, activo, password } = req.body;
-        const data = { nombre, email, rol, activo };
+        const data = { nombre, email, activo };
+
+        // Bloquear asignación/cambio de rol si quien llama no es ADMIN superior
+        if (rol && req.user.rol === 'ADMIN') {
+            data.rol = rol;
+        }
+
         if (password) data.password = await bcrypt.hash(password, 10);
 
         const usuario = await prisma.usuario.update({

@@ -1,8 +1,13 @@
 import { useState, useEffect } from 'react';
 import api from '../../lib/axios';
+import { useAuth } from '../../context/AuthContext';
 import CatalogosForm from './CatalogosForm';
 
+
 const CatalogosList = () => {
+    const { user } = useAuth();
+    const canEdit = user?.rol === 'ADMIN' || user?.rol === 'TECNICO';
+
     const [catalogos, setCatalogos] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
@@ -78,12 +83,14 @@ const CatalogosList = () => {
                         <option value="AREA">ÁREAS</option>
                         <option value="CARGO">CARGOS</option>
                     </select>
-                    <button
-                        onClick={handleNew}
-                        className="block rounded-md bg-indigo-600 px-3 py-2 text-center text-sm font-semibold text-white shadow-sm hover:bg-indigo-500"
-                    >
-                        Nuevo Ítem
-                    </button>
+                    {canEdit && (
+                        <button
+                            onClick={handleNew}
+                            className="block rounded-md bg-indigo-600 px-3 py-2 text-center text-sm font-semibold text-white shadow-sm hover:bg-indigo-500"
+                        >
+                            Nuevo Ítem
+                        </button>
+                    )}
                 </div>
             </div>
 
@@ -96,7 +103,7 @@ const CatalogosList = () => {
                             <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Dominio</th>
                             <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Valor</th>
                             <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Estado</th>
-                            <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Acciones</th>
+                            {canEdit && <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Acciones</th>}
                         </tr>
                     </thead>
                     <tbody className="bg-white divide-y divide-gray-200">
@@ -119,10 +126,12 @@ const CatalogosList = () => {
                                         </span>
                                     )}
                                 </td>
-                                <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                                    <button onClick={() => handleEdit(item)} className="text-indigo-600 hover:text-indigo-900 mr-4">Editar</button>
-                                    <button onClick={() => handleDelete(item.id)} className="text-red-600 hover:text-red-900">Eliminar</button>
-                                </td>
+                                {canEdit && (
+                                    <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                                        <button onClick={() => handleEdit(item)} className="text-indigo-600 hover:text-indigo-900 mr-4">Editar</button>
+                                        <button onClick={() => handleDelete(item.id)} className="text-red-600 hover:text-red-900">Eliminar</button>
+                                    </td>
+                                )}
                             </tr>
                         ))}
                         {filteredCatalogos.length === 0 && (

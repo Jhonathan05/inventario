@@ -1,14 +1,14 @@
 const express = require('express');
 const router = express.Router();
 const prisma = require('../lib/prisma');
-const { authMiddleware } = require('../middleware/auth.middleware');
+const { authMiddleware, requireRole } = require('../middleware/auth.middleware');
 const upload = require('../middleware/upload.middleware');
 const fs = require('fs');
 const path = require('path');
 
 // POST /api/documentos/upload
 // Expects multipart/form-data with 'file' and other fields (activoId, hojaVidaId, etc)
-router.post('/upload', authMiddleware, upload.single('file'), async (req, res) => {
+router.post('/upload', authMiddleware, requireRole('ADMIN', 'TECNICO'), upload.single('file'), async (req, res) => {
     try {
         if (!req.file) {
             return res.status(400).json({ error: 'No se subió ningún archivo' });
@@ -37,7 +37,7 @@ router.post('/upload', authMiddleware, upload.single('file'), async (req, res) =
 });
 
 // DELETE /api/documentos/:id
-router.delete('/:id', authMiddleware, async (req, res) => {
+router.delete('/:id', authMiddleware, requireRole('ADMIN', 'TECNICO'), async (req, res) => {
     try {
         const doc = await prisma.documento.findUnique({
             where: { id: parseInt(req.params.id) }

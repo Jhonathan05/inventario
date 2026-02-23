@@ -1,7 +1,11 @@
 import { useState, useEffect } from 'react';
 import api from '../../lib/axios';
+import { useAuth } from '../../context/AuthContext';
 
 const Categorias = () => {
+    const { user } = useAuth();
+    const canEdit = user?.rol === 'ADMIN' || user?.rol === 'TECNICO';
+
     const [categorias, setCategorias] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
@@ -95,13 +99,15 @@ const Categorias = () => {
                     </p>
                 </div>
                 <div className="mt-4 sm:ml-16 sm:mt-0 sm:flex-none">
-                    <button
-                        type="button"
-                        onClick={handleOpenNew}
-                        className="block rounded-md bg-indigo-600 px-3 py-2 text-center text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"
-                    >
-                        Nueva Categoría
-                    </button>
+                    {canEdit && (
+                        <button
+                            type="button"
+                            onClick={handleOpenNew}
+                            className="block rounded-md bg-indigo-600 px-3 py-2 text-center text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"
+                        >
+                            Nueva Categoría
+                        </button>
+                    )}
                 </div>
             </div>
 
@@ -121,9 +127,11 @@ const Categorias = () => {
                                         <th scope="col" className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">
                                             Activos Relacionados
                                         </th>
-                                        <th scope="col" className="relative py-3.5 pl-3 pr-4 sm:pr-6">
-                                            <span className="sr-only">Acciones</span>
-                                        </th>
+                                        {canEdit && (
+                                            <th scope="col" className="relative py-3.5 pl-3 pr-4 sm:pr-6">
+                                                <span className="sr-only">Acciones</span>
+                                            </th>
+                                        )}
                                     </tr>
                                 </thead>
                                 <tbody className="divide-y divide-gray-200 bg-white">
@@ -136,10 +144,12 @@ const Categorias = () => {
                                             <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
                                                 {cat._count?.activos || 0}
                                             </td>
-                                            <td className="whitespace-nowrap py-4 pl-3 pr-4 text-right text-sm font-medium sm:pr-6">
-                                                <button onClick={() => handleOpenEdit(cat)} className="text-indigo-600 hover:text-indigo-900 mr-4">Editar</button>
-                                                <button onClick={() => handleDelete(cat.id, cat.nombre)} className="text-red-600 hover:text-red-900">Eliminar</button>
-                                            </td>
+                                            {canEdit && (
+                                                <td className="whitespace-nowrap py-4 pl-3 pr-4 text-right text-sm font-medium sm:pr-6">
+                                                    <button onClick={() => handleOpenEdit(cat)} className="text-indigo-600 hover:text-indigo-900 mr-4">Editar</button>
+                                                    <button onClick={() => handleDelete(cat.id, cat.nombre)} className="text-red-600 hover:text-red-900">Eliminar</button>
+                                                </td>
+                                            )}
                                         </tr>
                                     ))}
                                 </tbody>
