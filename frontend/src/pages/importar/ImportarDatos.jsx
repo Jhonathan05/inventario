@@ -4,6 +4,7 @@ import api from '../../lib/axios';
 const TABS = [
     { key: 'activos', label: '📦 Activos', color: 'indigo' },
     { key: 'funcionarios', label: '👤 Funcionarios', color: 'emerald' },
+    { key: 'cmdb', label: '🔄 CMDB Unificada', color: 'fuchsia' },
 ];
 
 const ESTADO_CLASSES = {
@@ -90,8 +91,8 @@ const ImportarDatos = () => {
                         key={t.key}
                         onClick={() => { setTab(t.key); handleReset(); }}
                         className={`px-6 py-3 text-sm font-medium border-b-2 transition-colors ${tab === t.key
-                                ? 'border-indigo-600 text-indigo-700'
-                                : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                            ? 'border-indigo-600 text-indigo-700'
+                            : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
                             }`}
                     >
                         {t.label}
@@ -115,7 +116,7 @@ const ImportarDatos = () => {
                                 onClick={handleDescargarPlantilla}
                                 className="inline-flex items-center gap-2 rounded-md bg-green-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-green-500"
                             >
-                                ⬇️ Descargar Plantilla {tab === 'activos' ? 'Activos' : 'Funcionarios'}
+                                ⬇️ Descargar Plantilla {tab === 'activos' ? 'Activos' : tab === 'funcionarios' ? 'Funcionarios' : 'CMDB'}
                             </button>
                         </div>
                     </div>
@@ -139,10 +140,10 @@ const ImportarDatos = () => {
                                 onDrop={handleDrop}
                                 onClick={() => fileRef.current?.click()}
                                 className={`border-2 border-dashed rounded-lg p-8 text-center cursor-pointer transition-colors ${dragOver
-                                        ? 'border-indigo-400 bg-indigo-50'
-                                        : archivo
-                                            ? 'border-green-400 bg-green-50'
-                                            : 'border-gray-300 hover:border-indigo-300 hover:bg-gray-50'
+                                    ? 'border-indigo-400 bg-indigo-50'
+                                    : archivo
+                                        ? 'border-green-400 bg-green-50'
+                                        : 'border-gray-300 hover:border-indigo-300 hover:bg-gray-50'
                                     }`}
                             >
                                 {archivo ? (
@@ -205,19 +206,37 @@ const ImportarDatos = () => {
                         ) : (
                             <>
                                 {/* Resumen */}
-                                <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-5">
-                                    {[
-                                        { label: 'Total', value: resultado.resumen.total, color: 'gray' },
-                                        { label: 'Creados', value: resultado.resumen.creados, color: 'green' },
-                                        { label: 'Actualizados', value: resultado.resumen.actualizados, color: 'blue' },
-                                        { label: 'Errores', value: resultado.resumen.errores, color: 'red' },
-                                    ].map(s => (
-                                        <div key={s.label} className={`rounded-lg p-3 text-center bg-${s.color}-50 border border-${s.color}-100`}>
-                                            <div className={`text-2xl font-bold text-${s.color}-700`}>{s.value}</div>
-                                            <div className={`text-xs text-${s.color}-600 mt-0.5`}>{s.label}</div>
-                                        </div>
-                                    ))}
-                                </div>
+                                {tab === 'cmdb' ? (
+                                    <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 mb-5">
+                                        {[
+                                            { label: 'Funcionarios Creados', value: resultado.resumen.funcionariosCreados, color: 'emerald' },
+                                            { label: 'Funcionarios Act.', value: resultado.resumen.funcionariosActualizados, color: 'teal' },
+                                            { label: 'Activos Creados', value: resultado.resumen.activosCreados, color: 'indigo' },
+                                            { label: 'Activos Act.', value: resultado.resumen.activosActualizados, color: 'blue' },
+                                            { label: 'Asignaciones Nuevas', value: resultado.resumen.asignacionesCreadas, color: 'fuchsia' },
+                                            { label: 'Errores', value: resultado.resumen.errores, color: 'red' },
+                                        ].map(s => (
+                                            <div key={s.label} className={`rounded-lg p-3 text-center bg-${s.color}-50 border border-${s.color}-100`}>
+                                                <div className={`text-xl font-bold text-${s.color}-700`}>{s.value}</div>
+                                                <div className={`text-xs text-${s.color}-600 mt-0.5`}>{s.label}</div>
+                                            </div>
+                                        ))}
+                                    </div>
+                                ) : (
+                                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-5">
+                                        {[
+                                            { label: 'Total', value: resultado.resumen.total, color: 'gray' },
+                                            { label: 'Creados', value: resultado.resumen.creados, color: 'green' },
+                                            { label: 'Actualizados', value: resultado.resumen.actualizados, color: 'blue' },
+                                            { label: 'Errores', value: resultado.resumen.errores, color: 'red' },
+                                        ].map(s => (
+                                            <div key={s.label} className={`rounded-lg p-3 text-center bg-${s.color}-50 border border-${s.color}-100`}>
+                                                <div className={`text-2xl font-bold text-${s.color}-700`}>{s.value}</div>
+                                                <div className={`text-xs text-${s.color}-600 mt-0.5`}>{s.label}</div>
+                                            </div>
+                                        ))}
+                                    </div>
+                                )}
 
                                 {/* Tabla de resultados por fila */}
                                 <div className="overflow-x-auto rounded-lg border border-gray-200 max-h-96 overflow-y-auto">

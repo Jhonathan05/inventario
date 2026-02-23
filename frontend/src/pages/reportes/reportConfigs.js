@@ -173,10 +173,13 @@ export const transformData = (reportId, rawData, selectedColumns) => {
         case 'inventario':
             return rawData.map(a => {
                 const row = {};
+                const asig = a.asignaciones?.[0];
+                const f = asig?.funcionario;
+
                 columnDefs.forEach(col => {
                     switch (col.key) {
                         case 'categoria': row[col.label] = a.categoria?.nombre || ''; break;
-                        case 'asignadoA': row[col.label] = a.asignaciones?.[0]?.funcionario?.nombre || 'Sin Asignar'; break;
+                        case 'asignadoA': row[col.label] = f?.nombre || 'Sin Asignar'; break;
                         case 'valorCompra': row[col.label] = a.valorCompra ? Number(a.valorCompra) : ''; break;
                         case 'fechaCompra': row[col.label] = a.fechaCompra ? new Date(a.fechaCompra).toLocaleDateString() : ''; break;
                         case 'garantiaHasta': row[col.label] = a.garantiaHasta ? new Date(a.garantiaHasta).toLocaleDateString() : ''; break;
@@ -187,10 +190,23 @@ export const transformData = (reportId, rawData, selectedColumns) => {
                             } else { row[col.label] = ''; }
                             break;
                         }
+                        // Campos de Funcionario
+                        case 'empresaFuncionario': row[col.label] = a.empresaFuncionario || f?.empresa || ''; break;
+                        case 'tipoPersonal': row[col.label] = f?.tipoContrato || ''; break;
+                        case 'cedulaFuncionario': row[col.label] = f?.cedula || 'N/A'; break;
+                        case 'shortname': row[col.label] = f?.email ? f.email.split('@')[0] : ''; break;
+                        case 'nombreFuncionario': row[col.label] = f?.nombre || 'N/A'; break;
+                        case 'departamento': row[col.label] = f?.departamento || ''; break;
+                        case 'ciudad': row[col.label] = f?.ciudad || ''; break;
+                        case 'cargo': row[col.label] = a.cargo || f?.cargo || ''; break;
+                        case 'area': row[col.label] = f?.area || ''; break;
+
+                        // Campos Meta/Vacios por defecto si no están en DB
                         case 'tipoPropiedad': row[col.label] = ''; break;
                         case 'checklistTI': row[col.label] = ''; break;
                         case 'ordenRemision': row[col.label] = ''; break;
-                        default: row[col.label] = a[col.key] || ''; break;
+
+                        default: row[col.label] = a[col.key] ?? ''; break;
                     }
                 });
                 return row;

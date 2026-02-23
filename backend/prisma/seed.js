@@ -82,6 +82,20 @@ async function main() {
     });
     console.log('✅ Usuario admin creado: admin@inventario.com / Admin123!');
 
+    // Usuario invitado (Consulta) por defecto
+    const invitadoPassword = await bcrypt.hash('C0m1t3*', 10);
+    await prisma.usuario.upsert({
+        where: { email: 'invitado@cafedecolombia.com' },
+        update: {},
+        create: {
+            nombre: 'Usuario Consulta',
+            email: 'invitado@cafedecolombia.com',
+            password: invitadoPassword,
+            rol: 'CONSULTA',
+        },
+    });
+    console.log('✅ Usuario invitado creado: invitado@cafedecolombia.com / C0m1t3*');
+
     console.log('🎉 Seed completado exitosamente');
 }
 

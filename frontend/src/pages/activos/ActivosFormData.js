@@ -64,7 +64,17 @@ export const TIPOS_EQUIPO = [
     'TABLETA',
     'ESCANER',
     'MONITOR',
-    'OTRO',
+    'VIDEO BEAM',
+    'TELEFONO IP',
+    'SWITCH',
+    'ROUTER',
+    'PLANTA TELEFONIA IP',
+    'UPS',
+    'SERVIDOR',
+    'CAMARA IP',
+    'BOCINA',
+    'MICROFONO',
+    'CONTROLADORA MICROFONO'
 ];
 
 export const ESTADOS_OPERATIVOS = [
