@@ -28,6 +28,8 @@ const ActivosList = () => {
     const [filterFuncionario, setFilterFuncionario] = useState('');
     const [categorias, setCategorias] = useState([]);
     const [funcionarios, setFuncionarios] = useState([]);
+    const [searchFuncionarioText, setSearchFuncionarioText] = useState('');
+    const [showFuncionarioDropdown, setShowFuncionarioDropdown] = useState(false);
 
     // Modal Historial
     const [showHistorial, setShowHistorial] = useState(false);
@@ -82,6 +84,7 @@ const ActivosList = () => {
         setFilterEstadoOp('');
         setFilterTipo('');
         setFilterFuncionario('');
+        setSearchFuncionarioText('');
     };
 
     const activeFilterCount = [filterEstado, filterEmpresa, filterEstadoOp, filterTipo, filterFuncionario].filter(Boolean).length;
@@ -293,13 +296,42 @@ const ActivosList = () => {
             {showFilters && (
                 <div className="mt-3 p-4 bg-gray-50 rounded-lg border border-gray-200">
                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-3">
-                        <div>
+                        <div className="relative">
                             <label className="block text-xs font-medium text-gray-600 mb-1">Funcionario Asignado</label>
-                            <select value={filterFuncionario} onChange={e => setFilterFuncionario(e.target.value)}
-                                className="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-indigo-600 text-sm px-2">
-                                <option value="">Todos</option>
-                                {funcionarios.map(f => <option key={f.id} value={f.id}>{f.nombre} ({f.cedula})</option>)}
-                            </select>
+                            <input
+                                type="text"
+                                placeholder="Buscar funcionario..."
+                                className="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-indigo-600 text-sm px-2"
+                                value={searchFuncionarioText}
+                                onChange={(e) => {
+                                    setSearchFuncionarioText(e.target.value);
+                                    setShowFuncionarioDropdown(true);
+                                    if (!e.target.value) setFilterFuncionario('');
+                                }}
+                                onFocus={() => setShowFuncionarioDropdown(true)}
+                                onBlur={() => setTimeout(() => setShowFuncionarioDropdown(false), 200)}
+                            />
+                            {showFuncionarioDropdown && searchFuncionarioText && (
+                                <ul className="absolute z-10 mt-1 max-h-48 w-full overflow-auto rounded-md bg-white py-1 text-sm shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none">
+                                    {funcionarios.filter(f => f.nombre.toLowerCase().includes(searchFuncionarioText.toLowerCase()) || f.cedula?.includes(searchFuncionarioText)).map(f => (
+                                        <li
+                                            key={f.id}
+                                            className="cursor-pointer select-none py-2 pl-3 pr-4 hover:bg-indigo-50 text-gray-900 relative border-b border-gray-100 last:border-0"
+                                            onClick={() => {
+                                                setFilterFuncionario(f.id.toString());
+                                                setSearchFuncionarioText(f.nombre);
+                                                setShowFuncionarioDropdown(false);
+                                            }}
+                                        >
+                                            <span className="block truncate font-medium">{f.nombre}</span>
+                                            <span className="block truncate text-xs text-gray-500">CC: {f.cedula}</span>
+                                        </li>
+                                    ))}
+                                    {funcionarios.filter(f => f.nombre.toLowerCase().includes(searchFuncionarioText.toLowerCase()) || f.cedula?.includes(searchFuncionarioText)).length === 0 && (
+                                        <li className="cursor-default select-none py-2 pl-3 pr-4 text-gray-500">Sin resultados</li>
+                                    )}
+                                </ul>
+                            )}
                         </div>
                         <div>
                             <label className="block text-xs font-medium text-gray-600 mb-1">Estado</label>
