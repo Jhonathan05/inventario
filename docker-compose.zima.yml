@@ -55,6 +55,8 @@ services:
       - uploads_zima:/app/uploads
     networks:
       - inventario-network
+    command: >
+      sh -c "npx prisma db push && node prisma/seed.js && node src/server.js"
     depends_on:
       postgres:
         condition: service_healthy
