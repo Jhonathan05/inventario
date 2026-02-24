@@ -56,7 +56,10 @@ services:
     networks:
       - inventario-network
     command: >
-      sh -c "npx prisma db push && node prisma/seed.js && node src/server.js"
+      sh -c " echo '🟡 Esperando a que la base de datos esté lista...' && until pg_isready -h postgres -p 5432 -U inventario_user; do
+        echo '⏳ Base de datos no disponible, reintentando en 2s...'
+        sleep 2
+      done && echo '✅ Base de datos conectada. Iniciando configuración de tablas...' && npx prisma db push && echo '🌱 Ejecutando carga de datos iniciales (seed)...' && node prisma/seed.js && echo '🚀 Iniciando servidor de producción...' && node src/server.js "
     depends_on:
       postgres:
         condition: service_healthy

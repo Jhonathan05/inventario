@@ -62,8 +62,13 @@ Este error ocurre cuando faltan las rutas del "Host" en la sección de volúmene
 ### 3. Error al iniciar sesión (Login Error)
 Si al intentar entrar por primera vez recibes "Error al iniciar sesión":
 *   **Causa**: Las tablas o el usuario administrador aún no se han creado en la base de datos.
-*   **Solución**: El archivo `docker-compose.zima.yml` actual incluye un comando de auto-inicialización. Asegúrate de haber usado la **última versión del archivo**. 
-*   **Tiempo de espera**: La primera vez puede tardar entre 30 y 60 segundos en terminar de configurar la base de datos.
+*   **Solución**: He actualizado el archivo `docker-compose.zima.yml` con un script de inicio más robusto que reintenta la conexión y muestra progreso. **Copia la última versión del archivo**.
+*   **Verificar Progreso**: 
+    1. En ZimaOS, haz clic en los `...` del icono de la App.
+    2. Selecciona **Logs**.
+    3. Busca la pestaña o servicio llamado **backend**.
+    4. Deberías ver mensajes como: `🟡 Esperando a que la base de datos esté lista...`, `✅ Base de datos conectada...` y `🌱 Ejecutando carga de datos iniciales (seed)...`.
+    5. Solo cuando veas el mensaje `🚀 Iniciando servidor de producción...`, el sistema estará listo para el login.
 
 ---
 
