@@ -39,6 +39,7 @@ app.use('/api/actas', require('./routes/actas.routes'));
 app.use('/api/importar', require('./routes/importar.routes'));
 app.use('/api/catalogos', require('./routes/catalogos.routes'));
 app.use('/api/respaldo', require('./routes/respaldo.routes'));
+app.use('/api/tickets', require('./routes/ticket.routes'));
 
 
 

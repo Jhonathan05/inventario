@@ -97,6 +97,7 @@ model Activo {
   asignaciones  Asignacion[]
   hojaVida      HojaVida[]
   documentos    Documento[]
+  tickets       Ticket[]
   creadoEn      DateTime     @default(now())
   actualizadoEn DateTime     @updatedAt
 
@@ -148,6 +149,7 @@ model Funcionario {
 
   asignaciones Asignacion[]
   actas        Acta[]
+  tickets      Ticket[]
   creadoEn     DateTime     @default(now())
 
   @@map("funcionarios")
@@ -269,9 +271,14 @@ model Usuario {
   activo    Boolean         @default(true)
   creadoEn  DateTime        @default(now())
   actualizadoEn DateTime    @updatedAt
-  trazas    TrazaHojaVida[]
+  trazas        TrazaHojaVida[]
   asignacionesResponsable HojaVida[] @relation("ResponsableTicket")
-  actasCreadas Acta[]
+  actasCreadas  Acta[]
+  
+  // Relaciones ITSM Tickets
+  ticketsAsignados Ticket[] @relation("TicketsAsignados")
+  ticketsCreados   Ticket[] @relation("TicketsCreados")
+  trazasTicket     TrazaTicket[]
 
   @@map("usuarios")
 }
@@ -314,4 +321,82 @@ model Acta {
   detalles       Json     // Array de { activoId, placa, serial, nombre, marca, modelo }
 
   @@map("actas")
+}
+
+// ==========================================
+// ITSM - MESA DE AYUDA (Tickets/Casos)
+// ==========================================
+
+enum EstadoTicket {
+  CREADO
+  EN_CURSO
+  SIN_RESPUESTA
+  COMPLETADO
+}
+
+enum PrioridadTicket {
+  BAJA
+  MEDIA
+  ALTA
+  CRITICA
+}
+
+enum TipoTicket {
+  INCIDENTE
+  REQUERIMIENTO
+}
+
+enum TipoTrazaTicket {
+  CREACION
+  COMENTARIO
+  CAMBIO_ESTADO
+  ASIGNACION
+}
+
+model Ticket {
+  id              Int              @id @default(autoincrement())
+  titulo          String
+  descripcion     String           @db.Text
+  estado          EstadoTicket     @default(CREADO)
+  prioridad       PrioridadTicket  @default(MEDIA)
+  tipo            TipoTicket       @default(REQUERIMIENTO)
+
+  funcionarioId   Int
+  funcionario     Funcionario      @relation(fields: [funcionarioId], references: [id])
+  
+  activoId        Int?             
+  activo          Activo?          @relation(fields: [activoId], references: [id])
+
+  asignadoAId     Int?             
+  asignadoA       Usuario?         @relation("TicketsAsignados", fields: [asignadoAId], references: [id])
+
+  creadoPorId     Int
+  creadoPor       Usuario          @relation("TicketsCreados", fields: [creadoPorId], references: [id])
+
+  trazas          TrazaTicket[]
+
+  creadoEn        DateTime         @default(now())
+  actualizadoEn   DateTime         @updatedAt
+  cerradoEn       DateTime?
+
+  @@map("tickets")
+}
+
+model TrazaTicket {
+  id              Int              @id @default(autoincrement())
+  ticketId        Int
+  ticket          Ticket           @relation(fields: [ticketId], references: [id], onDelete: Cascade)
+  
+  tipoTraza       TipoTrazaTicket  @default(COMENTARIO)
+  comentario      String           @db.Text
+  
+  estadoAnterior  EstadoTicket?
+  estadoNuevo     EstadoTicket?
+  
+  creadoPorId     Int
+  creadoPor       Usuario          @relation(fields: [creadoPorId], references: [id])
+  
+  creadoEn        DateTime         @default(now())
+
+  @@map("trazas_ticket")
 }
