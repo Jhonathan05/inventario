@@ -1,0 +1,79 @@
+version: '3.8'
+
+# Metadata para ZimaOS / CasaOS
+x-casaos:
+  architectures:
+    - amd64
+    - arm64
+  main: frontend
+  description:
+    en_us: "IT Inventory and Help Desk System. Manage assets, technical history, and support tickets in one place."
+    es_es: "Sistema de Inventario TIC y Mesa de Ayuda. Gestiona activos, hojas de vida técnica y tickets de soporte."
+  tagline:
+    en_us: "Asset Management & Help Desk"
+    es_es: "Gestión de Activos y Mesa de Ayuda"
+  developer: "puntijhon"
+  author: "Jhonathan"
+  icon: "https://raw.githubusercontent.com/IceWhaleTech/CasaOS-AppStore/main/Apps/OpenSpeedTest/icon.png" # Placeholder icon, can be changed
+  thumbnail: ""
+  title:
+    en_us: "Inventario TIC"
+    es_es: "Inventario TIC"
+  category: "Utilities"
+  port_map: "3080" # El puerto por defecto en el dashboard
+
+services:
+  postgres:
+    image: postgres:15-alpine
+    container_name: inventario-db-zima
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: inventario_db
+      POSTGRES_USER: inventario_user
+      POSTGRES_PASSWORD: inventario_password
+    volumes:
+      - postgres_data_zima:/var/lib/postgresql/data
+    networks:
+      - inventario-network
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U inventario_user -d inventario_db" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  backend:
+    image: puntijhon/inventario-backend:1.2.3
+    container_name: inventario-api-zima
+    restart: unless-stopped
+    environment:
+      NODE_ENV: production
+      DATABASE_URL: postgresql://inventario_user:inventario_password@postgres:5432/inventario_db
+      JWT_SECRET: zima_secret_key_123
+      PORT: 3001
+      UPLOAD_DIR: /app/uploads
+    volumes:
+      - uploads_zima:/app/uploads
+    networks:
+      - inventario-network
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  frontend:
+    image: puntijhon/inventario-frontend:1.2.3
+    container_name: inventario-web-zima
+    restart: unless-stopped
+    ports:
+      - "3080:80"
+    networks:
+      - inventario-network
+    depends_on:
+      - backend
+
+networks:
+  inventario-network:
+    driver: bridge
+
+volumes:
+  postgres_data_zima:
+  uploads_zima:
