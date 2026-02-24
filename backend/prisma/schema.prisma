@@ -254,6 +254,11 @@ model Documento {
   asignacion   Asignacion? @relation(fields: [asignacionId], references: [id])
   hojaVidaId   Int?
   hojaVida     HojaVida?   @relation(fields: [hojaVidaId], references: [id])
+  // Relaciones ITSM Tickets
+  ticketId     Int?
+  ticket       Ticket?     @relation(fields: [ticketId], references: [id])
+  trazaTicketId Int?
+  trazaTicket  TrazaTicket? @relation(fields: [trazaTicketId], references: [id])
   creadoEn     DateTime    @default(now())
 
   @@map("documentos")
@@ -374,6 +379,7 @@ model Ticket {
   creadoPor       Usuario          @relation("TicketsCreados", fields: [creadoPorId], references: [id])
 
   trazas          TrazaTicket[]
+  adjuntos        Documento[]
 
   creadoEn        DateTime         @default(now())
   actualizadoEn   DateTime         @updatedAt
@@ -395,6 +401,7 @@ model TrazaTicket {
   
   creadoPorId     Int
   creadoPor       Usuario          @relation(fields: [creadoPorId], references: [id])
+  adjuntos        Documento[]      // Archivos adjuntos a esta traza/comentario
   
   creadoEn        DateTime         @default(now())
 

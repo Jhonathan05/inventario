@@ -12,6 +12,7 @@ const Sidebar = ({ isOpen, toggleSidebar, onNavigate }) => {
         { name: 'Funcionarios', href: '/funcionarios', icon: '👤', type: 'emoji', roles: ['ADMIN', 'TECNICO', 'CONSULTA'] },
         { name: 'Mantenimientos', href: '/mantenimientos', icon: '🔧', type: 'emoji', roles: ['ADMIN', 'TECNICO', 'CONSULTA'] },
         { name: 'Categorías', href: '/categorias', icon: '🏷️', type: 'emoji', roles: ['ADMIN', 'TECNICO', 'CONSULTA'] },
+        { name: 'Mesa de Ayuda', href: '/tickets', icon: '🎫', type: 'emoji', roles: ['ADMIN', 'TECNICO', 'CONSULTA'] },
         { name: 'Reportes', href: '/reportes', icon: DocumentTextIcon, type: 'component', roles: ['ADMIN', 'TECNICO', 'CONSULTA'] },
         { name: 'Actas', href: '/actas', icon: ClipboardDocumentCheckIcon, type: 'component', roles: ['ADMIN', 'TECNICO', 'CONSULTA'] },
         { name: 'Importar Datos', href: '/importar', icon: '📥', type: 'emoji', roles: ['ADMIN', 'TECNICO'] },

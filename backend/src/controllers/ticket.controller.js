@@ -1,13 +1,29 @@
 const { PrismaClient } = require('@prisma/client');
 const prisma = new PrismaClient();
+const path = require('path');
+
+// Helper para guardar un documento adjunto
+const guardarAdjunto = async (file, ticketId = null, trazaTicketId = null) => {
+    return prisma.documento.create({
+        data: {
+            nombre: file.originalname,
+            nombreArchivo: file.filename,
+            ruta: `uploads/${file.filename}`,
+            tipo: file.mimetype,
+            tamano: file.size,
+            ticketId: ticketId,
+            trazaTicketId: trazaTicketId
+        }
+    });
+};
 
 // ==========================================
-// CREAR UN NUEVO TICKET
+// CREAR UN NUEVO TICKET (con adjuntos opcionales)
 // ==========================================
 exports.crearTicket = async (req, res) => {
     try {
         const { titulo, descripcion, prioridad, tipo, funcionarioId, activoId } = req.body;
-        const creadoPorId = req.usuario.id;
+        const creadoPorId = req.user.id;
 
         const ticket = await prisma.ticket.create({
             data: {
@@ -34,6 +50,11 @@ exports.crearTicket = async (req, res) => {
                 creadoPor: { select: { id: true, nombre: true } }
             }
         });
+
+        // Guardar archivos adjuntos opcionales
+        if (req.files && req.files.length > 0) {
+            await Promise.all(req.files.map(file => guardarAdjunto(file, ticket.id, null)));
+        }
 
         res.status(201).json(ticket);
     } catch (error) {
@@ -75,7 +96,7 @@ exports.obtenerTickets = async (req, res) => {
 };
 
 // ==========================================
-// OBTENER UN TICKET POR ID (CON TRAZAS)
+// OBTENER UN TICKET POR ID (CON TRAZAS Y ADJUNTOS)
 // ==========================================
 exports.obtenerTicketPorId = async (req, res) => {
     try {
@@ -88,11 +109,13 @@ exports.obtenerTicketPorId = async (req, res) => {
                 activo: true,
                 asignadoA: { select: { id: true, nombre: true, email: true } },
                 creadoPor: { select: { id: true, nombre: true } },
+                adjuntos: true, // Adjuntos del ticket en general (evidencia inicial)
                 trazas: {
                     include: {
-                        creadoPor: { select: { id: true, nombre: true } }
+                        creadoPor: { select: { id: true, nombre: true } },
+                        adjuntos: true  // Adjuntos por cada traza/comentario
                     },
-                    orderBy: { creadoEn: 'desc' }
+                    orderBy: { creadoEn: 'asc' } // asc para timeline cronológico
                 }
             }
         });
@@ -115,7 +138,7 @@ exports.actualizarEstado = async (req, res) => {
     try {
         const { id } = req.params;
         const { nuevoEstado, comentario } = req.body;
-        const usuarioId = req.usuario.id;
+        const usuarioId = req.user.id;
 
         const ticketActual = await prisma.ticket.findUnique({ where: { id: parseInt(id) } });
 
@@ -141,13 +164,6 @@ exports.actualizarEstado = async (req, res) => {
                         creadoPorId: usuarioId
                     }
                 }
-            },
-            include: {
-                trazas: {
-                    orderBy: { creadoEn: 'desc' },
-                    take: 1,
-                    include: { creadoPor: { select: { id: true, nombre: true } } }
-                }
             }
         });
 
@@ -165,9 +181,8 @@ exports.asignarTicket = async (req, res) => {
     try {
         const { id } = req.params;
         const { asignadoAId, comentario } = req.body;
-        const usuarioId = req.usuario.id;
+        const usuarioId = req.user.id;
 
-        // Verificar si el técnico existe
         if (asignadoAId) {
             const tecnico = await prisma.usuario.findUnique({ where: { id: parseInt(asignadoAId) } });
             if (!tecnico) return res.status(404).json({ error: 'Usuario asignado no encontrado.' });
@@ -186,12 +201,7 @@ exports.asignarTicket = async (req, res) => {
                 }
             },
             include: {
-                asignadoA: { select: { id: true, nombre: true } },
-                trazas: {
-                    orderBy: { creadoEn: 'desc' },
-                    take: 1,
-                    include: { creadoPor: { select: { id: true, nombre: true } } }
-                }
+                asignadoA: { select: { id: true, nombre: true } }
             }
         });
 
@@ -203,36 +213,76 @@ exports.asignarTicket = async (req, res) => {
 };
 
 // ==========================================
-// AGREGAR COMENTARIO AL TICKET
+// AGREGAR COMENTARIO CON ADJUNTOS OPCIONALES
 // ==========================================
 exports.agregarComentario = async (req, res) => {
     try {
         const { id } = req.params;
         const { comentario } = req.body;
-        const usuarioId = req.usuario.id;
+        const usuarioId = req.user.id;
+        const hasFiles = req.files && req.files.length > 0;
 
-        if (!comentario || comentario.trim() === '') {
-            return res.status(400).json({ error: 'El comentario no puede estar vacío.' });
+        if ((!comentario || comentario.trim() === '') && !hasFiles) {
+            return res.status(400).json({ error: 'El comentario o el archivo adjunto es requerido.' });
         }
+
+        const commentText = (comentario && comentario.trim() !== '') ? comentario : 'Adjunto(s) enviado(s) sin comentario.';
 
         const ticketActual = await prisma.ticket.findUnique({ where: { id: parseInt(id) } });
         if (!ticketActual) return res.status(404).json({ error: 'Ticket no encontrado.' });
 
+        // Crear la traza primero
         const nuevaTraza = await prisma.trazaTicket.create({
             data: {
                 ticketId: parseInt(id),
                 tipoTraza: 'COMENTARIO',
-                comentario,
+                comentario: commentText,
                 creadoPorId: usuarioId
             },
             include: {
-                creadoPor: { select: { id: true, nombre: true } }
+                creadoPor: { select: { id: true, nombre: true } },
+                adjuntos: true
             }
         });
+
+        // Luego guardar los archivos adjuntos asociados a esta traza
+        if (req.files && req.files.length > 0) {
+            await Promise.all(
+                req.files.map(file => guardarAdjunto(file, null, nuevaTraza.id))
+            );
+
+            // Recargar traza con adjuntos actualizados
+            const trazaConAdjuntos = await prisma.trazaTicket.findUnique({
+                where: { id: nuevaTraza.id },
+                include: {
+                    creadoPor: { select: { id: true, nombre: true } },
+                    adjuntos: true
+                }
+            });
+            return res.status(201).json(trazaConAdjuntos);
+        }
 
         res.status(201).json(nuevaTraza);
     } catch (error) {
         console.error('Error al agregar comentario:', error);
         res.status(500).json({ error: 'Error interno al agregar el comentario.' });
+    }
+};
+
+// ==========================================
+// DESCARGAR / VER ADJUNTO
+// ==========================================
+exports.descargarAdjunto = async (req, res) => {
+    try {
+        const { documentoId } = req.params;
+        const doc = await prisma.documento.findUnique({ where: { id: parseInt(documentoId) } });
+
+        if (!doc) return res.status(404).json({ error: 'Archivo no encontrado.' });
+
+        const filePath = path.join(__dirname, '../../', doc.ruta);
+        res.download(filePath, doc.nombre);
+    } catch (error) {
+        console.error('Error al descargar adjunto:', error);
+        res.status(500).json({ error: 'Error al descargar el archivo.' });
     }
 };

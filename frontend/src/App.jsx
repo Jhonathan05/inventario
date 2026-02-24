@@ -16,6 +16,9 @@ import ImportarDatos from './pages/importar/ImportarDatos';
 import Catalogos from './pages/configuracion/CatalogosList';
 import MantenimientosList from './pages/mantenimientos/MantenimientosList';
 import BackupSoporte from './pages/backup/BackupSoporte';
+import TicketsList from './pages/tickets/TicketsList';
+import TicketForm from './pages/tickets/TicketForm';
+import TicketDetail from './pages/tickets/TicketDetail';
 
 
 function App() {
@@ -39,6 +42,12 @@ function App() {
                         </Route>
 
                         {/* Solo ADMIN y TECNICO */}
+                        <Route element={<ProtectedRoute allowedRoles={['ADMIN', 'TECNICO', 'CONSULTA']} />}>
+                            <Route path="/tickets" element={<TicketsList />} />
+                            <Route path="/tickets/nuevo" element={<TicketForm />} />
+                            <Route path="/tickets/:id" element={<TicketDetail />} />
+                        </Route>
+
                         <Route element={<ProtectedRoute allowedRoles={['ADMIN', 'TECNICO']} />}>
                             <Route path="/actas/generar" element={<GenerarActa />} />
                             <Route path="/importar" element={<ImportarDatos />} />
