@@ -1,7 +1,7 @@
 {
     "name":  "inventario-backend",
-    "version":  "1.2.3",
-    "description":  "Backend para el sistema de inventario tecnolÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â³gico",
+    "version":  "1.2.4",
+    "description":  "Backend para el sistema de inventario tecnolÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â³gico",
     "main":  "src/server.js",
     "scripts":  {
                     "start":  "node src/server.js",
