@@ -14,6 +14,26 @@ Esta guía contiene las instrucciones para desplegar correctamente la aplicació
     *   Pega el código del archivo YAML.
     *   Haz clic en **Submit**.
 
+## 🗄️ Configuración de Almacenamiento en RAID / Discos Externos
+
+Si tienes un **RAID personalizado** o un disco externo en ZimaOS y quieres que los archivos adjuntos (uploads) se guarden allí en lugar del almacenamiento principal, sigue estos pasos:
+
+### 1. Identificar la ruta de tu RAID
+En ZimaOS, los discos adicionales o RAIDs se montan bajo la carpeta `/DATA/`.
+1. Abre la aplicación **Files** (Archivos) en tu escritorio de ZimaOS.
+2. Localiza tu RAID en la barra lateral izquierda.
+3. Entra en la carpeta donde quieras guardar los archivos.
+4. Haz clic en la barra de direcciones o en las opciones de la carpeta para obtener la **Ruta Completa** (ejemplo: `/DATA/Storage/MiRAID/inventario_uploads`).
+
+### 2. Cambiar la ruta en la aplicación
+Si ya instalaste la aplicación:
+1. En el dashboard de ZimaOS, busca el icono de **Inventario TIC**.
+2. Haz clic en los tres puntos (`...`) del icono y selecciona **Settings** (Ajustes).
+3. Busca la sección de **Volumes** o **Storage**.
+4. Localiza la línea que apunta al contenedor `/app/uploads`.
+5. Cambia la caja de texto de la **izquierda (Host)** por tu ruta personalizada del RAID.
+6. Haz clic en **Save** (Guardar).
+
 ---
 
 ## 🛠️ Solución de Problemas Comunes
