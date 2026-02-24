@@ -8,16 +8,24 @@ async function main() {
 
     // Categorías base
     const categorias = [
-        { nombre: 'Computador de Escritorio', icono: 'computer-desktop' },
-        { nombre: 'Portátil', icono: 'laptop' },
-        { nombre: 'Impresora', icono: 'printer' },
-        { nombre: 'Monitor', icono: 'tv' },
-        { nombre: 'Teléfono IP', icono: 'phone' },
-        { nombre: 'Tablet', icono: 'device-tablet' },
-        { nombre: 'UPS / Regulador', icono: 'bolt' },
-        { nombre: 'Switch / Router', icono: 'wifi' },
-        { nombre: 'Escáner', icono: 'document-magnifying-glass' },
-        { nombre: 'Otro', icono: 'cube' },
+        { nombre: 'BOCINA', icono: 'speaker' },
+        { nombre: 'CAMARA IP', icono: 'camera-video' },
+        { nombre: 'CONTROLADORA MICROFONO', icono: 'microphone' },
+        { nombre: 'EQUIPO ESCRITORIO', icono: 'computer-desktop' },
+        { nombre: 'EQUIPO PORTATIL', icono: 'laptop' },
+        { nombre: 'EQUIPO TODO EN UNO', icono: 'computer-desktop' },
+        { nombre: 'ESCANER', icono: 'document-magnifying-glass' },
+        { nombre: 'IMPRESORA', icono: 'printer' },
+        { nombre: 'MICROFONO', icono: 'microphone' },
+        { nombre: 'MONITOR', icono: 'tv' },
+        { nombre: 'PLANTA TELEFONIA IP', icono: 'phone' },
+        { nombre: 'ROUTER', icono: 'wifi' },
+        { nombre: 'SERVIDOR', icono: 'server' },
+        { nombre: 'SWITCH', icono: 'wifi' },
+        { nombre: 'TABLETA', icono: 'device-tablet' },
+        { nombre: 'TELEFONO IP', icono: 'phone' },
+        { nombre: 'UPS', icono: 'bolt' },
+        { nombre: 'VIDEO BEAM', icono: 'presentation' },
     ];
 
     for (const cat of categorias) {
@@ -69,18 +77,18 @@ async function main() {
     console.log(`✅ ${areas.length} áreas y ${cargos.length} cargos añadidos al catálogo`);
 
     // Usuario administrador por defecto
-    const adminPassword = await bcrypt.hash('Admin123!', 10);
+    const adminPassword = await bcrypt.hash('C0m1t3*', 10);
     await prisma.usuario.upsert({
-        where: { email: 'admin@inventario.com' },
+        where: { email: 'admininventario@cafedecolombia.com' },
         update: {},
         create: {
             nombre: 'Administrador',
-            email: 'admin@inventario.com',
+            email: 'admininventario@cafedecolombia.com',
             password: adminPassword,
             rol: 'ADMIN',
         },
     });
-    console.log('✅ Usuario admin creado: admin@inventario.com / Admin123!');
+    console.log('✅ Usuario admin creado: admininventario@cafedecolombia.com / C0m1t3*');
 
     // Usuario invitado (Consulta) por defecto
     const invitadoPassword = await bcrypt.hash('C0m1t3*', 10);
