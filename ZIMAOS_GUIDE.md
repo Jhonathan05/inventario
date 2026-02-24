@@ -81,3 +81,25 @@ Si al intentar entrar por primera vez recibes "Error al iniciar sesión":
 
 ## 📂 Persistencia de Datos
 Los datos y archivos se guardan en tu ZimaOS dentro de `/DATA/AppData/inventario/`. **No borres esta carpeta** si quieres conservar tu información al actualizar la App.
+
+---
+
+## 🧠 Lecciones Aprendidas (Para futuros proyectos)
+
+Al migrar de un entorno local en Windows (Docker Desktop) a un servidor de Producción basado en Linux (ZimaOS / Alpine Linux), encontramos dos "trampas" silenciosas que causan errores catastróficos tipo `502 Bad Gateway`:
+
+### 1. Sensibilidad a Mayúsculas/Minúsculas (Case Sensitivity)
+* **El Problema**: Windows ignora si un archivo se llama `hojaVida.js` o `hojavida.js`. En desarrollo local funcionará siempre. Pero Alpine Linux (y cualquier servidor de producción real) **es estricto**. Si el archivo físico tiene una "V" mayúscula, el código `require('./hojavida')` fallará instantáneamente con `MODULE_NOT_FOUND`.
+* **La Lección**: SIEMPRE verifica que los nombres de archivo en los `import` y `require` coincidan *exactamente* letra por letra con el disco duro. Nunca confíes en que "localmente me funciona".
+
+### 2. Comandos Multilínea en YAML (`docker-compose.yml`)
+* **El Problema**: Al intentar inyectar un script shell complejo dentro del `docker-compose.zima.yml` usando el operador `>`:
+  ```yaml
+  command: >
+    sh -c "
+      until pg_isready...
+      npx prisma...
+    "
+  ```
+  El operador YAML `>` (folded scalar) aplasta todos los saltos de línea convirtiéndolos en espacios. Esto rompe bucles `until/while` y corta ejecuciones condicionadas por `&&` o `||` en Shell, haciendo que el contenedor de Docker se congele o no termine su inicialización, sin soltar un error claro.
+* **La Lección**: Si tu contenedor requiere más de una sola línea secuencial para encender (ej. esperar a la BD, migrar, seed, start), **EVITA** poner la lógica en el `docker-compose.yml`. En su lugar, crea un script físico `start.sh`, instálalo en el Dockerfile (`COPY start.sh /`, `RUN chmod +x`) y llama a ese script como tu `CMD`.

@@ -20,7 +20,8 @@ COPY . .
 
 RUN npx prisma generate
 RUN mkdir -p /app/uploads
+RUN chmod +x /app/start.sh
 
 EXPOSE 3001
 
-CMD ["node", "src/server.js"]
+CMD ["/bin/sh", "/app/start.sh"]

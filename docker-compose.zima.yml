@@ -42,7 +42,7 @@ services:
       retries: 5
 
   backend:
-    image: puntijhon/inventario-backend:1.2.5
+    image: puntijhon/inventario-backend:1.2.9
     container_name: inventario-api-zima
     restart: unless-stopped
     environment:
@@ -55,17 +55,12 @@ services:
       - uploads_zima:/app/uploads
     networks:
       - inventario-network
-    command: >
-      sh -c " echo '🟡 Esperando a que la base de datos esté lista...' && until pg_isready -h postgres -p 5432 -U inventario_user; do
-        echo '⏳ Base de datos no disponible, reintentando en 2s...'
-        sleep 2
-      done && echo '✅ Base de datos conectada. Iniciando configuración de tablas...' && npx prisma db push && echo '🌱 Ejecutando carga de datos iniciales (seed)...' && node prisma/seed.js && echo '🚀 Iniciando servidor de producción...' && node src/server.js "
     depends_on:
       postgres:
         condition: service_healthy
 
   frontend:
-    image: puntijhon/inventario-frontend:1.2.5
+    image: puntijhon/inventario-frontend:1.2.9
     container_name: inventario-web-zima
     restart: unless-stopped
     ports:
