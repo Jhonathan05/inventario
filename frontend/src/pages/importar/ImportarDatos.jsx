@@ -24,10 +24,18 @@ const ImportarDatos = () => {
     const fileRef = useRef();
 
     const handleDescargarPlantilla = () => {
-        const url = `${import.meta.env.VITE_API_URL}/importar/plantilla/${tab}`;
+        // En ZimaOS VITE_API_URL puede estar indefinido, usar ruta relativa /api por defecto
+        const baseUrl = import.meta.env.VITE_API_URL || '/api';
+        const url = `${baseUrl}/importar/plantilla/${tab}`;
         const link = document.createElement('a');
         link.href = url;
-        link.setAttribute('download', tab === 'activos' ? 'Plantilla_Activos.xlsx' : 'Plantilla_Funcionarios.xlsx');
+
+        let fileName = 'Plantilla.xlsx';
+        if (tab === 'activos') fileName = 'Plantilla_Activos.xlsx';
+        else if (tab === 'funcionarios') fileName = 'Plantilla_Funcionarios.xlsx';
+        else if (tab === 'cmdb') fileName = 'Plantilla_CMDB.xlsx';
+
+        link.setAttribute('download', fileName);
         document.body.appendChild(link);
         link.click();
         link.remove();
