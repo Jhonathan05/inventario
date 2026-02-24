@@ -79,9 +79,16 @@ const TicketDetail = () => {
     };
 
     const handleDownload = (doc) => {
-        let base = import.meta.env.VITE_API_URL || 'http://localhost:3003/api';
-        // Remover el sufijo /api si existe para acceder a la ruta estática /uploads
-        base = base.replace(/\/api$/, '');
+        let apiUrl = import.meta.env.VITE_API_URL || '';
+        let base = '';
+
+        if (apiUrl && !apiUrl.includes('localhost:3003')) {
+            base = apiUrl.replace(/\/api$/, '');
+        } else {
+            // En producción con Nginx, accedemos a /uploads directamente en el mismo host/puerto
+            base = window.location.origin;
+        }
+
         window.open(`${base}/uploads/${doc.nombreArchivo}`, '_blank');
     };
 
