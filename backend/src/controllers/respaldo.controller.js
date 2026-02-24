@@ -256,7 +256,6 @@ const importBackup = async (req, res) => {
                 '-U', dbInfo.user,
                 '-d', dbInfo.name,
                 '--no-password',
-                '-v', 'ON_ERROR_STOP=1',  // Detener si hay error
             ], {
                 env: { ...process.env, PGPASSWORD: dbInfo.pass },
                 stdio: ['pipe', 'ignore', 'pipe'],
