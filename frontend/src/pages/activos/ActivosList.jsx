@@ -4,7 +4,6 @@ import api from '../../lib/axios';
 import { useAuth } from '../../context/AuthContext';
 import { getImageUrl } from '../../lib/utils';
 import ActivosForm from './ActivosForm';
-import { EMPRESAS_PROPIETARIAS, ESTADOS_OPERATIVOS, TIPOS_EQUIPO } from './ActivosFormData';
 import { exportToExcel } from '../../lib/exportUtils';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
@@ -28,6 +27,7 @@ const ActivosList = () => {
     const [filterFuncionario, setFilterFuncionario] = useState('');
     const [categorias, setCategorias] = useState([]);
     const [funcionarios, setFuncionarios] = useState([]);
+    const [catalogs, setCatalogs] = useState({ EMPRESA_PROPIETARIA: [], ESTADO_OPERATIVO: [], TIPO_EQUIPO: [] });
     const [searchFuncionarioText, setSearchFuncionarioText] = useState('');
     const [showFuncionarioDropdown, setShowFuncionarioDropdown] = useState(false);
 
@@ -39,6 +39,18 @@ const ActivosList = () => {
     useEffect(() => {
         api.get('/categorias').then(res => setCategorias(res.data)).catch(() => { });
         api.get('/funcionarios').then(res => setFuncionarios(res.data)).catch(() => { });
+        api.get('/catalogos').then(res => {
+            const grouped = res.data.reduce((acc, curr) => {
+                if (!acc[curr.dominio]) acc[curr.dominio] = [];
+                acc[curr.dominio].push(curr.valor);
+                return acc;
+            }, {});
+            setCatalogs({
+                EMPRESA_PROPIETARIA: grouped['EMPRESA_PROPIETARIA'] || [],
+                ESTADO_OPERATIVO: grouped['ESTADO_OPERATIVO'] || [],
+                TIPO_EQUIPO: grouped['TIPO_EQUIPO'] || []
+            });
+        }).catch(() => { });
     }, []);
 
     useEffect(() => {
@@ -349,7 +361,7 @@ const ActivosList = () => {
                             <select value={filterEmpresa} onChange={e => setFilterEmpresa(e.target.value)}
                                 className="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-indigo-600 text-sm px-2">
                                 <option value="">Todas</option>
-                                {EMPRESAS_PROPIETARIAS.map(e => <option key={e} value={e}>{e}</option>)}
+                                {catalogs.EMPRESA_PROPIETARIA.map(e => <option key={e} value={e}>{e}</option>)}
                             </select>
                         </div>
                         <div>
@@ -357,7 +369,7 @@ const ActivosList = () => {
                             <select value={filterEstadoOp} onChange={e => setFilterEstadoOp(e.target.value)}
                                 className="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-indigo-600 text-sm px-2">
                                 <option value="">Todos</option>
-                                {ESTADOS_OPERATIVOS.map(e => <option key={e} value={e}>{e}</option>)}
+                                {catalogs.ESTADO_OPERATIVO.map(e => <option key={e} value={e}>{e}</option>)}
                             </select>
                         </div>
                         <div>
@@ -365,7 +377,7 @@ const ActivosList = () => {
                             <select value={filterTipo} onChange={e => setFilterTipo(e.target.value)}
                                 className="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-indigo-600 text-sm px-2">
                                 <option value="">Todos</option>
-                                {TIPOS_EQUIPO.map(e => <option key={e} value={e}>{e}</option>)}
+                                {catalogs.TIPO_EQUIPO.map(e => <option key={e} value={e}>{e}</option>)}
                             </select>
                         </div>
                     </div>

@@ -18,7 +18,6 @@ const Sidebar = ({ isOpen, toggleSidebar, onNavigate }) => {
         { name: 'Importar Datos', href: '/importar', icon: '📥', type: 'emoji', roles: ['ADMIN', 'TECNICO'] },
         { name: 'Usuarios', href: '/usuarios', icon: '👥', type: 'emoji', roles: ['ADMIN'] },
         { name: 'Respaldos', href: '/soporte', icon: '💾', type: 'emoji', roles: ['ADMIN'] },
-        { name: 'Catálogos', href: '/configuracion/catalogos', icon: '⚙️', type: 'emoji', roles: ['ADMIN', 'TECNICO', 'CONSULTA'] },
     ];
 
     const isActive = (path) => location.pathname === path;

@@ -7,32 +7,32 @@ services:
     container_name: inventario-db-dev
     restart: unless-stopped
     environment:
-      POSTGRES_DB: inventario_db
-      POSTGRES_USER: inventario_dev
-      POSTGRES_PASSWORD: dev_password_123
+      POSTGRES_DB: ${DB_NAME:-inventario_db}
+      POSTGRES_USER: ${DB_USER:-inventario_user}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-inventario_password}
     volumes:
       - postgres_data_dev:/var/lib/postgresql/data
     networks:
       - inventario-network
     healthcheck:
-      test: [ "CMD-SHELL", "pg_isready -U inventario_dev -d inventario_db" ]
+      test: [ "CMD-SHELL", "pg_isready -U $${DB_USER:-inventario_user} -d $${DB_NAME:-inventario_db}" ]
       interval: 10s
       timeout: 5s
       retries: 5
     ports:
-      - "5434:5432" # Puerto modificado para evitar conflicto
+      - "5434:5432"
 
-  # Backend Node.js (con Nodemon para hot-reload)
+  # Backend Node.js
   backend:
     build:
       context: ./backend
       dockerfile: Dockerfile
     container_name: inventario-api-dev
     restart: unless-stopped
-    command: sh -c "npm install && npx prisma generate && npx prisma db push && npm run dev"
+    command: [ "/bin/sh", "/app/start.sh" ]
     environment:
       NODE_ENV: development
-      DATABASE_URL: postgresql://inventario_dev:dev_password_123@postgres:5432/inventario_db
+      DATABASE_URL: postgresql://${DB_USER:-inventario_user}:${DB_PASSWORD:-inventario_password}@postgres:5432/${DB_NAME:-inventario_db}
       JWT_SECRET: ${JWT_SECRET:-clave_secreta_desarrollo_inventario}
       PORT: 3001
       UPLOAD_DIR: /app/uploads
@@ -46,7 +46,7 @@ services:
       postgres:
         condition: service_healthy
     ports:
-      - "3003:3001" # Puerto modificado para evitar conflicto
+      - "3003:3001"
 
   # Frontend React (con Vite server para hot-reload)
   frontend:
@@ -61,7 +61,7 @@ services:
       - ./frontend:/app
       - /app/node_modules
     ports:
-      - "8083:5173" # Puerto modificado para evitar conflicto
+      - "8085:5173" # Puerto modificado para evitar conflicto
     networks:
       - inventario-network
     environment:

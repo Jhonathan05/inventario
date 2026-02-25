@@ -1,11 +1,5 @@
-import { useState, useEffect } from 'react';
-import api from '../../lib/axios';
-import {
-    EMPRESAS_PROPIETARIAS, FUENTES_RECURSO, TIPOS_RECURSO,
-    EMPRESAS_FUNCIONARIO, TIPOS_PERSONAL, CARGOS,
-    TIPOS_EQUIPO, ESTADOS_OPERATIVOS, RAZONES_ESTADO, TIPOS_CONTROL,
-    PROCESADORES, MEMORIAS_RAM, DISCOS_DUROS, SISTEMAS_OPERATIVOS
-} from './ActivosFormData';
+import SelectWithAdd from '../../components/SelectWithAdd';
+import CatalogModal from '../../components/CatalogModal';
 
 const DEFAULT_STATE = {
     // Admin
@@ -55,6 +49,7 @@ const SectionHeader = ({ title, icon }) => (
     </div>
 );
 
+// Reusable Field component remains for non-dropdown fields
 const Field = ({ label, required, children }) => (
     <div>
         <label className="block text-xs font-medium text-gray-600 mb-1">
@@ -66,15 +61,6 @@ const Field = ({ label, required, children }) => (
 
 const inputCls = "block w-full rounded-md border border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 text-sm p-2";
 const selectCls = `${inputCls} bg-white`;
-
-const SelectField = ({ name, value, onChange, options, placeholder = 'Seleccione...', required }) => (
-    <select name={name} value={value} onChange={onChange} required={required} className={selectCls}>
-        <option value="">{placeholder}</option>
-        {options.map(opt => (
-            <option key={opt} value={opt}>{opt}</option>
-        ))}
-    </select>
-);
 
 const calcYearsOfUse = (fechaCompraStr) => {
     if (!fechaCompraStr) return null;
@@ -94,7 +80,86 @@ const ActivosForm = ({ open, onClose, activo }) => {
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
 
-    useEffect(() => { fetchCategorias(); }, []);
+    // Catalog states
+    const [catalogs, setCatalogs] = useState({
+        EMPRESA_PROPIETARIA: [],
+        FUENTE_RECURSO: [],
+        TIPO_RECURSO: [],
+        TIPO_CONTROL: [],
+        ESTADO_OPERATIVO: [],
+        RAZON_ESTADO: [],
+        EMPRESA_FUNCIONARIO: [],
+        TIPO_PERSONAL: [],
+        CARGO: [],
+        TIPO_EQUIPO: [],
+        PROCESADOR: [],
+        MEMORIA_RAM: [],
+        DISCO_DURO: [],
+        SISTEMA_OPERATIVO: [],
+    });
+
+    // Modal state for adding new options
+    const [activeModal, setActiveModal] = useState({ open: false, domain: '', title: '', isCategory: false });
+
+    useEffect(() => {
+        fetchCategorias();
+        fetchAllCatalogs();
+    }, []);
+
+    const fetchAllCatalogs = async () => {
+        try {
+            const res = await api.get('/catalogos');
+            const grouped = res.data.reduce((acc, item) => {
+                if (!acc[item.dominio]) acc[item.dominio] = [];
+                acc[item.dominio].push(item.valor);
+                return acc;
+            }, {});
+            setCatalogs(prev => ({ ...prev, ...grouped }));
+        } catch (err) {
+            console.error('Error fetching catalogs:', err);
+        }
+    };
+
+    const handleOpenCatalogModal = (domain, title, isCategory = false) => {
+        setActiveModal({ open: true, domain, title, isCategory });
+    };
+
+    const handleCatalogSuccess = (newVal) => {
+        if (activeModal.isCategory) {
+            setCategorias(prev => [...prev, newVal]);
+            setFormData(prev => ({ ...prev, categoriaId: newVal.id }));
+        } else {
+            const val = newVal.valor;
+            setCatalogs(prev => ({
+                ...prev,
+                [activeModal.domain]: [...prev[activeModal.domain], val]
+            }));
+            const fieldName = getFieldNameByDomain(activeModal.domain);
+            if (fieldName) {
+                setFormData(prev => ({ ...prev, [fieldName]: val }));
+            }
+        }
+    };
+
+    const getFieldNameByDomain = (domain) => {
+        const mapping = {
+            EMPRESA_PROPIETARIA: 'empresaPropietaria',
+            FUENTE_RECURSO: 'fuenteRecurso',
+            TIPO_RECURSO: 'tipoRecurso',
+            TIPO_CONTROL: 'tipoControl',
+            ESTADO_OPERATIVO: 'estadoOperativo',
+            RAZON_ESTADO: 'razonEstado',
+            EMPRESA_FUNCIONARIO: 'empresaFuncionario',
+            TIPO_PERSONAL: 'tipoPersonal',
+            CARGO: 'cargo',
+            TIPO_EQUIPO: 'tipo',
+            PROCESADOR: 'procesador',
+            MEMORIA_RAM: 'memoriaRam',
+            DISCO_DURO: 'discoDuro',
+            SISTEMA_OPERATIVO: 'sistemaOperativo',
+        };
+        return mapping[domain];
+    };
 
     useEffect(() => {
         if (activo) {
@@ -220,35 +285,65 @@ const ActivosForm = ({ open, onClose, activo }) => {
                         <div className="bg-indigo-50 rounded-lg p-4">
                             <SectionHeader title="Administración del Equipo" icon="🏢" />
                             <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-                                <Field label="Empresa Propietaria">
-                                    <SelectField name="empresaPropietaria" value={formData.empresaPropietaria} onChange={handleChange} options={EMPRESAS_PROPIETARIAS} />
-                                </Field>
+                                <SelectWithAdd
+                                    label="Empresa Propietaria"
+                                    name="empresaPropietaria"
+                                    value={formData.empresaPropietaria}
+                                    onChange={handleChange}
+                                    options={catalogs.EMPRESA_PROPIETARIA}
+                                    onAdd={() => handleOpenCatalogModal('EMPRESA_PROPIETARIA', 'Empresa Propietaria')}
+                                />
                                 <Field label="Dependencia">
                                     <input type="text" name="dependencia" value={formData.dependencia} onChange={handleChange} className={inputCls} />
                                 </Field>
-                                <Field label="Fuente de Recurso">
-                                    <SelectField name="fuenteRecurso" value={formData.fuenteRecurso} onChange={handleChange} options={FUENTES_RECURSO} />
-                                </Field>
-                                <Field label="Tipo de Recurso">
-                                    <SelectField name="tipoRecurso" value={formData.tipoRecurso} onChange={handleChange} options={TIPOS_RECURSO} />
-                                </Field>
-                                <Field label="Administrado / Controlado">
-                                    <SelectField name="tipoControl" value={formData.tipoControl} onChange={handleChange} options={TIPOS_CONTROL} />
-                                </Field>
-                                <Field label="Estado Operativo">
-                                    <SelectField name="estadoOperativo" value={formData.estadoOperativo} onChange={handleChange} options={ESTADOS_OPERATIVOS} />
-                                </Field>
-                                <Field label="Razón del Estado">
-                                    <SelectField name="razonEstado" value={formData.razonEstado} onChange={handleChange} options={RAZONES_ESTADO} />
-                                </Field>
-                                <Field label="Categoría">
-                                    <select name="categoriaId" value={formData.categoriaId} onChange={handleChange} className={selectCls}>
-                                        <option value="">Seleccione...</option>
-                                        {categorias.map(cat => (
-                                            <option key={cat.id} value={cat.id}>{cat.nombre}</option>
-                                        ))}
-                                    </select>
-                                </Field>
+                                <SelectWithAdd
+                                    label="Fuente de Recurso"
+                                    name="fuenteRecurso"
+                                    value={formData.fuenteRecurso}
+                                    onChange={handleChange}
+                                    options={catalogs.FUENTE_RECURSO}
+                                    onAdd={() => handleOpenCatalogModal('FUENTE_RECURSO', 'Fuente de Recurso')}
+                                />
+                                <SelectWithAdd
+                                    label="Tipo de Recurso"
+                                    name="tipoRecurso"
+                                    value={formData.tipoRecurso}
+                                    onChange={handleChange}
+                                    options={catalogs.TIPO_RECURSO}
+                                    onAdd={() => handleOpenCatalogModal('TIPO_RECURSO', 'Tipo de Recurso')}
+                                />
+                                <SelectWithAdd
+                                    label="Administrado / Controlado"
+                                    name="tipoControl"
+                                    value={formData.tipoControl}
+                                    onChange={handleChange}
+                                    options={catalogs.TIPO_CONTROL}
+                                    onAdd={() => handleOpenCatalogModal('TIPO_CONTROL', 'Tipo de Control')}
+                                />
+                                <SelectWithAdd
+                                    label="Estado Operativo"
+                                    name="estadoOperativo"
+                                    value={formData.estadoOperativo}
+                                    onChange={handleChange}
+                                    options={catalogs.ESTADO_OPERATIVO}
+                                    onAdd={() => handleOpenCatalogModal('ESTADO_OPERATIVO', 'Estado Operativo')}
+                                />
+                                <SelectWithAdd
+                                    label="Razón del Estado"
+                                    name="razonEstado"
+                                    value={formData.razonEstado}
+                                    onChange={handleChange}
+                                    options={catalogs.RAZON_ESTADO}
+                                    onAdd={() => handleOpenCatalogModal('RAZON_ESTADO', 'Razón del Estado')}
+                                />
+                                <SelectWithAdd
+                                    label="Categoría"
+                                    name="categoriaId"
+                                    value={formData.categoriaId}
+                                    onChange={handleChange}
+                                    options={categorias}
+                                    onAdd={() => handleOpenCatalogModal('', 'Categoría', true)}
+                                />
                             </div>
                         </div>
 
@@ -256,12 +351,22 @@ const ActivosForm = ({ open, onClose, activo }) => {
                         <div className="bg-green-50 rounded-lg p-4">
                             <SectionHeader title="Información del Funcionario" icon="👤" />
                             <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-                                <Field label="Empresa Funcionario">
-                                    <SelectField name="empresaFuncionario" value={formData.empresaFuncionario} onChange={handleChange} options={EMPRESAS_FUNCIONARIO} />
-                                </Field>
-                                <Field label="Empleado o Contratista">
-                                    <SelectField name="tipoPersonal" value={formData.tipoPersonal} onChange={handleChange} options={TIPOS_PERSONAL} />
-                                </Field>
+                                <SelectWithAdd
+                                    label="Empresa Funcionario"
+                                    name="empresaFuncionario"
+                                    value={formData.empresaFuncionario}
+                                    onChange={handleChange}
+                                    options={catalogs.EMPRESA_FUNCIONARIO}
+                                    onAdd={() => handleOpenCatalogModal('EMPRESA_FUNCIONARIO', 'Empresa Funcionario')}
+                                />
+                                <SelectWithAdd
+                                    label="Empleado o Contratista"
+                                    name="tipoPersonal"
+                                    value={formData.tipoPersonal}
+                                    onChange={handleChange}
+                                    options={catalogs.TIPO_PERSONAL}
+                                    onAdd={() => handleOpenCatalogModal('TIPO_PERSONAL', 'Tipo de Personal')}
+                                />
                                 <Field label="Cédula del Funcionario">
                                     <input type="number" name="cedulaFuncionario" value={formData.cedulaFuncionario} onChange={handleChange} className={inputCls} />
                                 </Field>
@@ -280,9 +385,14 @@ const ActivosForm = ({ open, onClose, activo }) => {
                                     <input type="text" name="ciudad" value={formData.ciudad} onChange={handleChange} className={inputCls} />
                                 </Field>
                                 <div className="col-span-2">
-                                    <Field label="Cargo">
-                                        <SelectField name="cargo" value={formData.cargo} onChange={handleChange} options={CARGOS} />
-                                    </Field>
+                                    <SelectWithAdd
+                                        label="Cargo"
+                                        name="cargo"
+                                        value={formData.cargo}
+                                        onChange={handleChange}
+                                        options={catalogs.CARGO}
+                                        onAdd={() => handleOpenCatalogModal('CARGO', 'Cargo')}
+                                    />
                                 </div>
                                 <Field label="Área">
                                     <input type="text" name="area" value={formData.area} onChange={handleChange} className={inputCls} />
@@ -297,9 +407,14 @@ const ActivosForm = ({ open, onClose, activo }) => {
                         <div className="bg-amber-50 rounded-lg p-4">
                             <SectionHeader title="Características del Equipo" icon="💻" />
                             <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-                                <Field label="Tipo de Equipo">
-                                    <SelectField name="tipo" value={formData.tipo} onChange={handleChange} options={TIPOS_EQUIPO} />
-                                </Field>
+                                <SelectWithAdd
+                                    label="Tipo de Equipo"
+                                    name="tipo"
+                                    value={formData.tipo}
+                                    onChange={handleChange}
+                                    options={catalogs.TIPO_EQUIPO}
+                                    onAdd={() => handleOpenCatalogModal('TIPO_EQUIPO', 'Tipo de Equipo')}
+                                />
                                 <Field label="Serial">
                                     <input type="text" name="serial" value={formData.serial} onChange={e => setFormData(p => ({ ...p, serial: e.target.value.toUpperCase() }))} className={inputCls} />
                                 </Field>
@@ -316,20 +431,40 @@ const ActivosForm = ({ open, onClose, activo }) => {
                                     <input type="text" name="nombreEquipo" value={formData.nombreEquipo} onChange={handleChange} className={inputCls} />
                                 </Field>
                                 <div className="col-span-2 lg:col-span-4">
-                                    <Field label="Procesador">
-                                        <SelectField name="procesador" value={formData.procesador} onChange={handleChange} options={PROCESADORES} />
-                                    </Field>
+                                    <SelectWithAdd
+                                        label="Procesador"
+                                        name="procesador"
+                                        value={formData.procesador}
+                                        onChange={handleChange}
+                                        options={catalogs.PROCESADOR}
+                                        onAdd={() => handleOpenCatalogModal('PROCESADOR', 'Procesador')}
+                                    />
                                 </div>
-                                <Field label="Memoria RAM">
-                                    <SelectField name="memoriaRam" value={formData.memoriaRam} onChange={handleChange} options={MEMORIAS_RAM} />
-                                </Field>
-                                <Field label="Tamaño Disco Duro">
-                                    <SelectField name="discoDuro" value={formData.discoDuro} onChange={handleChange} options={DISCOS_DUROS} />
-                                </Field>
+                                <SelectWithAdd
+                                    label="Memoria RAM"
+                                    name="memoriaRam"
+                                    value={formData.memoriaRam}
+                                    onChange={handleChange}
+                                    options={catalogs.MEMORIA_RAM}
+                                    onAdd={() => handleOpenCatalogModal('MEMORIA_RAM', 'Memoria RAM')}
+                                />
+                                <SelectWithAdd
+                                    label="Tamaño Disco Duro"
+                                    name="discoDuro"
+                                    value={formData.discoDuro}
+                                    onChange={handleChange}
+                                    options={catalogs.DISCO_DURO}
+                                    onAdd={() => handleOpenCatalogModal('DISCO_DURO', 'Disco Duro')}
+                                />
                                 <div className="col-span-2">
-                                    <Field label="Sistema Operativo">
-                                        <SelectField name="sistemaOperativo" value={formData.sistemaOperativo} onChange={handleChange} options={SISTEMAS_OPERATIVOS} />
-                                    </Field>
+                                    <SelectWithAdd
+                                        label="Sistema Operativo"
+                                        name="sistemaOperativo"
+                                        value={formData.sistemaOperativo}
+                                        onChange={handleChange}
+                                        options={catalogs.SISTEMA_OPERATIVO}
+                                        onAdd={() => handleOpenCatalogModal('SISTEMA_OPERATIVO', 'Sistema Operativo')}
+                                    />
                                 </div>
                             </div>
                         </div>
@@ -388,6 +523,15 @@ const ActivosForm = ({ open, onClose, activo }) => {
                     </form>
                 </div>
             </div>
+
+            <CatalogModal
+                open={activeModal.open}
+                onClose={() => setActiveModal(prev => ({ ...prev, open: false }))}
+                domain={activeModal.domain}
+                title={activeModal.title}
+                isCategory={activeModal.isCategory}
+                onSaveSuccess={handleCatalogSuccess}
+            />
         </div>
     );
 };

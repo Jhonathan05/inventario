@@ -2,7 +2,6 @@ import { useState, useEffect, useMemo, useCallback } from 'react';
 import api from '../../lib/axios';
 import { exportToExcel } from '../../lib/exportUtils';
 import { REPORT_TYPES, REPORT_COLUMNS, transformData } from './reportConfigs';
-import { EMPRESAS_PROPIETARIAS, ESTADOS_OPERATIVOS, TIPOS_EQUIPO } from '../activos/ActivosFormData';
 
 const Reportes = () => {
     const [selectedReport, setSelectedReport] = useState(null);
@@ -11,6 +10,22 @@ const Reportes = () => {
     const [loading, setLoading] = useState(false);
     const [filters, setFilters] = useState({});
     const [statsData, setStatsData] = useState(null);
+    const [catalogs, setCatalogs] = useState({ EMPRESA_PROPIETARIA: [], ESTADO_OPERATIVO: [], TIPO_EQUIPO: [] });
+
+    useEffect(() => {
+        api.get('/catalogos').then(res => {
+            const grouped = res.data.reduce((acc, curr) => {
+                if (!acc[curr.dominio]) acc[curr.dominio] = [];
+                acc[curr.dominio].push(curr.valor);
+                return acc;
+            }, {});
+            setCatalogs({
+                EMPRESA_PROPIETARIA: grouped['EMPRESA_PROPIETARIA'] || [],
+                ESTADO_OPERATIVO: grouped['ESTADO_OPERATIVO'] || [],
+                TIPO_EQUIPO: grouped['TIPO_EQUIPO'] || []
+            });
+        }).catch(() => { });
+    }, []);
     // Perfiles
     const [perfiles, setPerfiles] = useState([]);
     const [selectedPerfil, setSelectedPerfil] = useState(null);
@@ -204,11 +219,11 @@ const Reportes = () => {
                         <FilterSelect label="Estado" value={filters.estado} onChange={v => setFilters(p => ({ ...p, estado: v }))}
                             options={[{ value: 'DISPONIBLE', label: 'Disponible' }, { value: 'ASIGNADO', label: 'Asignado' }, { value: 'EN_MANTENIMIENTO', label: 'En Mantenimiento' }, { value: 'DADO_DE_BAJA', label: 'Dado de Baja' }]} />
                         <FilterSelect label="Empresa" value={filters.empresaPropietaria} onChange={v => setFilters(p => ({ ...p, empresaPropietaria: v }))}
-                            options={EMPRESAS_PROPIETARIAS.map(e => ({ value: e, label: e }))} />
+                            options={catalogs.EMPRESA_PROPIETARIA.map(e => ({ value: e, label: e }))} />
                         <FilterSelect label="Estado Operativo" value={filters.estadoOperativo} onChange={v => setFilters(p => ({ ...p, estadoOperativo: v }))}
-                            options={ESTADOS_OPERATIVOS.map(e => ({ value: e, label: e }))} />
+                            options={catalogs.ESTADO_OPERATIVO.map(e => ({ value: e, label: e }))} />
                         <FilterSelect label="Tipo Equipo" value={filters.tipo} onChange={v => setFilters(p => ({ ...p, tipo: v }))}
-                            options={TIPOS_EQUIPO.map(e => ({ value: e, label: e }))} />
+                            options={catalogs.TIPO_EQUIPO.map(e => ({ value: e, label: e }))} />
                     </div>
                 );
             case 'asignaciones':

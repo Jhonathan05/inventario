@@ -13,7 +13,6 @@ import Reportes from './pages/reportes/Reportes';
 import ActasList from './pages/actas/ActasList';
 import GenerarActa from './pages/actas/GenerarActa';
 import ImportarDatos from './pages/importar/ImportarDatos';
-import Catalogos from './pages/configuracion/CatalogosList';
 import MantenimientosList from './pages/mantenimientos/MantenimientosList';
 import BackupSoporte from './pages/backup/BackupSoporte';
 import TicketsList from './pages/tickets/TicketsList';
@@ -37,7 +36,6 @@ function App() {
                             <Route path="/categorias" element={<Categorias />} />
                             <Route path="/reportes" element={<Reportes />} />
                             <Route path="/actas" element={<ActasList />} />
-                            <Route path="/configuracion/catalogos" element={<Catalogos />} />
                             <Route path="/mantenimientos" element={<MantenimientosList />} />
                         </Route>
 

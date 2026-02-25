@@ -2,11 +2,40 @@ import { useState, useEffect } from 'react';
 import api from '../../lib/axios';
 import { useAuth } from '../../context/AuthContext';
 
+const MANAGEMENT_SECTIONS = [
+    {
+        id: 'MODULO_CATEGORIAS',
+        title: 'Categorías',
+        description: 'Tipos principales de activos (ej. PORTATIL, MONITOR)',
+        isCategory: true
+    },
+    {
+        id: 'GRUPO_PERSONAL',
+        title: 'Personal',
+        description: 'Cargos y empresas de vinculación',
+        domains: ['CARGO', 'EMPRESA_FUNCIONARIO', 'TIPO_PERSONAL']
+    },
+    {
+        id: 'GRUPO_HARDWARE',
+        title: 'Hardware & Hardware',
+        description: 'Especificaciones técnicas del equipo',
+        domains: ['TIPO_EQUIPO', 'PROCESADOR', 'MEMORIA_RAM', 'DISCO_DURO', 'SISTEMA_OPERATIVO']
+    },
+    {
+        id: 'GRUPO_ADMIN',
+        title: 'Administración',
+        description: 'Estados operativos y fuentes de recurso',
+        domains: ['EMPRESA_PROPIETARIA', 'FUENTE_RECURSO', 'TIPO_RECURSO', 'TIPO_CONTROL', 'ESTADO_OPERATIVO', 'RAZON_ESTADO']
+    }
+];
+
 const Categorias = () => {
     const { user } = useAuth();
     const canEdit = user?.rol === 'ADMIN' || user?.rol === 'TECNICO';
 
-    const [categorias, setCategorias] = useState([]);
+    const [activeSection, setActiveSection] = useState(MANAGEMENT_SECTIONS[0]);
+    const [activeDomain, setActiveDomain] = useState(null);
+    const [data, setData] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
 
@@ -14,147 +43,242 @@ const Categorias = () => {
     const [showModal, setShowModal] = useState(false);
     const [isEditing, setIsEditing] = useState(false);
     const [currentId, setCurrentId] = useState(null);
-    const [formData, setFormData] = useState({ nombre: '', icono: '' });
+    const [formData, setFormData] = useState({ valor: '', descripcion: '', activo: true });
     const [saving, setSaving] = useState(false);
 
     useEffect(() => {
-        fetchCategorias();
-    }, []);
+        if (activeSection.isCategory) {
+            fetchCategorias();
+        } else if (activeSection.domains) {
+            setActiveDomain(activeSection.domains[0]);
+        }
+    }, [activeSection]);
+
+    useEffect(() => {
+        if (activeDomain) {
+            fetchCatalogos(activeDomain);
+        }
+    }, [activeDomain]);
 
     const fetchCategorias = async () => {
         setLoading(true);
         try {
             const response = await api.get('/categorias');
-            setCategorias(response.data);
+            setData(response.data.map(c => ({ id: c.id, valor: c.nombre, count: c._count?.activos })));
             setError(null);
         } catch (err) {
             console.error(err);
-            const msg = err.response?.data?.error || err.message || 'Error desconocido';
-            setError(`Error al cargar categorías: ${msg}`);
+            setError('Error al cargar categorías');
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const fetchCatalogos = async (domain) => {
+        setLoading(true);
+        try {
+            const response = await api.get(`/catalogos?dominio=${domain}`);
+            setData(response.data);
+            setError(null);
+        } catch (err) {
+            console.error(err);
+            setError('Error al cargar catálogos');
         } finally {
             setLoading(false);
         }
     };
 
     const handleOpenNew = () => {
-        setFormData({ nombre: '', icono: '' });
+        setFormData({ valor: '', descripcion: '', activo: true });
         setIsEditing(false);
         setCurrentId(null);
         setShowModal(true);
     };
 
-    const handleOpenEdit = (cat) => {
-        setFormData({ nombre: cat.nombre, icono: cat.icono || '' });
+    const handleOpenEdit = (item) => {
+        setFormData({
+            valor: item.valor,
+            descripcion: item.descripcion || '',
+            activo: item.activo !== undefined ? item.activo : true
+        });
         setIsEditing(true);
-        setCurrentId(cat.id);
+        setCurrentId(item.id);
         setShowModal(true);
     };
 
     const handleCloseModal = () => {
         setShowModal(false);
-        setFormData({ nombre: '', icono: '' });
+        setFormData({ valor: '', descripcion: '', activo: true });
     };
 
     const handleSave = async (e) => {
         e.preventDefault();
         setSaving(true);
         try {
-            if (isEditing) {
-                await api.put(`/categorias/${currentId}`, formData);
+            if (activeSection.isCategory) {
+                if (isEditing) {
+                    await api.put(`/categorias/${currentId}`, { nombre: formData.valor.toUpperCase() });
+                } else {
+                    await api.post('/categorias', { nombre: formData.valor.toUpperCase() });
+                }
+                fetchCategorias();
             } else {
-                await api.post('/categorias', formData);
+                const payload = {
+                    dominio: activeDomain,
+                    valor: formData.valor.toUpperCase(),
+                    descripcion: formData.descripcion,
+                    activo: formData.activo
+                };
+                if (isEditing) {
+                    await api.put(`/catalogos/${currentId}`, payload);
+                } else {
+                    await api.post('/catalogos', payload);
+                }
+                fetchCatalogos(activeDomain);
             }
             setShowModal(false);
-            fetchCategorias();
         } catch (err) {
             console.error(err);
-            alert(err.response?.data?.error || 'Error al guardar categoría');
+            alert(err.response?.data?.error || 'Error al guardar');
         } finally {
             setSaving(false);
         }
     };
 
-    const handleDelete = async (id, nombre) => {
-        if (!window.confirm(`¿Estás seguro de eliminar la categoría "${nombre}"?`)) return;
+    const handleDelete = async (id, valor) => {
+        if (!window.confirm(`¿Estás seguro de eliminar "${valor}"?`)) return;
         try {
-            await api.delete(`/categorias/${id}`);
-            fetchCategorias();
+            if (activeSection.isCategory) {
+                await api.delete(`/categorias/${id}`);
+                fetchCategorias();
+            } else {
+                await api.delete(`/catalogos/${id}`);
+                fetchCatalogos(activeDomain);
+            }
         } catch (err) {
             console.error(err);
-            alert(err.response?.data?.error || 'Error al eliminar categoría');
+            alert(err.response?.data?.error || 'Error al eliminar');
         }
     };
 
-    if (loading && categorias.length === 0) return <div className="p-4">Cargando categorías...</div>;
-
     return (
-        <div>
-            {error && <div className="mb-4 p-4 bg-red-50 text-red-600 rounded-md">{error}</div>}
-
-            <div className="sm:flex sm:items-center">
-                <div className="sm:flex-auto">
-                    <h1 className="text-base font-semibold leading-6 text-gray-900">Categorías de Activos</h1>
-                    <p className="mt-2 text-sm text-gray-700">
-                        Tipos de activos disponibles en el inventario (ej. EQUIPO PORTATIL, IMPRESORA).
-                    </p>
-                </div>
-                <div className="mt-4 sm:ml-16 sm:mt-0 sm:flex-none">
-                    {canEdit && (
-                        <button
-                            type="button"
-                            onClick={handleOpenNew}
-                            className="block rounded-md bg-indigo-600 px-3 py-2 text-center text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"
-                        >
-                            Nueva Categoría
-                        </button>
-                    )}
-                </div>
+        <div className="flex flex-col lg:flex-row gap-8">
+            {/* Sidebar / Tabs */}
+            <div className="lg:w-64 flex-none space-y-1">
+                <h2 className="text-xs font-bold text-gray-400 uppercase tracking-widest px-3 mb-2">Secciones</h2>
+                {MANAGEMENT_SECTIONS.map(section => (
+                    <button
+                        key={section.id}
+                        onClick={() => setActiveSection(section)}
+                        className={`w-full text-left px-3 py-2 rounded-lg text-sm font-medium transition-all ${activeSection.id === section.id
+                                ? 'bg-indigo-600 text-white shadow-md'
+                                : 'text-gray-600 hover:bg-gray-100'
+                            }`}
+                    >
+                        {section.title}
+                    </button>
+                ))}
             </div>
 
-            <div className="mt-8 flow-root">
-                <div className="-mx-4 -my-2 overflow-x-auto sm:-mx-6 lg:-mx-8">
-                    <div className="inline-block min-w-full py-2 align-middle sm:px-6 lg:px-8">
-                        <div className="overflow-hidden shadow ring-1 ring-black ring-opacity-5 sm:rounded-lg">
-                            <table className="min-w-full divide-y divide-gray-300">
+            {/* Main Content */}
+            <div className="flex-1">
+                <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+                    <div className="p-6 border-b border-gray-100 bg-gray-50/50">
+                        <div className="sm:flex sm:items-center justify-between">
+                            <div>
+                                <h1 className="text-xl font-bold text-gray-900">{activeSection.title}</h1>
+                                <p className="mt-1 text-sm text-gray-500">{activeSection.description}</p>
+                            </div>
+                            {canEdit && (
+                                <button
+                                    type="button"
+                                    onClick={handleOpenNew}
+                                    className="inline-flex items-center px-4 py-2 bg-indigo-600 text-white text-sm font-semibold rounded-lg shadow-sm hover:bg-indigo-500 transition-colors"
+                                >
+                                    <svg className="w-5 h-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                                    </svg>
+                                    Nuevo Valor
+                                </button>
+                            )}
+                        </div>
+
+                        {/* Domain Tabs within sections */}
+                        {activeSection.domains && (
+                            <div className="flex flex-wrap gap-2 mt-6">
+                                {activeSection.domains.map(domain => (
+                                    <button
+                                        key={domain}
+                                        onClick={() => setActiveDomain(domain)}
+                                        className={`px-3 py-1.5 rounded-full text-xs font-semibold border transition-all ${activeDomain === domain
+                                                ? 'bg-indigo-50 border-indigo-200 text-indigo-700'
+                                                : 'bg-white border-gray-200 text-gray-500 hover:border-indigo-200 hover:text-indigo-600'
+                                            }`}
+                                    >
+                                        {domain.replace(/_/g, ' ')}
+                                    </button>
+                                ))}
+                            </div>
+                        )}
+                    </div>
+
+                    <div className="overflow-x-auto">
+                        {loading ? (
+                            <div className="p-12 text-center text-gray-500">Cargando datos...</div>
+                        ) : error ? (
+                            <div className="p-12 text-center text-red-500">{error}</div>
+                        ) : (
+                            <table className="min-w-full divide-y divide-gray-200">
                                 <thead className="bg-gray-50">
                                     <tr>
-                                        <th scope="col" className="py-3.5 pl-4 pr-3 text-left text-sm font-semibold text-gray-900 sm:pl-6">
-                                            ID
-                                        </th>
-                                        <th scope="col" className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">
-                                            Nombre
-                                        </th>
-                                        <th scope="col" className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">
-                                            Activos Relacionados
-                                        </th>
-                                        {canEdit && (
-                                            <th scope="col" className="relative py-3.5 pl-3 pr-4 sm:pr-6">
-                                                <span className="sr-only">Acciones</span>
-                                            </th>
+                                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">ID</th>
+                                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Valor / Nombre</th>
+                                        {!activeSection.isCategory && (
+                                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Estado</th>
                                         )}
+                                        {activeSection.isCategory && (
+                                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Activos</th>
+                                        )}
+                                        {canEdit && <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Acciones</th>}
                                     </tr>
                                 </thead>
-                                <tbody className="divide-y divide-gray-200 bg-white">
-                                    {categorias.map((cat) => (
-                                        <tr key={cat.id}>
-                                            <td className="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-medium text-gray-900 sm:pl-6">
-                                                {cat.id}
+                                <tbody className="bg-white divide-y divide-gray-200">
+                                    {data.map((item) => (
+                                        <tr key={item.id} className="hover:bg-gray-50 transition-colors">
+                                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{item.id}</td>
+                                            <td className="px-6 py-4 whitespace-nowrap">
+                                                <div className="text-sm font-medium text-gray-900">{item.valor}</div>
+                                                {item.descripcion && <div className="text-xs text-gray-400">{item.descripcion}</div>}
                                             </td>
-                                            <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-900">{cat.nombre}</td>
-                                            <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
-                                                {cat._count?.activos || 0}
-                                            </td>
+                                            {!activeSection.isCategory && (
+                                                <td className="px-6 py-4 whitespace-nowrap">
+                                                    <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${item.activo ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
+                                                        }`}>
+                                                        {item.activo ? 'Activo' : 'Inactivo'}
+                                                    </span>
+                                                </td>
+                                            )}
+                                            {activeSection.isCategory && (
+                                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                                    {item.count || 0}
+                                                </td>
+                                            )}
                                             {canEdit && (
-                                                <td className="whitespace-nowrap py-4 pl-3 pr-4 text-right text-sm font-medium sm:pr-6">
-                                                    <button onClick={() => handleOpenEdit(cat)} className="text-indigo-600 hover:text-indigo-900 mr-4">Editar</button>
-                                                    <button onClick={() => handleDelete(cat.id, cat.nombre)} className="text-red-600 hover:text-red-900">Eliminar</button>
+                                                <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                                                    <button onClick={() => handleOpenEdit(item)} className="text-indigo-600 hover:text-indigo-900 mr-4">Editar</button>
+                                                    <button onClick={() => handleDelete(item.id, item.valor)} className="text-red-600 hover:text-red-900">Eliminar</button>
                                                 </td>
                                             )}
                                         </tr>
                                     ))}
+                                    {data.length === 0 && (
+                                        <tr>
+                                            <td colSpan="4" className="px-6 py-12 text-center text-gray-500">No hay registros</td>
+                                        </tr>
+                                    )}
                                 </tbody>
                             </table>
-                        </div>
+                        )}
                     </div>
                 </div>
             </div>
@@ -162,40 +286,62 @@ const Categorias = () => {
             {/* Modal de Crear/Editar */}
             {showModal && (
                 <div className="fixed inset-0 z-50 overflow-y-auto" role="dialog" aria-modal="true">
-                    <div className="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
+                    <div className="flex items-center justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:p-0">
                         <div className="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity" onClick={handleCloseModal}></div>
-                        <span className="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
-                        <div className="inline-block align-bottom bg-white rounded-lg px-4 pt-5 pb-4 text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full sm:p-6">
-
-                            <h3 className="text-lg leading-6 font-medium text-gray-900 mb-4">
-                                {isEditing ? '✏️ Editar Categoría' : '➕ Nueva Categoría'}
+                        <div className="relative inline-block align-middle bg-white rounded-xl px-6 pt-6 pb-6 text-left overflow-hidden shadow-2xl transform transition-all sm:my-8 sm:w-full sm:max-w-lg">
+                            <h3 className="text-xl font-bold text-gray-900 mb-6">
+                                {isEditing ? '✏️ Editar Registro' : '➕ Nuevo Registro'}
                             </h3>
 
                             <form onSubmit={handleSave} className="space-y-4">
                                 <div>
-                                    <label className="block text-sm font-medium text-gray-700">Nombre de la Categoría *</label>
+                                    <label className="block text-sm font-medium text-gray-700">Nombre / Valor *</label>
                                     <input
                                         type="text"
                                         required
                                         className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm border p-2"
-                                        value={formData.nombre}
-                                        onChange={e => setFormData({ ...formData, nombre: e.target.value.toUpperCase() })}
+                                        value={formData.valor}
+                                        onChange={e => setFormData({ ...formData, valor: e.target.value })}
                                         placeholder="EJ: MONITOR"
                                     />
                                 </div>
 
-                                <div className="mt-5 sm:mt-6 sm:grid sm:grid-cols-2 sm:gap-3 sm:grid-flow-row-dense">
+                                {!activeSection.isCategory && (
+                                    <>
+                                        <div>
+                                            <label className="block text-sm font-medium text-gray-700">Descripción (Opcional)</label>
+                                            <textarea
+                                                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm border p-2"
+                                                rows="2"
+                                                value={formData.descripcion}
+                                                onChange={e => setFormData({ ...formData, descripcion: e.target.value })}
+                                            />
+                                        </div>
+                                        <div className="flex items-center gap-2">
+                                            <input
+                                                type="checkbox"
+                                                id="activo"
+                                                checked={formData.activo}
+                                                onChange={e => setFormData({ ...formData, activo: e.target.checked })}
+                                                className="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded"
+                                            />
+                                            <label htmlFor="activo" className="text-sm text-gray-700">Habilitado para uso</label>
+                                        </div>
+                                    </>
+                                )}
+
+                                <div className="mt-8 flex gap-3">
                                     <button
                                         type="submit"
                                         disabled={saving}
-                                        className="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-indigo-600 text-base font-medium text-white hover:bg-indigo-700 sm:col-start-2 sm:text-sm"
+                                        className="flex-1 rounded-lg bg-indigo-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 disabled:opacity-70"
                                     >
-                                        {saving ? 'Guardando...' : 'Guardar'}
+                                        {saving ? 'Guardando...' : 'Guardar Cambios'}
                                     </button>
                                     <button
                                         type="button"
                                         onClick={handleCloseModal}
-                                        className="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 sm:mt-0 sm:col-start-1 sm:text-sm"
+                                        className="flex-1 rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 shadow-sm hover:bg-gray-50"
                                     >
                                         Cancelar
                                     </button>
