@@ -6,7 +6,7 @@ WORKDIR /app
 COPY package*.json ./
 COPY prisma ./prisma
 
-RUN npm install --omit=dev
+RUN npm install
 
 # Etapa 2: Producción
 FROM node:20-alpine

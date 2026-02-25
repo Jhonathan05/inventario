@@ -1,3 +1,6 @@
+import { useState, useEffect } from 'react';
+import api from '../../lib/axios';
+import { useAuth } from '../../context/AuthContext';
 import SelectWithAdd from '../../components/SelectWithAdd';
 import CatalogModal from '../../components/CatalogModal';
 
@@ -73,6 +76,9 @@ const calcYearsOfUse = (fechaCompraStr) => {
 };
 
 const ActivosForm = ({ open, onClose, activo }) => {
+    const { user } = useAuth();
+    const canEditCatalogs = user?.rol === 'ADMIN' || user?.rol === 'TECNICO';
+
     const [formData, setFormData] = useState(DEFAULT_STATE);
     const [imagen, setImagen] = useState(null);
     const [preview, setPreview] = useState(null);
@@ -291,6 +297,7 @@ const ActivosForm = ({ open, onClose, activo }) => {
                                     value={formData.empresaPropietaria}
                                     onChange={handleChange}
                                     options={catalogs.EMPRESA_PROPIETARIA}
+                                    canAdd={canEditCatalogs}
                                     onAdd={() => handleOpenCatalogModal('EMPRESA_PROPIETARIA', 'Empresa Propietaria')}
                                 />
                                 <Field label="Dependencia">
@@ -302,6 +309,7 @@ const ActivosForm = ({ open, onClose, activo }) => {
                                     value={formData.fuenteRecurso}
                                     onChange={handleChange}
                                     options={catalogs.FUENTE_RECURSO}
+                                    canAdd={canEditCatalogs}
                                     onAdd={() => handleOpenCatalogModal('FUENTE_RECURSO', 'Fuente de Recurso')}
                                 />
                                 <SelectWithAdd
@@ -310,6 +318,7 @@ const ActivosForm = ({ open, onClose, activo }) => {
                                     value={formData.tipoRecurso}
                                     onChange={handleChange}
                                     options={catalogs.TIPO_RECURSO}
+                                    canAdd={canEditCatalogs}
                                     onAdd={() => handleOpenCatalogModal('TIPO_RECURSO', 'Tipo de Recurso')}
                                 />
                                 <SelectWithAdd
@@ -318,6 +327,7 @@ const ActivosForm = ({ open, onClose, activo }) => {
                                     value={formData.tipoControl}
                                     onChange={handleChange}
                                     options={catalogs.TIPO_CONTROL}
+                                    canAdd={canEditCatalogs}
                                     onAdd={() => handleOpenCatalogModal('TIPO_CONTROL', 'Tipo de Control')}
                                 />
                                 <SelectWithAdd
@@ -326,6 +336,7 @@ const ActivosForm = ({ open, onClose, activo }) => {
                                     value={formData.estadoOperativo}
                                     onChange={handleChange}
                                     options={catalogs.ESTADO_OPERATIVO}
+                                    canAdd={canEditCatalogs}
                                     onAdd={() => handleOpenCatalogModal('ESTADO_OPERATIVO', 'Estado Operativo')}
                                 />
                                 <SelectWithAdd
@@ -334,6 +345,7 @@ const ActivosForm = ({ open, onClose, activo }) => {
                                     value={formData.razonEstado}
                                     onChange={handleChange}
                                     options={catalogs.RAZON_ESTADO}
+                                    canAdd={canEditCatalogs}
                                     onAdd={() => handleOpenCatalogModal('RAZON_ESTADO', 'Razón del Estado')}
                                 />
                                 <SelectWithAdd
@@ -342,6 +354,7 @@ const ActivosForm = ({ open, onClose, activo }) => {
                                     value={formData.categoriaId}
                                     onChange={handleChange}
                                     options={categorias}
+                                    canAdd={canEditCatalogs}
                                     onAdd={() => handleOpenCatalogModal('', 'Categoría', true)}
                                 />
                             </div>
@@ -357,6 +370,7 @@ const ActivosForm = ({ open, onClose, activo }) => {
                                     value={formData.empresaFuncionario}
                                     onChange={handleChange}
                                     options={catalogs.EMPRESA_FUNCIONARIO}
+                                    canAdd={canEditCatalogs}
                                     onAdd={() => handleOpenCatalogModal('EMPRESA_FUNCIONARIO', 'Empresa Funcionario')}
                                 />
                                 <SelectWithAdd
@@ -365,6 +379,7 @@ const ActivosForm = ({ open, onClose, activo }) => {
                                     value={formData.tipoPersonal}
                                     onChange={handleChange}
                                     options={catalogs.TIPO_PERSONAL}
+                                    canAdd={canEditCatalogs}
                                     onAdd={() => handleOpenCatalogModal('TIPO_PERSONAL', 'Tipo de Personal')}
                                 />
                                 <Field label="Cédula del Funcionario">
@@ -391,6 +406,7 @@ const ActivosForm = ({ open, onClose, activo }) => {
                                         value={formData.cargo}
                                         onChange={handleChange}
                                         options={catalogs.CARGO}
+                                        canAdd={canEditCatalogs}
                                         onAdd={() => handleOpenCatalogModal('CARGO', 'Cargo')}
                                     />
                                 </div>
@@ -413,6 +429,7 @@ const ActivosForm = ({ open, onClose, activo }) => {
                                     value={formData.tipo}
                                     onChange={handleChange}
                                     options={catalogs.TIPO_EQUIPO}
+                                    canAdd={canEditCatalogs}
                                     onAdd={() => handleOpenCatalogModal('TIPO_EQUIPO', 'Tipo de Equipo')}
                                 />
                                 <Field label="Serial">
@@ -437,6 +454,7 @@ const ActivosForm = ({ open, onClose, activo }) => {
                                         value={formData.procesador}
                                         onChange={handleChange}
                                         options={catalogs.PROCESADOR}
+                                        canAdd={canEditCatalogs}
                                         onAdd={() => handleOpenCatalogModal('PROCESADOR', 'Procesador')}
                                     />
                                 </div>
@@ -446,6 +464,7 @@ const ActivosForm = ({ open, onClose, activo }) => {
                                     value={formData.memoriaRam}
                                     onChange={handleChange}
                                     options={catalogs.MEMORIA_RAM}
+                                    canAdd={canEditCatalogs}
                                     onAdd={() => handleOpenCatalogModal('MEMORIA_RAM', 'Memoria RAM')}
                                 />
                                 <SelectWithAdd
@@ -454,6 +473,7 @@ const ActivosForm = ({ open, onClose, activo }) => {
                                     value={formData.discoDuro}
                                     onChange={handleChange}
                                     options={catalogs.DISCO_DURO}
+                                    canAdd={canEditCatalogs}
                                     onAdd={() => handleOpenCatalogModal('DISCO_DURO', 'Disco Duro')}
                                 />
                                 <div className="col-span-2">
@@ -463,6 +483,7 @@ const ActivosForm = ({ open, onClose, activo }) => {
                                         value={formData.sistemaOperativo}
                                         onChange={handleChange}
                                         options={catalogs.SISTEMA_OPERATIVO}
+                                        canAdd={canEditCatalogs}
                                         onAdd={() => handleOpenCatalogModal('SISTEMA_OPERATIVO', 'Sistema Operativo')}
                                     />
                                 </div>
