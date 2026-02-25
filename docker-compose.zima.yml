@@ -6,10 +6,10 @@ x-casaos:
   main: frontend
   description:
     en_us: "IT Inventory and Help Desk System. Manage assets, technical history, and support tickets in one place."
-    es_es: "Sistema de Inventario TIC y Mesa de Ayuda. Gestiona activos, hojas de vida técnica y tickets de soporte."
+    es_es: "Sistema de Inventario TIC y Mesa de Ayuda. Gestiona activos, hojas de vida tecnica y tickets de soporte."
   tagline:
     en_us: "Asset Management & Help Desk"
-    es_es: "Gestión de Activos y Mesa de Ayuda"
+    es_es: "Gestion de Activos y Mesa de Ayuda"
   developer: "puntijhon"
   author: "Jhonathan"
   icon: "https://raw.githubusercontent.com/IceWhaleTech/CasaOS-AppStore/main/Apps/OpenSpeedTest/icon.png"
@@ -26,18 +26,13 @@ services:
     container_name: inventario-db-zima
     restart: unless-stopped
     environment:
-      POSTGRES_DB: ${DB_NAME:-inventario_db}
-      POSTGRES_USER: ${DB_USER:-inventario_user}
-      POSTGRES_PASSWORD: ${DB_PASSWORD:-inventario_password}
+      POSTGRES_DB: inventario_db
+      POSTGRES_USER: inventario_user
+      POSTGRES_PASSWORD: inventario_password
     volumes:
       - postgres_data_zima:/var/lib/postgresql/data
     networks:
       - inventario-network
-    healthcheck:
-      test: [ "CMD-SHELL", "pg_isready -U ${DB_USER:-inventario_user} -d ${DB_NAME:-inventario_db}" ]
-      interval: 10s
-      timeout: 5s
-      retries: 5
 
   backend:
     image: puntijhon/inventario-backend:1.3.1
@@ -45,8 +40,8 @@ services:
     restart: unless-stopped
     environment:
       NODE_ENV: production
-      DATABASE_URL: postgresql://${DB_USER:-inventario_user}:${DB_PASSWORD:-inventario_password}@postgres:5432/${DB_NAME:-inventario_db}
-      JWT_SECRET: ${JWT_SECRET:-zima_secret_key_123}
+      DATABASE_URL: postgresql://inventario_user:inventario_password@postgres:5432/inventario_db
+      JWT_SECRET: cambiar_por_clave_secreta_segura
       PORT: 3001
       UPLOAD_DIR: /app/uploads
     volumes:
@@ -54,8 +49,7 @@ services:
     networks:
       - inventario-network
     depends_on:
-      postgres:
-        condition: service_healthy
+      - postgres
 
   frontend:
     image: puntijhon/inventario-frontend:1.3.1
