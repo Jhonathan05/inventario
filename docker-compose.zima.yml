@@ -1,5 +1,3 @@
-version: '3.8'
-
 # Metadata para ZimaOS / CasaOS
 x-casaos:
   architectures:
@@ -14,13 +12,13 @@ x-casaos:
     es_es: "Gestión de Activos y Mesa de Ayuda"
   developer: "puntijhon"
   author: "Jhonathan"
-  icon: "https://raw.githubusercontent.com/IceWhaleTech/CasaOS-AppStore/main/Apps/OpenSpeedTest/icon.png" # Placeholder icon, can be changed
+  icon: "https://raw.githubusercontent.com/IceWhaleTech/CasaOS-AppStore/main/Apps/OpenSpeedTest/icon.png"
   thumbnail: ""
   title:
     en_us: "Inventario TIC"
     es_es: "Inventario TIC"
   category: "Utilities"
-  port_map: "3080" # El puerto por defecto en el dashboard
+  port_map: "3080"
 
 services:
   postgres:
@@ -36,7 +34,7 @@ services:
     networks:
       - inventario-network
     healthcheck:
-      test: [ "CMD-SHELL", "pg_isready -U $${DB_USER:-inventario_user} -d $${DB_NAME:-inventario_db}" ]
+      test: [ "CMD-SHELL", "pg_isready -U ${DB_USER:-inventario_user} -d ${DB_NAME:-inventario_db}" ]
       interval: 10s
       timeout: 5s
       retries: 5
