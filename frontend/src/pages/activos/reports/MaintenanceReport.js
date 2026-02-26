@@ -101,7 +101,20 @@ export const generateMaintenanceReport = (activo, hojaVida) => {
             });
         }
 
-        // Section 6: History / Traceability
+        // Section 6: Documentos Adjuntos (NUEVA)
+        if (hojaVida.documentos && hojaVida.documentos.length > 0) {
+            const docsData = hojaVida.documentos.map(d => [d.nombre, new Date(d.creadoEn).toLocaleString()]);
+            autoTable(doc, {
+                startY: doc.lastAutoTable.finalY + 10,
+                head: [['Documentos Adjuntos del Evento', 'Fecha Subida']],
+                body: docsData,
+                theme: 'grid',
+                headStyles: { fillColor: [79, 70, 229] },
+                styles: { fontSize: 9, cellPadding: 3 }
+            });
+        }
+
+        // Section 7: History / Traceability
         const historyData = hojaVida.trazas?.map(t => [
             new Date(t.fecha).toLocaleString(),
             t.usuario?.nombre || 'Sistema',

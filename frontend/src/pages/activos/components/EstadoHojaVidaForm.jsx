@@ -136,6 +136,7 @@ const EstadoHojaVidaForm = ({ open, onClose, hojaVida, activo }) => {
                                     <option value="SUMINISTRO">Suministro (Toner, Repuestos)</option>
                                     <option value="INSPECCION">Inspección / Diagnóstico</option>
                                     <option value="ACTUALIZACION">Actualización de SW/HW</option>
+                                    <option value="GARANTIA">Trámite de Garantía</option>
                                 </select>
                             </div>
 
@@ -216,6 +217,8 @@ const EstadoHojaVidaForm = ({ open, onClose, hojaVida, activo }) => {
                                 >
                                     <option value="CREADO">Creado (Pendiente)</option>
                                     <option value="EN_PROCESO">En Proceso (Requiere más trabajo)</option>
+                                    <option value="ESPERA_SUMINISTRO">En Espera de Suministro</option>
+                                    <option value="PROCESO_GARANTIA">En Proceso de Garantía</option>
                                     <option value="FINALIZADO">Finalizado (Cerrar caso)</option>
                                 </select>
                             </div>

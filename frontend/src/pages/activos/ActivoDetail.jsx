@@ -53,6 +53,8 @@ const ActivoDetail = () => {
     const getHVStatusBadge = (estado) => {
         if (estado === 'CREADO') return 'bg-blue-50 text-blue-700 ring-blue-700/10';
         if (estado === 'EN_PROCESO') return 'bg-yellow-50 text-yellow-800 ring-yellow-600/20';
+        if (estado === 'ESPERA_SUMINISTRO') return 'bg-orange-50 text-orange-700 ring-orange-600/20';
+        if (estado === 'PROCESO_GARANTIA') return 'bg-purple-50 text-purple-700 ring-purple-600/20';
         if (estado === 'FINALIZADO' || estado === 'CERRADO') return 'bg-green-50 text-green-700 ring-green-600/20';
         return 'bg-gray-50 text-gray-600 ring-gray-500/10';
     };

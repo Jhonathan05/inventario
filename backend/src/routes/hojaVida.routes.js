@@ -160,21 +160,30 @@ router.put('/:id/procesar', authMiddleware, requireRole('ADMIN', 'TECNICO'), upl
         }
 
         // Crear traza si hubo cambio de estado O si se envió una nueva nota de bitácora
+        // O si se subió un archivo nuevo
         const huboCambioEstado = estado && estado !== hv.estado;
-        const contenidoNota = nuevaNota || (diagnostico !== hv.diagnostico ? diagnostico : null);
+        const contenidoNota = nuevaNota || (diagnostico !== hv.diagnostico ? diagnostico : '');
+
+        let observacionFinal = contenidoNota;
+
+        // Si hay archivo, agregamos la nota de que se subió un archivo
+        if (req.file) {
+            const fileNote = `[Archivo Adjunto: ${req.file.originalname}]`;
+            observacionFinal = observacionFinal ? `${fileNote} - ${observacionFinal}` : fileNote;
+        }
 
         console.log('Hubo cambio estado:', huboCambioEstado);
         console.log('Nueva Nota Raw:', nuevaNota);
-        console.log('Contenido Nota Final:', contenidoNota);
+        console.log('Contenido Nota Final:', observacionFinal);
 
-        if (huboCambioEstado || contenidoNota) {
+        if (huboCambioEstado || observacionFinal) {
             console.log('Creating Traza...');
             const traza = await prisma.trazaHojaVida.create({
                 data: {
                     hojaVidaId: parseInt(id),
                     estadoAnterior: hv.estado,
                     estadoNuevo: estado || hv.estado,
-                    observacion: contenidoNota || `Cambio de estado a ${estado}`,
+                    observacion: observacionFinal || `Cambio de estado a ${estado}`,
                     usuarioId: req.user.id
                 }
             });

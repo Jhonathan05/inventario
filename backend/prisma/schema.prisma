@@ -213,11 +213,14 @@ enum TipoServicio {
   SUMINISTRO
   INSPECCION
   ACTUALIZACION
+  GARANTIA
 }
 
 enum EstadoMantenimiento {
   CREADO
   EN_PROCESO
+  ESPERA_SUMINISTRO
+  PROCESO_GARANTIA
   SUSPENDIDO
   FINALIZADO
   CERRADO // Mantener por compatibilidad si hay datos, o migrar
