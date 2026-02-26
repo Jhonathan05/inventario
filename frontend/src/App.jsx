@@ -33,20 +33,14 @@ function App() {
                             <Route path="/activos" element={<Activos />} />
                             <Route path="/activos/:id" element={<ActivoDetail />} />
                             <Route path="/funcionarios" element={<Funcionarios />} />
-                            <Route path="/categorias" element={<Categorias />} />
                             <Route path="/reportes" element={<Reportes />} />
                             <Route path="/actas" element={<ActasList />} />
                             <Route path="/mantenimientos" element={<MantenimientosList />} />
                         </Route>
 
-                        {/* Solo ADMIN y TECNICO */}
-                        <Route element={<ProtectedRoute allowedRoles={['ADMIN', 'TECNICO', 'CONSULTA']} />}>
-                            <Route path="/tickets" element={<TicketsList />} />
-                            <Route path="/tickets/nuevo" element={<TicketForm />} />
-                            <Route path="/tickets/:id" element={<TicketDetail />} />
-                        </Route>
-
+                        {/* ADMIN y TECNICO */}
                         <Route element={<ProtectedRoute allowedRoles={['ADMIN', 'TECNICO']} />}>
+                            <Route path="/categorias" element={<Categorias />} />
                             <Route path="/actas/generar" element={<GenerarActa />} />
                             <Route path="/importar" element={<ImportarDatos />} />
                         </Route>

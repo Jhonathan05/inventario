@@ -194,6 +194,22 @@ async function main() {
                 'WINDOWS 10 PRO', 'WINDOWS 11 HOME', 'WINDOWS 11 PRO', 'No Aplica'
             ]
         },
+
+        // MARCA Y MODELO
+        {
+            dominio: 'MARCA', valores: [
+                'ACER', 'APPLE', 'ASUS', 'BROTHER', 'CANON', 'CISCO', 'DELL', 'EPSON', 'FUJITSU',
+                'HP', 'HUAWEI', 'IBM', 'LENOVO', 'LG', 'MICROSOFT', 'MOTOROLA', 'PANASONIC',
+                'RICOH', 'SAMSUNG', 'TOSHIBA', 'XEROX', 'ZEBRA', 'OTRO'
+            ]
+        },
+        {
+            dominio: 'MODELO', valores: [
+                'ELITEBOOK', 'ENVY', 'INSPIRON', 'LATITUDE', 'LASERJET', 'MACBOOK AIR',
+                'MACBOOK PRO', 'OPTIPLEX', 'PAVILION', 'PRECISION', 'PROBOOK', 'SPECTRE',
+                'SURFACE', 'THINKPAD', 'THINKCENTRE', 'VOSTRO', 'XPERIA', 'ZBOOK', 'OTRO'
+            ]
+        },
     ];
 
     for (const cat of catalogos) {

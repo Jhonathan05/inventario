@@ -91,7 +91,7 @@ const DocumentosList = ({ activoId, documentos, onUpdate }) => {
                         {documentos?.map((doc) => (
                             <tr key={doc.id}>
                                 <td className="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-medium text-gray-900 text-indigo-600 hover:text-indigo-900">
-                                    <a href={`${import.meta.env.VITE_API_URL || 'http://localhost:3001'}/${doc.ruta}`} target="_blank" rel="noopener noreferrer">
+                                    <a href={doc.ruta.startsWith('/') ? doc.ruta : `/${doc.ruta}`} target="_blank" rel="noopener noreferrer">
                                         {doc.nombre}
                                     </a>
                                 </td>

@@ -98,6 +98,8 @@ const ActivosForm = ({ open, onClose, activo }) => {
         TIPO_PERSONAL: [],
         CARGO: [],
         TIPO_EQUIPO: [],
+        MARCA: [],
+        MODELO: [],
         PROCESADOR: [],
         MEMORIA_RAM: [],
         DISCO_DURO: [],
@@ -360,61 +362,44 @@ const ActivosForm = ({ open, onClose, activo }) => {
                             </div>
                         </div>
 
-                        {/* SECCIÓN 2: FUNCIONARIO */}
+                        {/* SECCIÓN 2: FUNCIONARIO — solo lectura, los datos vienen del módulo Funcionarios */}
                         <div className="bg-green-50 rounded-lg p-4">
                             <SectionHeader title="Información del Funcionario" icon="👤" />
+                            <p className="text-xs text-gray-500 mb-3 italic">Estos campos son informativos y se actualizan desde el módulo de Funcionarios.</p>
                             <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-                                <SelectWithAdd
-                                    label="Empresa Funcionario"
-                                    name="empresaFuncionario"
-                                    value={formData.empresaFuncionario}
-                                    onChange={handleChange}
-                                    options={catalogs.EMPRESA_FUNCIONARIO}
-                                    canAdd={canEditCatalogs}
-                                    onAdd={() => handleOpenCatalogModal('EMPRESA_FUNCIONARIO', 'Empresa Funcionario')}
-                                />
-                                <SelectWithAdd
-                                    label="Empleado o Contratista"
-                                    name="tipoPersonal"
-                                    value={formData.tipoPersonal}
-                                    onChange={handleChange}
-                                    options={catalogs.TIPO_PERSONAL}
-                                    canAdd={canEditCatalogs}
-                                    onAdd={() => handleOpenCatalogModal('TIPO_PERSONAL', 'Tipo de Personal')}
-                                />
-                                <Field label="Cédula del Funcionario">
-                                    <input type="number" name="cedulaFuncionario" value={formData.cedulaFuncionario} onChange={handleChange} className={inputCls} />
+                                <Field label="Empresa Funcionario">
+                                    <input type="text" name="empresaFuncionario" value={formData.empresaFuncionario} readOnly disabled className={`${inputCls} bg-gray-100 text-gray-500 cursor-not-allowed`} />
                                 </Field>
-                                <Field label="Shortname (opcional)">
-                                    <input type="text" name="shortname" value={formData.shortname} onChange={handleChange} className={inputCls} />
+                                <Field label="Empleado o Contratista">
+                                    <input type="text" name="tipoPersonal" value={formData.tipoPersonal} readOnly disabled className={`${inputCls} bg-gray-100 text-gray-500 cursor-not-allowed`} />
+                                </Field>
+                                <Field label="Cédula del Funcionario">
+                                    <input type="text" name="cedulaFuncionario" value={formData.cedulaFuncionario} readOnly disabled className={`${inputCls} bg-gray-100 text-gray-500 cursor-not-allowed`} />
+                                </Field>
+                                <Field label="Shortname">
+                                    <input type="text" name="shortname" value={formData.shortname} readOnly disabled className={`${inputCls} bg-gray-100 text-gray-500 cursor-not-allowed`} />
                                 </Field>
                                 <div className="col-span-2">
                                     <Field label="Nombres y Apellidos">
-                                        <input type="text" name="nombreFuncionario" value={formData.nombreFuncionario} onChange={handleChange} className={inputCls} />
+                                        <input type="text" name="nombreFuncionario" value={formData.nombreFuncionario} readOnly disabled className={`${inputCls} bg-gray-100 text-gray-500 cursor-not-allowed`} />
                                     </Field>
                                 </div>
                                 <Field label="Departamento">
-                                    <input type="text" name="departamento" value={formData.departamento} onChange={handleChange} className={inputCls} />
+                                    <input type="text" name="departamento" value={formData.departamento} readOnly disabled className={`${inputCls} bg-gray-100 text-gray-500 cursor-not-allowed`} />
                                 </Field>
                                 <Field label="Ciudad">
-                                    <input type="text" name="ciudad" value={formData.ciudad} onChange={handleChange} className={inputCls} />
+                                    <input type="text" name="ciudad" value={formData.ciudad} readOnly disabled className={`${inputCls} bg-gray-100 text-gray-500 cursor-not-allowed`} />
                                 </Field>
                                 <div className="col-span-2">
-                                    <SelectWithAdd
-                                        label="Cargo"
-                                        name="cargo"
-                                        value={formData.cargo}
-                                        onChange={handleChange}
-                                        options={catalogs.CARGO}
-                                        canAdd={canEditCatalogs}
-                                        onAdd={() => handleOpenCatalogModal('CARGO', 'Cargo')}
-                                    />
+                                    <Field label="Cargo">
+                                        <input type="text" name="cargo" value={formData.cargo} readOnly disabled className={`${inputCls} bg-gray-100 text-gray-500 cursor-not-allowed`} />
+                                    </Field>
                                 </div>
                                 <Field label="Área">
-                                    <input type="text" name="area" value={formData.area} onChange={handleChange} className={inputCls} />
+                                    <input type="text" name="area" value={formData.area} readOnly disabled className={`${inputCls} bg-gray-100 text-gray-500 cursor-not-allowed`} />
                                 </Field>
                                 <Field label="Ubicación y Piso">
-                                    <input type="text" name="ubicacion" value={formData.ubicacion} onChange={handleChange} className={inputCls} />
+                                    <input type="text" name="ubicacion" value={formData.ubicacion} readOnly disabled className={`${inputCls} bg-gray-100 text-gray-500 cursor-not-allowed`} />
                                 </Field>
                             </div>
                         </div>
@@ -438,12 +423,24 @@ const ActivosForm = ({ open, onClose, activo }) => {
                                 <Field label="Placa *" required>
                                     <input type="text" name="placa" required value={formData.placa} onChange={e => setFormData(p => ({ ...p, placa: e.target.value.toUpperCase() }))} className={inputCls} />
                                 </Field>
-                                <Field label="Marca *" required>
-                                    <input type="text" name="marca" required value={formData.marca} onChange={e => setFormData(p => ({ ...p, marca: e.target.value.toUpperCase() }))} className={inputCls} />
-                                </Field>
-                                <Field label="Modelo *" required>
-                                    <input type="text" name="modelo" required value={formData.modelo} onChange={e => setFormData(p => ({ ...p, modelo: e.target.value.toUpperCase() }))} className={inputCls} />
-                                </Field>
+                                <SelectWithAdd
+                                    label="Marca *"
+                                    name="marca"
+                                    value={formData.marca}
+                                    onChange={handleChange}
+                                    options={catalogs.MARCA}
+                                    canAdd={canEditCatalogs}
+                                    onAdd={() => handleOpenCatalogModal('MARCA', 'Marca')}
+                                />
+                                <SelectWithAdd
+                                    label="Modelo *"
+                                    name="modelo"
+                                    value={formData.modelo}
+                                    onChange={handleChange}
+                                    options={catalogs.MODELO}
+                                    canAdd={canEditCatalogs}
+                                    onAdd={() => handleOpenCatalogModal('MODELO', 'Modelo')}
+                                />
                                 <Field label="Nombre de Equipo">
                                     <input type="text" name="nombreEquipo" value={formData.nombreEquipo} onChange={handleChange} className={inputCls} />
                                 </Field>

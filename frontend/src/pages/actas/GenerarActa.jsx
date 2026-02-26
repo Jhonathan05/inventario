@@ -189,10 +189,11 @@ const GenerarActa = () => {
 
             const res = await axios.post('/actas/generar', payload);
 
-            // Descargar archivo
+            // Descargar archivo usando ruta relativa (funciona en ZimaOS y dev)
             const link = document.createElement('a');
-            link.href = `${import.meta.env.VITE_API_URL.replace('/api', '')}${res.data.archivoUrl}`;
-            link.setAttribute('download', 'Acta.xls');
+            const fileUrl = res.data.archivoUrl.startsWith('/') ? res.data.archivoUrl : `/${res.data.archivoUrl}`;
+            link.href = fileUrl;
+            link.setAttribute('download', 'Acta.xlsx');
             document.body.appendChild(link);
             link.click();
             link.remove();
