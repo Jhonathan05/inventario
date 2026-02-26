@@ -33,3 +33,17 @@ export const toTitleCase = (str) => {
         return txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase();
     });
 };
+
+/**
+ * Wrapper de evento onChange que convierte el valor a MAYÚSCULAS antes de
+ * invocar el handler original. Úsalo así:
+ *   onChange={toUpperInput(handleChange)}
+ *   onChange={toUpperInput(e => setFormData({...formData, campo: e.target.value}))}
+ */
+export const toUpperInput = (handler) => (e) => {
+    const clone = { ...e, target: { ...e.target, value: e.target.value.toUpperCase() } };
+    // Necesario para eventos sintéticos de React
+    Object.defineProperty(clone, 'target', { value: { ...e.target, value: e.target.value.toUpperCase() } });
+    e.target.value = e.target.value.toUpperCase();
+    handler(e);
+};

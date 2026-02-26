@@ -1,6 +1,5 @@
 import { useState, useEffect } from 'react';
 import api from '../../../lib/axios';
-import { toTitleCase } from '../../../lib/utils';
 
 const UsuarioForm = ({ open, onClose, usuario }) => {
     const [formData, setFormData] = useState({
@@ -37,9 +36,9 @@ const UsuarioForm = ({ open, onClose, usuario }) => {
         const { name, value, type, checked } = e.target;
         let newValue = type === 'checkbox' ? checked : value;
 
-        // Standardization Logic
-        if (name === 'nombre') {
-            newValue = toTitleCase(value);
+        // email y password no se transforman
+        if (type !== 'checkbox' && name !== 'email' && name !== 'password' && name !== 'rol') {
+            newValue = value.toUpperCase();
         }
 
         setFormData(prev => ({

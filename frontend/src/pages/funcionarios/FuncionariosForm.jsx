@@ -1,6 +1,5 @@
 import { useState, useEffect } from 'react';
 import api from '../../lib/axios';
-import { toTitleCase } from '../../lib/utils';
 
 const FuncionariosForm = ({ open, onClose, funcionario }) => {
     const [formData, setFormData] = useState({
@@ -75,15 +74,13 @@ const FuncionariosForm = ({ open, onClose, funcionario }) => {
         let newValue = type === 'checkbox' ? checked : value;
 
         if (type !== 'checkbox') {
-            if (name === 'nombre') {
-                newValue = toTitleCase(value);
-            } else if (['cargo', 'area', 'empresaFuncionario', 'proyecto', 'departamento', 'ciudad', 'seccional', 'municipio', 'ubicacion', 'shortname', 'piso'].includes(name)) {
-                newValue = value.toUpperCase();
-            } else if (name === 'email') {
+            if (name === 'email') {
                 newValue = value.toLowerCase();
-            } else if (['cedula', 'telefono'].includes(name)) {
-                // Allow only numbers
-                newValue = value.replace(/\D/g, '');
+            } else if (['cedula', 'telefono', 'codigoPersonal'].includes(name)) {
+                newValue = value; // mantener como viene (puede tener letras en códigos)
+            } else {
+                // todos los demás campos de texto → MAYÚSCULAS
+                newValue = value.toUpperCase();
             }
         }
 
