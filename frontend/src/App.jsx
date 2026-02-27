@@ -43,6 +43,11 @@ function App() {
                             <Route path="/categorias" element={<Categorias />} />
                             <Route path="/actas/generar" element={<GenerarActa />} />
                             <Route path="/importar" element={<ImportarDatos />} />
+
+                            {/* Mesa de Ayuda (Tickets) */}
+                            <Route path="/tickets" element={<TicketsList />} />
+                            <Route path="/tickets/nuevo" element={<TicketForm />} />
+                            <Route path="/tickets/:id" element={<TicketDetail />} />
                         </Route>
 
                         {/* Solo ADMIN */}

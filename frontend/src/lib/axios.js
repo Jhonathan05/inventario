@@ -32,8 +32,8 @@ api.interceptors.request.use((config) => {
 api.interceptors.response.use(
     (response) => response,
     (error) => {
-        if (error.response && (error.response.status === 401 || error.response.status === 403)) {
-            // Token inválido o expirado
+        if (error.response && error.response.status === 401) {
+            // Token inválido o expirado (401 Unauthorized)
             localStorage.removeItem('token');
             localStorage.removeItem('user');
             // Redirigir al inicio de sesión si no estamos ya allí

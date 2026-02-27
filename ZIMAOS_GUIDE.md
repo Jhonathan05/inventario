@@ -103,3 +103,6 @@ Al migrar de un entorno local en Windows (Docker Desktop) a un servidor de Produ
   ```
   El operador YAML `>` (folded scalar) aplasta todos los saltos de línea convirtiéndolos en espacios. Esto rompe bucles `until/while` y corta ejecuciones condicionadas por `&&` o `||` en Shell, haciendo que el contenedor de Docker se congele o no termine su inicialización, sin soltar un error claro.
 * **La Lección**: Si tu contenedor requiere más de una sola línea secuencial para encender (ej. esperar a la BD, migrar, seed, start), **EVITA** poner la lógica en el `docker-compose.yml`. En su lugar, crea un script físico `start.sh`, instálalo en el Dockerfile (`COPY start.sh /`, `RUN chmod +x`) y llama a ese script como tu `CMD`.
+
+
+Icono FNC: https://federaciondecafeteros.org/app/uploads/2023/02/logo_2023.png
