@@ -1,13 +1,31 @@
 <!doctype html>
 <html lang="es">
-  <head>
-    <meta charset="UTF-8" />
-    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Inventario Tecnológico</title>
-  </head>
-  <body>
-    <div id="root"></div>
-    <script type="module" src="/src/main.jsx"></script>
-  </body>
+
+<head>
+  <meta charset="UTF-8" />
+  <link rel="icon" type="image/svg+xml" href="/vite.svg" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Inventario Tecnológico</title>
+  <script>
+    // Deshabilitar clic derecho
+    document.addEventListener('contextmenu', event => event.preventDefault());
+
+    // Deshabilitar atajos de teclado (Ctrl+P, Ctrl+S, Ctrl+U, F12, Ctrl+Shift+I/J/C)
+    document.addEventListener('keydown', function (event) {
+      if (
+        event.key === 'F12' ||
+        (event.ctrlKey && event.shiftKey && (event.key === 'I' || event.key === 'J' || event.key === 'C')) ||
+        (event.ctrlKey && (event.key === 'U' || event.key === 'P' || event.key === 'S'))
+      ) {
+        event.preventDefault();
+      }
+    });
+  </script>
+</head>
+
+<body>
+  <div id="root"></div>
+  <script type="module" src="/src/main.jsx"></script>
+</body>
+
 </html>
