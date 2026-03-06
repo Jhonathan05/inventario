@@ -46,17 +46,23 @@ const Categorias = () => {
     const [formData, setFormData] = useState({ valor: '', descripcion: '', activo: true });
     const [saving, setSaving] = useState(false);
 
+    // Paginación
+    const [currentPage, setCurrentPage] = useState(1);
+    const ITEMS_PER_PAGE = 9;
+
     useEffect(() => {
         if (activeSection.isCategory) {
             fetchCategorias();
         } else if (activeSection.domains) {
             setActiveDomain(activeSection.domains[0]);
         }
+        setCurrentPage(1); // reset page on section change
     }, [activeSection]);
 
     useEffect(() => {
         if (activeDomain) {
             fetchCatalogos(activeDomain);
+            setCurrentPage(1); // reset page on domain change
         }
     }, [activeDomain]);
 
@@ -171,8 +177,8 @@ const Categorias = () => {
                         key={section.id}
                         onClick={() => setActiveSection(section)}
                         className={`w-full text-left px-3 py-2 rounded-lg text-sm font-medium transition-all ${activeSection.id === section.id
-                                ? 'bg-indigo-600 text-white shadow-md'
-                                : 'text-gray-600 hover:bg-gray-100'
+                            ? 'bg-indigo-600 text-white shadow-md'
+                            : 'text-gray-600 hover:bg-gray-100'
                             }`}
                     >
                         {section.title}
@@ -211,8 +217,8 @@ const Categorias = () => {
                                         key={domain}
                                         onClick={() => setActiveDomain(domain)}
                                         className={`px-3 py-1.5 rounded-full text-xs font-semibold border transition-all ${activeDomain === domain
-                                                ? 'bg-indigo-50 border-indigo-200 text-indigo-700'
-                                                : 'bg-white border-gray-200 text-gray-500 hover:border-indigo-200 hover:text-indigo-600'
+                                            ? 'bg-indigo-50 border-indigo-200 text-indigo-700'
+                                            : 'bg-white border-gray-200 text-gray-500 hover:border-indigo-200 hover:text-indigo-600'
                                             }`}
                                     >
                                         {domain.replace(/_/g, ' ')}
@@ -228,56 +234,86 @@ const Categorias = () => {
                         ) : error ? (
                             <div className="p-12 text-center text-red-500">{error}</div>
                         ) : (
-                            <table className="min-w-full divide-y divide-gray-200">
-                                <thead className="bg-gray-50">
-                                    <tr>
-                                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">ID</th>
-                                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Valor / Nombre</th>
-                                        {!activeSection.isCategory && (
-                                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Estado</th>
-                                        )}
-                                        {activeSection.isCategory && (
-                                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Activos</th>
-                                        )}
-                                        {canEdit && <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Acciones</th>}
-                                    </tr>
-                                </thead>
-                                <tbody className="bg-white divide-y divide-gray-200">
-                                    {data.map((item) => (
-                                        <tr key={item.id} className="hover:bg-gray-50 transition-colors">
-                                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{item.id}</td>
-                                            <td className="px-6 py-4 whitespace-nowrap">
-                                                <div className="text-sm font-medium text-gray-900">{item.valor}</div>
-                                                {item.descripcion && <div className="text-xs text-gray-400">{item.descripcion}</div>}
-                                            </td>
-                                            {!activeSection.isCategory && (
-                                                <td className="px-6 py-4 whitespace-nowrap">
-                                                    <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${item.activo ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
-                                                        }`}>
-                                                        {item.activo ? 'Activo' : 'Inactivo'}
+                            (() => {
+                                const startIdx = (currentPage - 1) * ITEMS_PER_PAGE;
+                                const currentItems = data.slice(startIdx, startIdx + ITEMS_PER_PAGE);
+                                const totalPages = Math.ceil(data.length / ITEMS_PER_PAGE);
+                                return (
+                                    <>
+                                        <table className="min-w-full divide-y divide-gray-200">
+                                            <thead className="bg-gray-50">
+                                                <tr>
+                                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">ID</th>
+                                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Valor / Nombre</th>
+                                                    {!activeSection.isCategory && (
+                                                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Estado</th>
+                                                    )}
+                                                    {activeSection.isCategory && (
+                                                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Activos</th>
+                                                    )}
+                                                    {canEdit && <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Acciones</th>}
+                                                </tr>
+                                            </thead>
+                                            <tbody className="bg-white divide-y divide-gray-200">
+                                                {currentItems.map((item) => (
+                                                    <tr key={item.id} className="hover:bg-gray-50 transition-colors">
+                                                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{item.id}</td>
+                                                        <td className="px-6 py-4 whitespace-nowrap">
+                                                            <div className="text-sm font-medium text-gray-900">{item.valor}</div>
+                                                            {item.descripcion && <div className="text-xs text-gray-400">{item.descripcion}</div>}
+                                                        </td>
+                                                        {!activeSection.isCategory && (
+                                                            <td className="px-6 py-4 whitespace-nowrap">
+                                                                <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${item.activo ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
+                                                                    {item.activo ? 'Activo' : 'Inactivo'}
+                                                                </span>
+                                                            </td>
+                                                        )}
+                                                        {activeSection.isCategory && (
+                                                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{item.count || 0}</td>
+                                                        )}
+                                                        {canEdit && (
+                                                            <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                                                                <button onClick={() => handleOpenEdit(item)} className="text-indigo-600 hover:text-indigo-900 mr-4">Editar</button>
+                                                                <button onClick={() => handleDelete(item.id, item.valor)} className="text-red-600 hover:text-red-900">Eliminar</button>
+                                                            </td>
+                                                        )}
+                                                    </tr>
+                                                ))}
+                                                {currentItems.length === 0 && (
+                                                    <tr><td colSpan="4" className="px-6 py-12 text-center text-gray-500">No hay registros</td></tr>
+                                                )}
+                                            </tbody>
+                                        </table>
+                                        {totalPages > 1 && (
+                                            <div className="flex items-center justify-between border-t border-gray-100 px-6 py-3 bg-gray-50">
+                                                <p className="text-sm text-gray-500">
+                                                    Mostrando {startIdx + 1}–{Math.min(startIdx + ITEMS_PER_PAGE, data.length)} de {data.length}
+                                                </p>
+                                                <nav className="isolate inline-flex -space-x-px rounded-md shadow-sm">
+                                                    <button
+                                                        onClick={() => setCurrentPage(p => p - 1)}
+                                                        disabled={currentPage === 1}
+                                                        className="relative inline-flex items-center rounded-l-md px-2 py-2 text-gray-400 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 disabled:opacity-40"
+                                                    >
+                                                        <svg className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M12.79 5.23a.75.75 0 01-.02 1.06L8.832 10l3.938 3.71a.75.75 0 11-1.04 1.08l-4.5-4.25a.75.75 0 010-1.08l4.5-4.25a.75.75 0 011.06.02z" clipRule="evenodd" /></svg>
+                                                    </button>
+                                                    <span className="relative inline-flex items-center px-4 py-2 text-sm font-semibold text-gray-700 ring-1 ring-inset ring-gray-300">
+                                                        {currentPage} / {totalPages}
                                                     </span>
-                                                </td>
-                                            )}
-                                            {activeSection.isCategory && (
-                                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                                    {item.count || 0}
-                                                </td>
-                                            )}
-                                            {canEdit && (
-                                                <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                                                    <button onClick={() => handleOpenEdit(item)} className="text-indigo-600 hover:text-indigo-900 mr-4">Editar</button>
-                                                    <button onClick={() => handleDelete(item.id, item.valor)} className="text-red-600 hover:text-red-900">Eliminar</button>
-                                                </td>
-                                            )}
-                                        </tr>
-                                    ))}
-                                    {data.length === 0 && (
-                                        <tr>
-                                            <td colSpan="4" className="px-6 py-12 text-center text-gray-500">No hay registros</td>
-                                        </tr>
-                                    )}
-                                </tbody>
-                            </table>
+                                                    <button
+                                                        onClick={() => setCurrentPage(p => p + 1)}
+                                                        disabled={currentPage === totalPages}
+                                                        className="relative inline-flex items-center rounded-r-md px-2 py-2 text-gray-400 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 disabled:opacity-40"
+                                                    >
+                                                        <svg className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M7.21 14.77a.75.75 0 01.02-1.06L11.168 10 7.23 6.29a.75.75 0 111.04-1.08l4.5 4.25a.75.75 0 010 1.08l-4.5 4.25a.75.75 0 01-1.06-.02z" clipRule="evenodd" /></svg>
+                                                    </button>
+                                                </nav>
+                                            </div>
+                                        )}
+                                    </>
+                                );
+                            })()
                         )}
                     </div>
                 </div>

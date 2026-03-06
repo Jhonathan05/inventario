@@ -79,16 +79,20 @@ async function main() {
     // Usuario administrador por defecto
     const adminPassword = await bcrypt.hash('C0m1t3*', 10);
     await prisma.usuario.upsert({
-        where: { email: 'admininventario@cafedecolombia.com' },
-        update: {},
+        where: { email: 'admin@cafedecolombia.com' },
+        update: {
+            nombre: 'Administrador',
+            password: adminPassword,
+            rol: 'ADMIN',
+        },
         create: {
             nombre: 'Administrador',
-            email: 'admininventario@cafedecolombia.com',
+            email: 'admin@cafedecolombia.com',
             password: adminPassword,
             rol: 'ADMIN',
         },
     });
-    console.log('✅ Usuario admin creado: admininventario@cafedecolombia.com / C0m1t3*');
+    console.log('✅ Usuario admin creado: admin@cafedecolombia.com / C0m1t3*');
 
     // Usuario invitado (Consulta) por defecto
     const invitadoPassword = await bcrypt.hash('C0m1t3*', 10);

@@ -165,11 +165,11 @@ const EstadoHojaVidaForm = ({ open, onClose, hojaVida, activo }) => {
                                 <textarea
                                     name="nuevaNota"
                                     rows="2"
-                                    disabled={isReadOnly}
-                                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm border p-2 text-gray-900 disabled:bg-gray-100"
+                                    disabled={isReadOnly || formData.estado !== 'EN_PROCESO' || !formData.responsableId}
+                                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm border p-2 text-gray-900 disabled:bg-gray-100 disabled:cursor-not-allowed"
                                     value={formData.nuevaNota}
                                     onChange={handleChange}
-                                    placeholder="Describa el avance realizado ahora..."
+                                    placeholder={(!isReadOnly && (formData.estado !== 'EN_PROCESO' || !formData.responsableId)) ? "Cambie el estado a 'En Proceso' y asigne un TI para habilitar notas." : "Describa el avance realizado ahora..."}
                                 ></textarea>
                             ) : (
                                 <div className="mt-1 block w-full rounded-md border border-gray-200 p-2 text-sm text-gray-700 bg-gray-50 whitespace-pre-wrap">

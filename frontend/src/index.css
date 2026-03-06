@@ -1,3 +1,131 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+@layer base {
+    :root {
+        --safe-area-bottom: env(safe-area-inset-bottom);
+    }
+
+    body {
+        @apply font-sans bg-fnc-50 text-charcoal-700 min-h-screen overflow-x-hidden;
+        background-image:
+            radial-gradient(at 0% 0%, rgba(255, 255, 255, 0.8) 0px, transparent 50%),
+            radial-gradient(at 100% 100%, rgba(253, 230, 234, 0.8) 0px, transparent 50%);
+    }
+}
+
+@layer components {
+
+    /* Glassmorphism utility */
+    .glass {
+        @apply bg-white/80 backdrop-blur-md border border-charcoal-100 shadow-sm rounded-2xl;
+    }
+
+    .app-layout {
+        display: flex;
+        flex-direction: column;
+        min-height: 100vh;
+    }
+
+    .main-content {
+        flex: 1;
+        width: 100%;
+        transition: padding-left 0.3s ease;
+    }
+
+    .container {
+        width: 100%;
+        /*max-width: 1200px;*/
+        margin: 0 auto;
+        padding: 1rem;
+        padding-bottom: calc(5rem + var(--safe-area-bottom));
+    }
+
+    @media (min-width: 768px) {
+        .app-layout {
+            flex-direction: row;
+        }
+
+        .container {
+            padding-bottom: 2rem;
+        }
+    }
+
+    /* Typography */
+    h1 {
+        font-size: 1.75rem;
+        font-weight: 700;
+        margin-bottom: 0.5rem;
+        background: linear-gradient(to right, theme('colors.fnc.700'), theme('colors.fnc.500'));
+        -webkit-background-clip: text;
+        background-clip: text;
+        -webkit-text-fill-color: transparent;
+    }
+
+    h2 {
+        font-size: 1.25rem;
+        font-weight: 600;
+        margin-bottom: 1rem;
+        color: theme('colors.charcoal.800');
+    }
+
+    /* Navigation Bar (Mobile & Desktop) */
+    .nav-bar {
+        @apply fixed bottom-0 left-0 right-0 h-[calc(4.5rem+var(--safe-area-bottom))] bg-white/90 backdrop-blur-xl border-t border-charcoal-100 flex justify-around items-center pb-[var(--safe-area-bottom)] z-[100];
+    }
+
+    .nav-item {
+        @apply flex flex-col items-center text-charcoal-500 no-underline text-xs gap-1 transition-all duration-200 p-2 rounded-lg;
+    }
+
+    .nav-item:hover {
+        @apply bg-charcoal-50 text-fnc-600;
+    }
+
+    .nav-item.active {
+        @apply text-fnc-600 bg-fnc-50;
+    }
+}
+
+@layer utilities {
+    .animate-slide-up {
+        animation: slideUp 0.4s ease-out forwards;
+    }
+}
+
+@keyframes slideUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@media (min-width: 768px) {
+    .nav-bar {
+        position: sticky;
+        top: 0;
+        left: 0;
+        width: 250px;
+        height: 100vh;
+        flex-direction: column;
+        justify-content: flex-start;
+        padding: 2rem 1rem;
+        border-top: none;
+        border-right: 1px solid theme('colors.charcoal.100');
+        gap: 1rem;
+    }
+
+    .nav-item {
+        flex-direction: row;
+        width: 100%;
+        font-size: 1rem;
+        padding: 1rem;
+        gap: 1rem;
+    }
+}

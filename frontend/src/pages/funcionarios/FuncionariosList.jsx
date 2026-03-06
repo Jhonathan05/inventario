@@ -2,6 +2,16 @@ import { useState, useEffect } from 'react';
 import api from '../../lib/axios';
 import { useAuth } from '../../context/AuthContext';
 import FuncionariosForm from './FuncionariosForm';
+import { getImageUrl, getAssetIconPath } from '../../lib/utils';
+
+// Ícono SVG dinámico para activos sin imagen
+const AssetIcon = ({ tipo, categoria }) => (
+    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
+        strokeWidth={1.5} stroke="currentColor" className="h-full w-full p-2.5 text-charcoal-400">
+        <path strokeLinecap="round" strokeLinejoin="round"
+            d={getAssetIconPath(tipo, categoria?.nombre)} />
+    </svg>
+);
 
 const FuncionariosList = () => {
     const { user } = useAuth();
@@ -14,6 +24,10 @@ const FuncionariosList = () => {
     const [selectedFuncionario, setSelectedFuncionario] = useState(null);
     const [showFilters, setShowFilters] = useState(false);
     const [options, setOptions] = useState({ areas: [], cargos: [] });
+
+    // Paginación
+    const [currentPage, setCurrentPage] = useState(1);
+    const itemsPerPage = 9;
 
     // Filtros avanzados
     const [filterArea, setFilterArea] = useState('');
@@ -50,6 +64,7 @@ const FuncionariosList = () => {
 
             const response = await api.get('/funcionarios', { params });
             setFuncionarios(response.data);
+            setCurrentPage(1); // Reset page on new fetch
         } catch (error) {
             console.error('Error fetching funcionarios', error);
         } finally {
@@ -71,6 +86,39 @@ const FuncionariosList = () => {
     const handleCloseModal = (shouldRefresh = false) => {
         setIsModalOpen(false);
         if (shouldRefresh) fetchFuncionarios();
+    };
+
+    // Modal de activos por funcionario
+    const [showEquiposModal, setShowEquiposModal] = useState(false);
+    const [equiposFuncionario, setEquiposFuncionario] = useState([]);
+    const [equiposLoading, setEquiposLoading] = useState(false);
+    const [equiposTitulo, setEquiposTitulo] = useState('');
+
+    const fetchEquiposFuncionario = async (f) => {
+        setEquiposTitulo(f.nombre);
+        setEquiposLoading(true);
+        setShowEquiposModal(true);
+        try {
+            // Reutilizamos el endpoint de activos filtrando por funcionarioId
+            const res = await api.get('/activos', { params: { funcionarioId: f.id } });
+            setEquiposFuncionario(res.data.filter(a => a.estado === 'ASIGNADO'));
+        } catch (err) {
+            console.error('Error obteniendo equipos del funcionario', err);
+        } finally {
+            setEquiposLoading(false);
+        }
+    };
+
+    // Logic for pagination
+    const indexOfLastItem = currentPage * itemsPerPage;
+    const indexOfFirstItem = indexOfLastItem - itemsPerPage;
+    const currentItems = funcionarios.slice(indexOfFirstItem, indexOfLastItem);
+    const totalPages = Math.ceil(funcionarios.length / itemsPerPage);
+
+    const changePage = (pageNumber) => {
+        if (pageNumber >= 1 && pageNumber <= totalPages) {
+            setCurrentPage(pageNumber);
+        }
     };
 
     return (
@@ -196,72 +244,78 @@ const FuncionariosList = () => {
             {/* Desktop Table */}
             {!loading && (
                 <div className="mt-6 hidden md:block">
-                    <div className="overflow-x-auto shadow ring-1 ring-black ring-opacity-5 rounded-lg">
-                        <table className="min-w-full divide-y divide-gray-300">
-                            <thead className="bg-gray-50">
-                                <tr>
-                                    <th scope="col" className="py-3.5 pl-4 pr-3 text-left text-sm font-semibold text-gray-900 sm:pl-6">Nombre</th>
-                                    <th scope="col" className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">Cédula</th>
-                                    <th scope="col" className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">Cód. Personal</th>
-                                    <th scope="col" className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">Cargo / Área</th>
-                                    <th scope="col" className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">Vinculación</th>
-                                    <th scope="col" className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">Activos</th>
-                                    {canEdit && (
-                                        <th scope="col" className="relative py-3.5 pl-3 pr-4 sm:pr-6">
-                                            <span className="sr-only">Acciones</span>
-                                        </th>
-                                    )}
-                                </tr>
-                            </thead>
-                            <tbody className="divide-y divide-gray-200 bg-white">
-                                {funcionarios.map((f) => (
-                                    <tr key={f.id} className="hover:bg-gray-50">
-                                        <td className="whitespace-nowrap py-4 pl-4 pr-3 text-sm sm:pl-6">
-                                            <div className="font-medium text-gray-900">{f.nombre}</div>
-                                            {f.shortname && <div className="text-xs text-gray-400">{f.shortname}</div>}
-                                        </td>
-                                        <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500">{f.cedula}</td>
-                                        <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500">{f.codigoPersonal || '-'}</td>
-                                        <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
-                                            <div className="text-gray-900">{f.cargo || '-'}</div>
-                                            <div className="text-gray-500 text-xs">{f.area}</div>
-                                        </td>
-                                        <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
-                                            {f.vinculacion ? (
-                                                <span className={`inline-flex items-center rounded-md px-2 py-0.5 text-xs font-medium ring-1 ring-inset ${f.vinculacion === 'EMPLEADO'
-                                                    ? 'bg-green-50 text-green-700 ring-green-600/20'
-                                                    : 'bg-orange-50 text-orange-700 ring-orange-600/20'
-                                                    }`}>
-                                                    {f.vinculacion}
-                                                </span>
-                                            ) : '-'}
-                                        </td>
-                                        <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
-                                            <span className="inline-flex items-center rounded-md bg-blue-50 px-2 py-1 text-xs font-medium text-blue-700 ring-1 ring-inset ring-blue-700/10">
-                                                {f._count?.asignaciones || 0} equipos
-                                            </span>
-                                        </td>
+                    <div className="glass overflow-hidden">
+                        <div className="overflow-x-auto">
+                            <table className="w-full text-left border-collapse min-w-[800px]">
+                                <thead className="bg-charcoal-50 border-b border-charcoal-100 text-sm uppercase tracking-wider text-charcoal-500">
+                                    <tr>
+                                        <th scope="col" className="px-6 py-4 font-bold">Nombre</th>
+                                        <th scope="col" className="px-6 py-4 font-bold">Cédula</th>
+                                        <th scope="col" className="px-6 py-4 font-bold">Cód. Personal</th>
+                                        <th scope="col" className="px-6 py-4 font-bold">Cargo / Área</th>
+                                        <th scope="col" className="px-6 py-4 font-bold">Vinculación</th>
+                                        <th scope="col" className="px-6 py-4 font-bold">Activos</th>
                                         {canEdit && (
-                                            <td className="whitespace-nowrap py-4 pl-3 pr-4 text-right text-sm font-medium sm:pr-6">
-                                                <button
-                                                    onClick={() => handleEdit(f)}
-                                                    className="text-indigo-600 hover:text-indigo-900"
-                                                >
-                                                    Editar
-                                                </button>
-                                            </td>
+                                            <th scope="col" className="px-6 py-4 font-bold text-right">
+                                                Acciones
+                                            </th>
                                         )}
                                     </tr>
-                                ))}
-                                {funcionarios.length === 0 && (
-                                    <tr>
-                                        <td colSpan="7" className="py-10 text-center text-gray-500">
-                                            No se encontraron funcionarios.
-                                        </td>
-                                    </tr>
-                                )}
-                            </tbody>
-                        </table>
+                                </thead>
+                                <tbody className="divide-y divide-charcoal-100 bg-transparent">
+                                    {currentItems.map((f) => (
+                                        <tr key={f.id} className="hover:bg-fnc-50/50 transition-colors">
+                                            <td className="px-6 py-4">
+                                                <div className="font-bold text-charcoal-800">{f.nombre}</div>
+                                                {f.shortname && <div className="text-xs text-charcoal-400 font-medium">{f.shortname}</div>}
+                                            </td>
+                                            <td className="px-6 py-4 text-sm text-charcoal-500 font-medium">{f.cedula}</td>
+                                            <td className="px-6 py-4 text-sm text-charcoal-500">{f.codigoPersonal || '-'}</td>
+                                            <td className="px-6 py-4 text-sm">
+                                                <div className="text-charcoal-800 font-bold">{f.cargo || '-'}</div>
+                                                <div className="text-charcoal-500 text-xs font-medium mt-0.5">{f.area}</div>
+                                            </td>
+                                            <td className="px-6 py-4">
+                                                {f.vinculacion ? (
+                                                    <span className={`inline-flex items-center rounded-lg px-2.5 py-1 text-[10px] font-black tracking-wider uppercase border border-opacity-50 ${f.vinculacion === 'EMPLEADO'
+                                                        ? 'bg-green-50 text-green-700 border-green-200'
+                                                        : 'bg-orange-50 text-orange-700 border-orange-200'
+                                                        }`}>
+                                                        {f.vinculacion}
+                                                    </span>
+                                                ) : '-'}
+                                            </td>
+                                            <td className="px-6 py-4">
+                                                <button
+                                                    onClick={() => fetchEquiposFuncionario(f)}
+                                                    className="inline-flex items-center rounded-lg bg-blue-50 border border-blue-100 px-2.5 py-1 text-xs font-black text-blue-700 hover:bg-blue-100 transition-colors shadow-sm gap-1"
+                                                >
+                                                    {f._count?.asignaciones || 0} equipos
+                                                    <svg xmlns="http://www.w3.org/2000/svg" className="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" /></svg>
+                                                </button>
+                                            </td>
+                                            {canEdit && (
+                                                <td className="px-6 py-4 text-right">
+                                                    <button
+                                                        onClick={() => handleEdit(f)}
+                                                        className="inline-flex items-center justify-center text-xs font-bold text-fnc-600 bg-fnc-50 hover:bg-fnc-100 border border-fnc-200 rounded-lg px-4 py-2 transition-colors shadow-sm"
+                                                    >
+                                                        Editar
+                                                    </button>
+                                                </td>
+                                            )}
+                                        </tr>
+                                    ))}
+                                    {funcionarios.length === 0 && (
+                                        <tr>
+                                            <td colSpan="7" className="px-6 py-12 text-center text-charcoal-400 font-medium">
+                                                No se encontraron funcionarios con los filtros actuales.
+                                            </td>
+                                        </tr>
+                                    )}
+                                </tbody>
+                            </table>
+                        </div>
                     </div>
                 </div>
             )}
@@ -274,35 +328,34 @@ const FuncionariosList = () => {
                             No se encontraron funcionarios.
                         </div>
                     )}
-                    {funcionarios.map((f) => (
-                        <div key={f.id} className="bg-white rounded-lg shadow ring-1 ring-black/5 p-4">
+                    {currentItems.map((f) => (
+                        <div key={f.id} className="glass p-4 rounded-2xl border border-charcoal-100 shadow-sm hover:border-fnc-200 transition-all group">
                             <div className="flex items-start justify-between">
-                                <div className="flex items-center gap-3">
-                                    <div className="h-10 w-10 rounded-full bg-indigo-100 flex items-center justify-center text-indigo-600 font-bold text-sm flex-shrink-0">
+                                <div className="flex items-center gap-4">
+                                    <div className="h-12 w-12 rounded-xl bg-charcoal-100 flex items-center justify-center text-charcoal-600 font-bold text-lg flex-shrink-0 group-hover:bg-fnc-100 group-hover:text-fnc-700 transition-colors shadow-sm">
                                         {f.nombre?.[0] || '?'}
                                     </div>
                                     <div className="min-w-0">
-                                        <div className="font-medium text-gray-900 truncate">{f.nombre}</div>
-                                        <div className="text-xs text-gray-500">CC: {f.cedula}</div>
-                                        {f.shortname && <div className="text-xs text-gray-400">{f.shortname}</div>}
+                                        <div className="font-bold text-charcoal-800 truncate text-base">{f.nombre}</div>
+                                        <div className="text-xs text-charcoal-500 font-medium select-all">CC: <span className="text-charcoal-700">{f.cedula}</span></div>
+                                        {f.shortname && <div className="text-xs text-fnc-600 font-medium mt-0.5">{f.shortname}</div>}
                                     </div>
                                 </div>
-                                <span className="inline-flex items-center rounded-md bg-blue-50 px-2 py-0.5 text-xs font-medium text-blue-700 ring-1 ring-inset ring-blue-700/10 flex-shrink-0">
-                                    {f._count?.asignaciones || 0} equipos
+                                <span className="inline-flex items-center rounded-lg bg-blue-50 border border-blue-100 px-2.5 py-1 text-xs font-black text-blue-700 flex-shrink-0 shadow-sm mt-1">
+                                    {f._count?.asignaciones || 0} eqs
                                 </span>
                             </div>
 
-                            <div className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-gray-600">
-                                {f.cargo && <span>{f.cargo}</span>}
-                                {f.cargo && f.area && <span className="text-gray-300">·</span>}
-                                {f.area && <span className="text-gray-500 text-xs">{f.area}</span>}
+                            <div className="mt-4 flex flex-wrap items-center gap-x-2 gap-y-2 text-xs text-charcoal-600 font-medium">
+                                {f.cargo && <span className="bg-charcoal-50 border border-charcoal-100 px-2.5 py-1 rounded-lg shadow-sm">{f.cargo}</span>}
+                                {f.area && <span className="bg-charcoal-50 border border-charcoal-100 px-2.5 py-1 rounded-lg text-charcoal-500 shadow-sm">{f.area}</span>}
                             </div>
 
                             {f.vinculacion && (
-                                <div className="mt-1.5">
-                                    <span className={`inline-flex items-center rounded-md px-1.5 py-0.5 text-xs font-medium ring-1 ring-inset ${f.vinculacion === 'EMPLEADO'
-                                        ? 'bg-green-50 text-green-700 ring-green-600/20'
-                                        : 'bg-orange-50 text-orange-700 ring-orange-600/20'
+                                <div className="mt-3">
+                                    <span className={`inline-flex items-center rounded-lg px-2.5 py-1 text-[10px] font-black tracking-wider uppercase border border-opacity-50 ${f.vinculacion === 'EMPLEADO'
+                                        ? 'bg-green-50 text-green-700 border-green-200'
+                                        : 'bg-orange-50 text-orange-700 border-orange-200'
                                         }`}>
                                         {f.vinculacion}
                                     </span>
@@ -310,17 +363,87 @@ const FuncionariosList = () => {
                             )}
 
                             {canEdit && (
-                                <div className="mt-3 pt-3 border-t border-gray-100 flex justify-end">
+                                <div className="mt-4 pt-4 border-t border-charcoal-100 flex justify-between">
+                                    <button
+                                        onClick={() => fetchEquiposFuncionario(f)}
+                                        className="text-xs text-blue-600 bg-blue-50 border border-blue-200 rounded-lg px-3 py-2 font-bold hover:bg-blue-100 transition-colors shadow-sm flex items-center gap-1"
+                                    >
+                                        {f._count?.asignaciones || 0} equipos
+                                        <svg xmlns="http://www.w3.org/2000/svg" className="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" /></svg>
+                                    </button>
                                     <button
                                         onClick={() => handleEdit(f)}
-                                        className="text-xs text-indigo-700 bg-indigo-50 rounded-md px-3 py-1.5 font-medium hover:bg-indigo-100"
+                                        className="text-xs text-fnc-600 bg-white border border-fnc-200 rounded-lg px-4 py-2 font-bold hover:bg-fnc-50 transition-colors shadow-sm"
                                     >
                                         Editar
                                     </button>
                                 </div>
                             )}
+                            {!canEdit && f._count?.asignaciones > 0 && (
+                                <div className="mt-4 pt-4 border-t border-charcoal-100">
+                                    <button
+                                        onClick={() => fetchEquiposFuncionario(f)}
+                                        className="text-xs text-blue-600 bg-blue-50 border border-blue-200 rounded-lg px-3 py-2 font-bold hover:bg-blue-100 transition-colors shadow-sm flex items-center gap-1"
+                                    >
+                                        {f._count?.asignaciones || 0} equipos
+                                        <svg xmlns="http://www.w3.org/2000/svg" className="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" /></svg>
+                                    </button>
+                                </div>
+                            )}
                         </div>
                     ))}
+                </div>
+            )}
+
+            {/* Pagination Component */}
+            {!loading && funcionarios.length > 0 && (
+                <div className="mt-6 flex flex-col sm:flex-row items-center justify-between border-t border-gray-200 bg-white px-4 py-3 sm:px-6 rounded-lg shadow mb-6">
+                    <div className="hidden sm:flex sm:flex-1 sm:items-center sm:justify-between">
+                        <div>
+                            <p className="text-sm text-gray-700">
+                                Mostrando <span className="font-medium">{indexOfFirstItem + 1}</span> a <span className="font-medium">{Math.min(indexOfLastItem, funcionarios.length)}</span> de <span className="font-medium">{funcionarios.length}</span> resultados
+                            </p>
+                        </div>
+                        <div>
+                            <nav className="isolate inline-flex -space-x-px rounded-md shadow-sm" aria-label="Pagination">
+                                <button
+                                    onClick={() => changePage(currentPage - 1)}
+                                    disabled={currentPage === 1}
+                                    className="relative inline-flex items-center rounded-l-md px-2 py-2 text-gray-400 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus:z-20 focus:outline-offset-0 disabled:opacity-50"
+                                >
+                                    <span className="sr-only">Anterior</span>
+                                    <svg className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                                        <path fillRule="evenodd" d="M12.79 5.23a.75.75 0 01-.02 1.06L8.832 10l3.938 3.71a.75.75 0 11-1.04 1.08l-4.5-4.25a.75.75 0 010-1.08l4.5-4.25a.75.75 0 011.06.02z" clipRule="evenodd" />
+                                    </svg>
+                                </button>
+                                <span className="relative inline-flex items-center px-4 py-2 text-sm font-semibold text-gray-900 ring-1 ring-inset ring-gray-300">
+                                    Página {currentPage} de {totalPages}
+                                </span>
+                                <button
+                                    onClick={() => changePage(currentPage + 1)}
+                                    disabled={currentPage === totalPages}
+                                    className="relative inline-flex items-center rounded-r-md px-2 py-2 text-gray-400 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus:z-20 focus:outline-offset-0 disabled:opacity-50"
+                                >
+                                    <span className="sr-only">Siguiente</span>
+                                    <svg className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                                        <path fillRule="evenodd" d="M7.21 14.77a.75.75 0 01.02-1.06L11.168 10 7.23 6.29a.75.75 0 111.04-1.08l4.5 4.25a.75.75 0 010 1.08l-4.5 4.25a.75.75 0 01-1.06-.02z" clipRule="evenodd" />
+                                    </svg>
+                                </button>
+                            </nav>
+                        </div>
+                    </div>
+                    {/* Controles para móviles */}
+                    <div className="flex flex-1 justify-between sm:hidden w-full">
+                        <button onClick={() => changePage(currentPage - 1)} disabled={currentPage === 1} className="relative inline-flex items-center rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50">
+                            Anterior
+                        </button>
+                        <span className="text-sm text-gray-700 mt-2">
+                            Pág. {currentPage} / {totalPages}
+                        </span>
+                        <button onClick={() => changePage(currentPage + 1)} disabled={currentPage === totalPages} className="relative ml-auto inline-flex items-center rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50">
+                            Siguiente
+                        </button>
+                    </div>
                 </div>
             )}
 
@@ -330,6 +453,58 @@ const FuncionariosList = () => {
                     onClose={handleCloseModal}
                     funcionario={selectedFuncionario}
                 />
+            )}
+
+            {/* Modal Equipos Activos del Funcionario */}
+            {showEquiposModal && (
+                <div className="fixed inset-0 z-50 overflow-y-auto" role="dialog" aria-modal="true">
+                    <div className="flex items-center justify-center min-h-screen px-4 pb-20 pt-4 text-center sm:p-0">
+                        <div className="fixed inset-0 bg-charcoal-900/50 backdrop-blur-sm" onClick={() => setShowEquiposModal(false)} />
+                        <div className="relative glass border border-charcoal-100 rounded-2xl px-6 pt-6 pb-6 text-left shadow-2xl sm:my-8 sm:w-full sm:max-w-2xl z-10">
+                            <div className="flex justify-between items-center mb-5">
+                                <div>
+                                    <h3 className="text-lg font-black text-charcoal-800">Equipos Asignados</h3>
+                                    <p className="text-sm text-charcoal-500 font-medium">{equiposTitulo}</p>
+                                </div>
+                                <button onClick={() => setShowEquiposModal(false)} className="text-charcoal-400 hover:text-charcoal-600 text-2xl leading-none font-bold">&times;</button>
+                            </div>
+
+                            {equiposLoading ? (
+                                <div className="py-12 text-center text-charcoal-400 font-medium">Cargando equipos...</div>
+                            ) : equiposFuncionario.length === 0 ? (
+                                <div className="py-12 text-center">
+                                    <svg xmlns="http://www.w3.org/2000/svg" className="h-12 w-12 text-charcoal-200 mx-auto mb-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" /></svg>
+                                    <p className="text-charcoal-400 font-medium text-sm">Sin equipos actualmente asignados</p>
+                                </div>
+                            ) : (
+                                <div className="space-y-3 max-h-96 overflow-y-auto pr-1">
+                                    {equiposFuncionario.map(a => (
+                                        <div key={a.id} className="flex items-center gap-4 p-3 border border-charcoal-100 rounded-xl hover:border-fnc-200 transition-colors">
+                                            <div className="h-12 w-12 flex-shrink-0 rounded-xl overflow-hidden bg-charcoal-50 border border-charcoal-100">
+                                                {getImageUrl(a.imagen)
+                                                    ? <img className="h-12 w-12 object-cover" src={getImageUrl(a.imagen)} alt="" />
+                                                    : <AssetIcon tipo={a.tipo} categoria={a.categoria} />}
+                                            </div>
+                                            <div className="flex-1 min-w-0">
+                                                <div className="font-bold text-charcoal-800 truncate">{a.marca} {a.modelo}</div>
+                                                <div className="text-xs text-charcoal-500 font-medium">Placa: <span className="text-charcoal-700">{a.placa}</span> · {a.categoria?.nombre}</div>
+                                            </div>
+                                            <span className="text-[10px] font-black text-green-700 bg-green-50 border border-green-200 px-2.5 py-1 rounded-lg uppercase tracking-wider flex-shrink-0">
+                                                Asignado
+                                            </span>
+                                        </div>
+                                    ))}
+                                </div>
+                            )}
+
+                            <div className="mt-5 flex justify-end">
+                                <button onClick={() => setShowEquiposModal(false)} className="glass border border-charcoal-100 rounded-xl px-5 py-2 text-sm font-bold text-charcoal-700 hover:border-charcoal-200 transition-colors">
+                                    Cerrar
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             )}
         </div>
     );

@@ -2,11 +2,20 @@ import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import api from '../../lib/axios';
 import { useAuth } from '../../context/AuthContext';
-import { getImageUrl } from '../../lib/utils';
+import { getImageUrl, getAssetIconPath } from '../../lib/utils';
 import ActivosForm from './ActivosForm';
 import { exportToExcel } from '../../lib/exportUtils';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
+
+// Ícono SVG dinámico por tipo de activo (fallback cuando no hay imagen)
+const AssetIcon = ({ tipo, categoria, className = 'h-full w-full p-2.5 text-charcoal-400' }) => (
+    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
+        strokeWidth={1.5} stroke="currentColor" className={className}>
+        <path strokeLinecap="round" strokeLinejoin="round"
+            d={getAssetIconPath(tipo, categoria?.nombre)} />
+    </svg>
+);
 
 const ActivosList = () => {
     const { user } = useAuth();
@@ -19,7 +28,7 @@ const ActivosList = () => {
     const [selectedActivo, setSelectedActivo] = useState(null);
     const [showFilters, setShowFilters] = useState(false);
     const [currentPage, setCurrentPage] = useState(1);
-    const itemsPerPage = 50;
+    const itemsPerPage = 9;
 
     // Filtros avanzados
     const [filterEstado, setFilterEstado] = useState('');
@@ -424,78 +433,80 @@ const ActivosList = () => {
             {/* Desktop Table (hidden on mobile) */}
             {!loading && (
                 <div className="mt-6 hidden md:block">
-                    <div className="overflow-x-auto shadow ring-1 ring-black ring-opacity-5 rounded-lg">
-                        <table className="min-w-full divide-y divide-gray-300">
-                            <thead className="bg-gray-50">
-                                <tr>
-                                    <th scope="col" className="py-3.5 pl-4 pr-3 text-left text-sm font-semibold text-gray-900 sm:pl-6">Activo</th>
-                                    <th scope="col" className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">Categoría</th>
-                                    <th scope="col" className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">Estado</th>
-                                    <th scope="col" className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">Ubicación</th>
-                                    <th scope="col" className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">Asignado A</th>
-                                    {canEdit && (
-                                        <th scope="col" className="relative py-3.5 pl-3 pr-4 sm:pr-6">
-                                            <span className="sr-only">Acciones</span>
-                                        </th>
-                                    )}
-                                </tr>
-                            </thead>
-                            <tbody className="divide-y divide-gray-200 bg-white">
-                                {currentItems.map((activo) => (
-                                    <tr key={activo.id} className="hover:bg-gray-50">
-                                        <td className="whitespace-nowrap py-4 pl-4 pr-3 text-sm sm:pl-6">
-                                            <div className="flex items-center">
-                                                <div className="h-10 w-10 flex-shrink-0">
-                                                    <img className="h-10 w-10 rounded-full object-cover" src={getImageUrl(activo.imagen)} alt="" />
-                                                </div>
-                                                <div className="ml-4">
-                                                    <div className="font-medium text-gray-900">
-                                                        <Link to={`/activos/${activo.id}`} className="hover:text-indigo-600 hover:underline">
-                                                            {activo.marca} {activo.modelo}
-                                                        </Link>
-                                                    </div>
-                                                    <div className="text-gray-500">Placa: {activo.placa}</div>
-                                                </div>
-                                            </div>
-                                        </td>
-                                        <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
-                                            <div className="text-gray-900">{activo.categoria?.nombre}</div>
-                                            <div className="text-xs text-gray-400">SN: {activo.serial}</div>
-                                        </td>
-                                        <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
-                                            <span className={`inline-flex items-center rounded-md px-2 py-1 text-xs font-medium ring-1 ring-inset ${getStatusBadge(activo.estado)}`}>
-                                                {activo.estado?.replace('_', ' ')}
-                                            </span>
-                                        </td>
-                                        <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
-                                            {activo.ubicacion || 'Sin ubicación'}
-                                        </td>
-                                        <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
-                                            {activo.asignaciones?.[0]?.funcionario?.nombre || 'Sin asignar'}
-                                        </td>
+                    <div className="glass overflow-hidden">
+                        <div className="overflow-x-auto">
+                            <table className="w-full text-left border-collapse min-w-[800px]">
+                                <thead className="bg-charcoal-50 border-b border-charcoal-100 text-sm uppercase tracking-wider text-charcoal-500">
+                                    <tr>
+                                        <th scope="col" className="px-6 py-4 font-bold">Activo</th>
+                                        <th scope="col" className="px-6 py-4 font-bold">Categoría</th>
+                                        <th scope="col" className="px-6 py-4 font-bold">Estado</th>
+                                        <th scope="col" className="px-6 py-4 font-bold">Ubicación</th>
+                                        <th scope="col" className="px-6 py-4 font-bold">Asignado A</th>
                                         {canEdit && (
-                                            <td className="whitespace-nowrap py-4 pl-3 pr-4 text-right text-sm font-medium sm:pr-6">
-                                                <div className="flex justify-end gap-3">
+                                            <th scope="col" className="px-6 py-4 font-bold text-right">
+                                                Acciones
+                                            </th>
+                                        )}
+                                    </tr>
+                                </thead>
+                                <tbody className="divide-y divide-charcoal-100 bg-transparent">
+                                    {currentItems.map((activo) => (
+                                        <tr key={activo.id} className="hover:bg-fnc-50/50 transition-colors">
+                                            <td className="px-6 py-4">
+                                                <div className="flex items-center gap-4">
+                                                    <div className="h-12 w-12 flex-shrink-0 rounded-xl overflow-hidden bg-charcoal-50 border border-charcoal-100 shadow-sm">
+                                                        {getImageUrl(activo.imagen)
+                                                            ? <img className="h-12 w-12 object-cover" src={getImageUrl(activo.imagen)} alt="" />
+                                                            : <AssetIcon tipo={activo.tipo} categoria={activo.categoria} />}
+                                                    </div>
+                                                    <div>
+                                                        <div className="font-bold text-charcoal-800">
+                                                            <Link to={`/activos/${activo.id}`} className="hover:text-fnc-600 transition-colors">
+                                                                {activo.marca} {activo.modelo}
+                                                            </Link>
+                                                        </div>
+                                                        <div className="text-sm text-charcoal-500 font-medium">Placa: <span className="text-charcoal-700">{activo.placa}</span></div>
+                                                    </div>
+                                                </div>
+                                            </td>
+                                            <td className="px-6 py-4 text-sm">
+                                                <div className="text-charcoal-800 font-bold">{activo.categoria?.nombre}</div>
+                                                <div className="text-xs text-charcoal-400 font-medium mt-0.5">SN: {activo.serial}</div>
+                                            </td>
+                                            <td className="px-6 py-4">
+                                                <span className={`inline-flex items-center rounded-lg px-2.5 py-1 text-[10px] font-black tracking-wider uppercase border border-opacity-50 ${getStatusBadge(activo.estado)}`}>
+                                                    {activo.estado?.replace('_', ' ')}
+                                                </span>
+                                            </td>
+                                            <td className="px-6 py-4 text-sm text-charcoal-600 font-medium whitespace-nowrap">
+                                                {activo.ubicacion || 'Sin ubicación'}
+                                            </td>
+                                            <td className="px-6 py-4 text-sm text-charcoal-800 font-bold whitespace-nowrap">
+                                                {activo.asignaciones?.[0]?.funcionario?.nombre || <span className="text-charcoal-400 font-medium italic">Sin asignar</span>}
+                                            </td>
+                                            {canEdit && (
+                                                <td className="px-6 py-4 text-right">
                                                     <button
                                                         onClick={() => handleEdit(activo)}
-                                                        className="text-indigo-600 hover:text-indigo-900"
+                                                        className="inline-flex items-center justify-center text-xs font-bold text-fnc-600 bg-fnc-50 hover:bg-fnc-100 border border-fnc-200 rounded-lg px-4 py-2 transition-colors shadow-sm"
                                                     >
                                                         Editar
                                                     </button>
-                                                </div>
+                                                </td>
+                                            )}
+                                        </tr>
+                                    ))}
+                                    {activos.length === 0 && (
+                                        <tr>
+                                            <td colSpan="6" className="px-6 py-12 text-center text-charcoal-400 font-medium">
+                                                No se encontraron activos con los filtros actuales.
                                             </td>
-                                        )}
-                                    </tr>
-                                ))}
-                                {activos.length === 0 && (
-                                    <tr>
-                                        <td colSpan="6" className="py-10 text-center text-gray-500">
-                                            No se encontraron activos.
-                                        </td>
-                                    </tr>
-                                )}
-                            </tbody>
-                        </table>
+                                        </tr>
+                                    )}
+                                </tbody>
+                            </table>
+                        </div>
                     </div>
                 </div>
             )}
@@ -509,48 +520,46 @@ const ActivosList = () => {
                         </div>
                     )}
                     {currentItems.map((activo) => (
-                        <div key={activo.id} className="bg-white rounded-lg shadow ring-1 ring-black/5 p-4">
+                        <div key={activo.id} className="glass p-4 rounded-2xl border border-charcoal-100 shadow-sm hover:border-fnc-200 transition-all group">
                             <div className="flex items-start gap-3">
-                                <img className="h-12 w-12 rounded-lg object-cover flex-shrink-0" src={getImageUrl(activo.imagen)} alt="" />
+                                <div className="h-14 w-14 flex-shrink-0 rounded-xl overflow-hidden bg-charcoal-50 border border-charcoal-100 shadow-sm group-hover:shadow-md transition-shadow">
+                                    {getImageUrl(activo.imagen)
+                                        ? <img className="h-14 w-14 object-cover" src={getImageUrl(activo.imagen)} alt="" />
+                                        : <AssetIcon tipo={activo.tipo} categoria={activo.categoria} />}
+                                </div>
                                 <div className="flex-1 min-w-0">
-                                    <Link to={`/activos/${activo.id}`} className="font-medium text-gray-900 hover:text-indigo-600 block truncate">
+                                    <Link to={`/activos/${activo.id}`} className="font-bold text-charcoal-800 hover:text-fnc-600 block truncate transition-colors text-base">
                                         {activo.marca} {activo.modelo}
                                     </Link>
-                                    <div className="text-xs text-gray-500 mt-0.5">Placa: {activo.placa} | SN: {activo.serial}</div>
-                                    <div className="flex flex-wrap items-center gap-2 mt-2">
-                                        <span className={`inline-flex items-center rounded-md px-2 py-0.5 text-xs font-medium ring-1 ring-inset ${getStatusBadge(activo.estado)}`}>
+                                    <div className="text-xs text-charcoal-500 mt-1 font-medium select-all">Placa: <span className="text-charcoal-700">{activo.placa}</span> | SN: <span className="text-charcoal-700">{activo.serial}</span></div>
+                                    <div className="flex flex-wrap items-center gap-2 mt-2.5">
+                                        <span className={`inline-flex items-center rounded-lg px-2.5 py-1 text-[10px] font-black tracking-wider uppercase border border-opacity-50 ${getStatusBadge(activo.estado)}`}>
                                             {activo.estado?.replace('_', ' ')}
                                         </span>
                                         {activo.categoria?.nombre && (
-                                            <span className="text-xs text-gray-500 bg-gray-100 rounded px-1.5 py-0.5">
+                                            <span className="text-[10px] font-bold text-charcoal-600 bg-charcoal-50 border border-charcoal-200 uppercase tracking-wider rounded-lg px-2.5 py-1 shadow-sm">
                                                 {activo.categoria.nombre}
                                             </span>
                                         )}
                                     </div>
                                     {activo.asignaciones?.[0]?.funcionario?.nombre && (
-                                        <div className="text-xs text-gray-600 mt-1.5">
-                                            👤 {activo.asignaciones[0].funcionario.nombre}
+                                        <div className="text-xs text-fnc-700 font-semibold mt-3 flex items-center gap-1.5 bg-fnc-50 px-2.5 py-1.5 rounded-lg border border-fnc-100 shadow-sm inline-flex max-w-full">
+                                            <span className="shrink-0 text-fnc-500">👤</span> <span className="truncate">{activo.asignaciones[0].funcionario.nombre}</span>
                                         </div>
                                     )}
                                 </div>
                             </div>
                             {/* Action buttons */}
-                            {canEdit ? (
-                                <div className="flex flex-wrap gap-2 mt-3 pt-3 border-t border-gray-100">
-                                    <button onClick={() => handleEdit(activo)} className="text-xs text-indigo-700 bg-indigo-50 rounded-md px-2.5 py-1.5 font-medium hover:bg-indigo-100">
+                            <div className="flex flex-wrap gap-2 mt-4 pt-4 border-t border-charcoal-100">
+                                {canEdit && (
+                                    <button onClick={() => handleEdit(activo)} className="text-xs text-fnc-600 bg-white border border-fnc-200 rounded-lg px-4 py-2 font-bold hover:bg-fnc-50 transition-colors shadow-sm">
                                         Editar
                                     </button>
-                                    <Link to={`/activos/${activo.id}`} className="text-xs text-gray-700 bg-gray-100 rounded-md px-2.5 py-1.5 font-medium hover:bg-gray-200 ml-auto">
-                                        Ver Detalle →
-                                    </Link>
-                                </div>
-                            ) : (
-                                <div className="flex flex-wrap gap-2 mt-3 pt-3 border-t border-gray-100">
-                                    <Link to={`/activos/${activo.id}`} className="text-xs text-gray-700 bg-gray-100 rounded-md px-2.5 py-1.5 font-medium hover:bg-gray-200 ml-auto">
-                                        Ver Detalle →
-                                    </Link>
-                                </div>
-                            )}
+                                )}
+                                <Link to={`/activos/${activo.id}`} className="text-xs text-charcoal-700 bg-white border border-charcoal-200 rounded-lg px-4 py-2 font-bold hover:bg-charcoal-50 transition-colors shadow-sm ml-auto flex items-center gap-1 group/btn">
+                                    Ver Detalle <span className="group-hover/btn:translate-x-0.5 transition-transform">→</span>
+                                </Link>
+                            </div>
                         </div>
                     ))}
                 </div>
