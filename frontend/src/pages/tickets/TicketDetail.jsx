@@ -13,10 +13,10 @@ import {
     CalendarDaysIcon,
     PaperAirplaneIcon,
     UserPlusIcon,
-    PaperClipIcon,
     TrashIcon,
     ArrowDownTrayIcon
 } from '@heroicons/react/24/outline';
+import { useAuth } from '../../context/AuthContext';
 
 // Helper: icon + label for file type
 const getFileInfo = (tipoMime, nombre) => {
@@ -56,6 +56,9 @@ const TicketDetail = () => {
     const [tecnicoAsignado, setTecnicoAsignado] = useState('');
     const [saving, setSaving] = useState(false);
     const [archivosComentario, setArchivosComentario] = useState([]);
+
+    const { user } = useAuth();
+    const canEdit = user?.rol === 'ADMIN' || user?.rol === 'TECNICO';
 
     useEffect(() => { cargarDatos(); }, [id]);
 
@@ -277,40 +280,42 @@ const TicketDetail = () => {
                     </div>
 
                     {/* Gestión */}
-                    <div className="bg-gray-50 rounded-xl shadow-sm border border-gray-100 p-5 space-y-4">
-                        <h3 className="text-xs font-semibold uppercase text-gray-500 tracking-wider">Gestión del Caso</h3>
-                        <div>
-                            <label className="text-xs font-semibold text-gray-600 block mb-1">Técnico Asignado</label>
-                            <div className="flex gap-2">
-                                <select value={tecnicoAsignado} onChange={e => setTecnicoAsignado(e.target.value)}
-                                    className="flex-1 text-sm border border-gray-200 rounded-md shadow-sm bg-white focus:ring-blue-500">
-                                    <option value="">-- Sin Asignar --</option>
-                                    {tecnicos.map(t => <option key={t.id} value={t.id}>{t.nombre}</option>)}
-                                </select>
-                                <button onClick={handleAsignarTecnico}
-                                    disabled={String(tecnicoAsignado) === String(ticket.asignadoAId || '')}
-                                    className="px-3 py-1.5 bg-white border border-gray-200 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50">
-                                    Asignar
-                                </button>
+                    {canEdit && (
+                        <div className="bg-gray-50 rounded-xl shadow-sm border border-gray-100 p-5 space-y-4">
+                            <h3 className="text-xs font-semibold uppercase text-gray-500 tracking-wider">Gestión del Caso</h3>
+                            <div>
+                                <label className="text-xs font-semibold text-gray-600 block mb-1">Técnico Asignado</label>
+                                <div className="flex gap-2">
+                                    <select value={tecnicoAsignado} onChange={e => setTecnicoAsignado(e.target.value)}
+                                        className="flex-1 text-sm border border-gray-200 rounded-md shadow-sm bg-white focus:ring-blue-500">
+                                        <option value="">-- Sin Asignar --</option>
+                                        {tecnicos.map(t => <option key={t.id} value={t.id}>{t.nombre}</option>)}
+                                    </select>
+                                    <button onClick={handleAsignarTecnico}
+                                        disabled={String(tecnicoAsignado) === String(ticket.asignadoAId || '')}
+                                        className="px-3 py-1.5 bg-white border border-gray-200 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50">
+                                        Asignar
+                                    </button>
+                                </div>
+                            </div>
+                            <div>
+                                <label className="text-xs font-semibold text-gray-600 block mb-1">Estado del Caso</label>
+                                <div className="flex gap-2">
+                                    <select value={nuevoEstado} onChange={e => setNuevoEstado(e.target.value)}
+                                        className="flex-1 text-sm border border-gray-200 rounded-md shadow-sm bg-white focus:ring-blue-500">
+                                        <option value="CREADO">Creado</option>
+                                        <option value="EN_CURSO">En Curso</option>
+                                        <option value="SIN_RESPUESTA">Sin Respuesta</option>
+                                        <option value="COMPLETADO">Completado</option>
+                                    </select>
+                                    <button onClick={handleCambiarEstado} disabled={nuevoEstado === ticket.estado}
+                                        className="px-3 py-1.5 bg-white border border-gray-200 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50">
+                                        Actualizar
+                                    </button>
+                                </div>
                             </div>
                         </div>
-                        <div>
-                            <label className="text-xs font-semibold text-gray-600 block mb-1">Estado del Caso</label>
-                            <div className="flex gap-2">
-                                <select value={nuevoEstado} onChange={e => setNuevoEstado(e.target.value)}
-                                    className="flex-1 text-sm border border-gray-200 rounded-md shadow-sm bg-white focus:ring-blue-500">
-                                    <option value="CREADO">Creado</option>
-                                    <option value="EN_CURSO">En Curso</option>
-                                    <option value="SIN_RESPUESTA">Sin Respuesta</option>
-                                    <option value="COMPLETADO">Completado</option>
-                                </select>
-                                <button onClick={handleCambiarEstado} disabled={nuevoEstado === ticket.estado}
-                                    className="px-3 py-1.5 bg-white border border-gray-200 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50">
-                                    Actualizar
-                                </button>
-                            </div>
-                        </div>
-                    </div>
+                    )}
                 </div>
 
                 {/* Panel Derecho: Timeline */}
@@ -359,51 +364,53 @@ const TicketDetail = () => {
                     </div>
 
                     {/* Añadir Comentario con adjuntos */}
-                    <form onSubmit={handleAgregarComentario} className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
-                        <div className="p-4">
-                            <textarea
-                                rows="2"
-                                value={nuevoComentario}
-                                onChange={e => setNuevoComentario(e.target.value)}
-                                placeholder="Añade una actualización o nota sobre este caso..."
-                                className="block w-full rounded-lg border border-gray-200 bg-gray-50 text-sm p-2.5 focus:border-blue-500 focus:ring-blue-500 resize-none"
-                            />
+                    {canEdit && (
+                        <form onSubmit={handleAgregarComentario} className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+                            <div className="p-4">
+                                <textarea
+                                    rows="2"
+                                    value={nuevoComentario}
+                                    onChange={e => setNuevoComentario(e.target.value)}
+                                    placeholder="Añade una actualización o nota sobre este caso..."
+                                    className="block w-full rounded-lg border border-gray-200 bg-gray-50 text-sm p-2.5 focus:border-blue-500 focus:ring-blue-500 resize-none"
+                                />
 
-                            {/* Preview de archivos a adjuntar */}
-                            {archivosComentario.length > 0 && (
-                                <div className="mt-2 flex flex-wrap gap-2 px-4">
-                                    {archivosComentario.map((f, i) => (
-                                        <span key={i} className="inline-flex items-center gap-1 text-xs bg-blue-50 text-blue-700 rounded-full px-2.5 py-1 border border-blue-100">
-                                            <PaperClipIcon className="w-3 h-3" />
-                                            <span className="max-w-[120px] truncate">{f.name}</span>
-                                            <button type="button" onClick={() => setArchivosComentario(prev => prev.filter((_, j) => j !== i))}
-                                                className="ml-0.5 text-blue-400 hover:text-red-500">
-                                                ×
-                                            </button>
-                                        </span>
-                                    ))}
+                                {/* Preview de archivos a adjuntar */}
+                                {archivosComentario.length > 0 && (
+                                    <div className="mt-2 flex flex-wrap gap-2 px-4">
+                                        {archivosComentario.map((f, i) => (
+                                            <span key={i} className="inline-flex items-center gap-1 text-xs bg-blue-50 text-blue-700 rounded-full px-2.5 py-1 border border-blue-100">
+                                                <PaperClipIcon className="w-3 h-3" />
+                                                <span className="max-w-[120px] truncate">{f.name}</span>
+                                                <button type="button" onClick={() => setArchivosComentario(prev => prev.filter((_, j) => j !== i))}
+                                                    className="ml-0.5 text-blue-400 hover:text-red-500">
+                                                    ×
+                                                </button>
+                                            </span>
+                                        ))}
+                                    </div>
+                                )}
+                            </div>
+
+                            {/* Action bar */}
+                            <div className="px-4 py-2.5 bg-gray-50 border-t border-gray-100 flex items-center justify-between">
+                                <div className="flex items-center gap-2">
+                                    <input ref={fileInputRef} type="file" multiple accept="image/*,.pdf,.doc,.docx,.xls,.xlsx"
+                                        onChange={handleFileSelect} className="hidden" />
+                                    <button type="button" onClick={() => fileInputRef.current?.click()}
+                                        className="inline-flex items-center gap-1.5 text-xs text-gray-500 hover:text-blue-600 font-medium px-2 py-1 rounded hover:bg-blue-50 transition-colors">
+                                        <PaperClipIcon className="w-4 h-4" />
+                                        Adjuntar archivo
+                                    </button>
                                 </div>
-                            )}
-                        </div>
-
-                        {/* Action bar */}
-                        <div className="px-4 py-2.5 bg-gray-50 border-t border-gray-100 flex items-center justify-between">
-                            <div className="flex items-center gap-2">
-                                <input ref={fileInputRef} type="file" multiple accept="image/*,.pdf,.doc,.docx,.xls,.xlsx"
-                                    onChange={handleFileSelect} className="hidden" />
-                                <button type="button" onClick={() => fileInputRef.current?.click()}
-                                    className="inline-flex items-center gap-1.5 text-xs text-gray-500 hover:text-blue-600 font-medium px-2 py-1 rounded hover:bg-blue-50 transition-colors">
-                                    <PaperClipIcon className="w-4 h-4" />
-                                    Adjuntar archivo
+                                <button type="submit" disabled={(nuevoComentario.trim().length === 0 && archivosComentario.length === 0) || saving}
+                                    className="inline-flex items-center gap-1.5 px-4 py-1.5 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700 disabled:opacity-50 transition-colors shadow-sm">
+                                    <PaperAirplaneIcon className="w-4 h-4" />
+                                    {saving ? 'Enviando...' : 'Enviar Nota'}
                                 </button>
                             </div>
-                            <button type="submit" disabled={(nuevoComentario.trim().length === 0 && archivosComentario.length === 0) || saving}
-                                className="inline-flex items-center gap-1.5 px-4 py-1.5 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700 disabled:opacity-50 transition-colors shadow-sm">
-                                <PaperAirplaneIcon className="w-4 h-4" />
-                                {saving ? 'Enviando...' : 'Enviar Nota'}
-                            </button>
-                        </div>
-                    </form>
+                        </form>
+                    )}
                 </div>
             </div>
         </div>
