@@ -23,7 +23,7 @@ const Sidebar = () => {
         { name: 'Funcionarios', href: '/funcionarios', icon: UserGroupIcon, roles: ['ADMIN', 'TECNICO', 'CONSULTA'] },
         { name: 'HelpDesk', href: '/tickets', icon: TicketIcon, roles: ['ADMIN', 'TECNICO', 'CONSULTA'] },
         { name: 'Mantenimientos', href: '/mantenimientos', icon: WrenchScrewdriverIcon, roles: ['ADMIN', 'TECNICO', 'CONSULTA'] },
-        { name: 'Categorías', href: '/categorias', icon: TagIcon, roles: ['ADMIN', 'TECNICO', 'CONSULTA'] },
+        { name: 'Categorías', href: '/categorias', icon: TagIcon, roles: ['ADMIN', 'TECNICO'] },
         { name: 'Reportes', href: '/reportes', icon: DocumentTextIcon, roles: ['ADMIN', 'TECNICO', 'CONSULTA'] },
         { name: 'Actas', href: '/actas', icon: ClipboardDocumentCheckIcon, roles: ['ADMIN', 'TECNICO', 'CONSULTA'] },
         { name: 'Importar', href: '/importar', icon: ArrowDownTrayIcon, roles: ['ADMIN', 'TECNICO'] },

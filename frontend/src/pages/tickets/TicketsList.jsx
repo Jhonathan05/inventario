@@ -11,6 +11,7 @@ import {
     CheckCircleIcon,
     QuestionMarkCircleIcon
 } from '@heroicons/react/24/outline';
+import { useAuth } from '../../context/AuthContext';
 
 const TicketsList = () => {
     const [tickets, setTickets] = useState([]);
@@ -18,6 +19,8 @@ const TicketsList = () => {
     const [searchTerm, setSearchTerm] = useState('');
     const [estadoFiltro, setEstadoFiltro] = useState('');
     const navigate = useNavigate();
+    const { user } = useAuth();
+    const canEdit = user?.rol === 'ADMIN' || user?.rol === 'TECNICO';
 
     useEffect(() => {
         cargarTickets();
@@ -92,13 +95,15 @@ const TicketsList = () => {
                     <h1 className="text-2xl font-bold text-gray-900">Mesa de Ayuda (ITSM)</h1>
                     <p className="text-sm text-gray-500 mt-1">Gestión de incidentes y requerimientos</p>
                 </div>
-                <button
-                    onClick={() => navigate('/tickets/nuevo')}
-                    className="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors shadow-sm font-medium"
-                >
-                    <PlusIcon className="w-5 h-5 mr-2" />
-                    Nuevo Caso
-                </button>
+                {canEdit && (
+                    <button
+                        onClick={() => navigate('/tickets/nuevo')}
+                        className="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors shadow-sm font-medium"
+                    >
+                        <PlusIcon className="w-5 h-5 mr-2" />
+                        Nuevo Caso
+                    </button>
+                )}
             </div>
 
             {/* Filtros */}

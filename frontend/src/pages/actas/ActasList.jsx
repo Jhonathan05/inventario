@@ -3,12 +3,15 @@ import axios from '../../lib/axios';
 import { useNavigate } from 'react-router-dom';
 import { PlusIcon, ArrowDownTrayIcon, DocumentTextIcon, MagnifyingGlassIcon } from '@heroicons/react/24/outline';
 import { formatDate } from '../../lib/utils';
+import { useAuth } from '../../context/AuthContext';
 
 const ActasList = () => {
     const navigate = useNavigate();
     const [actas, setActas] = useState([]);
     const [loading, setLoading] = useState(true);
     const [searchTerm, setSearchTerm] = useState('');
+    const { user } = useAuth();
+    const canEdit = user?.rol === 'ADMIN' || user?.rol === 'TECNICO';
 
     useEffect(() => {
         loadActas();
@@ -90,14 +93,16 @@ const ActasList = () => {
                             onChange={(e) => setSearchTerm(e.target.value)}
                         />
                     </div>
-                    <button
-                        onClick={() => navigate('/actas/generar')}
-                        className="bg-indigo-600 text-white px-4 py-2 rounded-md hover:bg-indigo-700 flex items-center gap-2 shrink-0 shadow-sm"
-                    >
-                        <PlusIcon className="h-5 w-5" />
-                        <span className="hidden sm:inline">Generar Novedad</span>
-                        <span className="sm:hidden">Nuevo</span>
-                    </button>
+                    {canEdit && (
+                        <button
+                            onClick={() => navigate('/actas/generar')}
+                            className="bg-indigo-600 text-white px-4 py-2 rounded-md hover:bg-indigo-700 flex items-center gap-2 shrink-0 shadow-sm"
+                        >
+                            <PlusIcon className="h-5 w-5" />
+                            <span className="hidden sm:inline">Generar Novedad</span>
+                            <span className="sm:hidden">Nuevo</span>
+                        </button>
+                    )}
                 </div>
             </div>
 
