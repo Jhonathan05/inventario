@@ -98,142 +98,171 @@ const BackupSoporte = () => {
     };
 
     return (
-        <div className="max-w-4xl mx-auto px-4 py-8">
+        <div className="max-w-4xl mx-auto px-4 py-8 relative">
+            {/* Efectos de fondo extra para resaltar el glassmorphism si se desea */}
+            <div className="absolute top-0 right-0 -mr-20 -mt-20 w-64 h-64 rounded-full bg-fnc-500/10 blur-3xl pointer-events-none -z-10" />
+            <div className="absolute bottom-0 left-0 -ml-20 -mb-20 w-80 h-80 rounded-full bg-charcoal-400/10 blur-3xl pointer-events-none -z-10" />
+
             <div className="mb-8">
-                <h1 className="text-2xl font-bold text-charcoal-800">Copia de Seguridad y Soporte</h1>
-                <p className="text-charcoal-500 mt-1">Gestión de respaldos para recuperación ante desastres y migración de servidor.</p>
+                <h1 className="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-charcoal-800 to-fnc-700">Copia de Seguridad y Soporte</h1>
+                <p className="text-sm text-charcoal-500 mt-1 font-medium">Gestión de respaldos para recuperación ante desastres y migración de servidor.</p>
             </div>
 
             {status.message && (
-                <div className={`mb-6 p-4 rounded-lg flex items-center gap-3 border ${status.type === 'success' ? 'bg-green-50 border-green-200 text-green-700' :
-                        status.type === 'error' ? 'bg-fnc-50 border-fnc-200 text-fnc-700' :
-                            'bg-blue-50 border-blue-200 text-blue-700'
+                <div className={`mb-6 p-4 rounded-xl flex items-center gap-3 border shadow-sm ${status.type === 'success' ? 'bg-emerald-50/80 backdrop-blur-sm border-emerald-200 text-emerald-700' :
+                    status.type === 'error' ? 'bg-red-50/80 backdrop-blur-sm border-red-200 text-red-700' :
+                        'bg-blue-50/80 backdrop-blur-sm border-blue-200 text-blue-700'
                     }`}>
-                    {status.type === 'success' ? <ShieldCheckIcon className="h-5 w-5" /> :
-                        status.type === 'error' ? <ExclamationTriangleIcon className="h-5 w-5" /> :
-                            <CloudArrowUpIcon className="h-5 w-5 animate-pulse" />
+                    {status.type === 'success' ? <ShieldCheckIcon className="h-5 w-5 flex-shrink-0" /> :
+                        status.type === 'error' ? <ExclamationTriangleIcon className="h-5 w-5 flex-shrink-0" /> :
+                            <CloudArrowUpIcon className="h-5 w-5 flex-shrink-0 animate-pulse" />
                     }
                     <p className="text-sm font-medium">{status.message}</p>
                 </div>
             )}
 
-            <div className="grid md:grid-cols-2 gap-8">
+            <div className="grid md:grid-cols-2 gap-6 relative z-10">
                 {/* Export Card */}
-                <div className="bg-white rounded-xl shadow-sm ring-1 ring-black/5 p-6 border-t-4 border-fnc-600">
+                <div className="glass border-t-4 border-t-fnc-600 p-6 flex flex-col hover:shadow-md transition-all duration-300">
                     <div className="flex items-center gap-3 mb-4">
-                        <div className="p-2 bg-fnc-100 rounded-lg text-fnc-700">
+                        <div className="p-2 bg-gradient-to-br from-fnc-50 to-fnc-100/50 rounded-xl text-fnc-600 shadow-sm border border-fnc-100">
                             <ArrowDownTrayIcon className="h-6 w-6" />
                         </div>
-                        <h2 className="text-lg font-bold text-charcoal-800">Exportar Datos</h2>
+                        <h2 className="text-lg font-bold text-charcoal-800 tracking-tight">Exportar Datos</h2>
                     </div>
                     <p className="text-sm text-charcoal-500 mb-6 italic">
                         Genera archivos ZIP con los datos del sistema. Si los años pesan mucho, descarga historiales mensuales.
                     </p>
 
-                    <ul className="text-xs text-charcoal-400 space-y-2 mb-6">
-                        <li className="flex items-center gap-2">✅ Base de Datos <span className="font-bold">(Siempre Completa)</span> para consistencia</li>
-                        <li className="flex items-center gap-2">✅ Carpetas de Imágenes (Filtrables por Fecha)</li>
+                    <ul className="text-xs text-charcoal-500 font-medium space-y-3 mb-8 flex-1">
+                        <li className="flex items-start gap-2">
+                            <span className="text-emerald-500 mt-0.5">✔</span>
+                            <span>Base de Datos PostgreSQL <span className="font-bold text-charcoal-700">(Siempre Completa)</span> para garantizar consistencia estructural.</span>
+                        </li>
+                        <li className="flex items-start gap-2">
+                            <span className="text-emerald-500 mt-0.5">✔</span>
+                            <span>Carpetas de Imágenes de Activos y Soportes (Filtrables por Fecha).</span>
+                        </li>
                     </ul>
 
                     {/* Rango de Fechas */}
-                    <div className="bg-charcoal-50 p-4 rounded-lg border border-charcoal-100 mb-6">
-                        <p className="text-xs font-bold text-charcoal-700 mb-3">Filtro Opcional de Imágenes (Rango Mensual)</p>
+                    <div className="bg-white/50 p-4 rounded-xl border border-charcoal-100 mb-6 shadow-sm">
+                        <p className="text-xs font-bold text-charcoal-700 mb-3 flex items-center gap-2">
+                            <span className="w-1.5 h-1.5 rounded-full bg-fnc-500 inline-block" /> Filtro Opcional de Imágenes
+                        </p>
                         <div className="flex gap-3">
                             <div className="flex-1">
-                                <label className="block text-xs text-charcoal-500 mb-1">Desde</label>
+                                <label className="block text-xs text-charcoal-500 mb-1.5 font-medium">Fecha Desde</label>
                                 <input
                                     type="date"
                                     value={dateRange.start}
                                     onChange={(e) => setDateRange({ ...dateRange, start: e.target.value })}
-                                    className="w-full text-sm rounded bg-white border-charcoal-200 px-2 py-1"
+                                    className="w-full text-sm rounded-lg bg-white/80 border-charcoal-200 px-3 py-2 focus:ring-fnc-500 focus:border-fnc-500 transition-colors"
                                 />
                             </div>
                             <div className="flex-1">
-                                <label className="block text-xs text-charcoal-500 mb-1">Hasta</label>
+                                <label className="block text-xs text-charcoal-500 mb-1.5 font-medium">Fecha Hasta</label>
                                 <input
                                     type="date"
                                     value={dateRange.end}
                                     min={dateRange.start}
                                     onChange={(e) => setDateRange({ ...dateRange, end: e.target.value })}
-                                    className="w-full text-sm rounded bg-white border-charcoal-200 px-2 py-1"
+                                    className="w-full text-sm rounded-lg bg-white/80 border-charcoal-200 px-3 py-2 focus:ring-fnc-500 focus:border-fnc-500 transition-colors"
                                 />
                             </div>
                         </div>
                         {(dateRange.start || dateRange.end) && (
-                            <p className="text-[10px] text-fnc-600 mt-2 font-medium">
-                                Atención: Excluirá imágenes y archivos fuera de este rango de tiempo para hacer un archivo más liviano.
-                            </p>
+                            <div className="mt-3 p-2 bg-amber-50/80 border border-amber-100 rounded-lg">
+                                <p className="text-[10px] text-amber-700 font-medium leading-tight">
+                                    Atención: Se excluirán imágenes y soportes subidos fuera de este rango de tiempo para reducir el peso del archivo `.zip`.
+                                </p>
+                            </div>
                         )}
                     </div>
 
                     <button
                         onClick={handleExport}
                         disabled={loading}
-                        className="w-full flex items-center justify-center gap-2 bg-fnc-600 hover:bg-fnc-700 disabled:bg-fnc-300 text-white font-bold py-3 px-4 rounded-lg transition-colors shadow-sm"
+                        className="w-full mt-auto flex items-center justify-center gap-2 bg-gradient-to-r from-fnc-600 to-fnc-500 hover:from-fnc-700 hover:to-fnc-600 disabled:from-charcoal-300 disabled:to-charcoal-200 disabled:text-charcoal-500 text-white font-bold py-3 pt-3.5 px-4 rounded-xl transition-all shadow-md hover:shadow-lg active:scale-[0.98]"
                     >
-                        {loading ? 'Generando ZIP...' :
-                            <><ArrowDownTrayIcon className="h-5 w-5" />
-                                {dateRange.start || dateRange.end ? 'Descargar Respaldo Parcial' : 'Descargar Todo-Completo'}
+                        {loading ? 'Preparando Compresión...' :
+                            <><ArrowDownTrayIcon className="h-5 w-5 stroke-2" />
+                                {dateRange.start || dateRange.end ? 'Generar Respaldo Parcial' : 'Generar Pack Completo'}
                             </>}
                     </button>
 
                 </div>
 
                 {/* Import Card */}
-                <div className="bg-white rounded-xl shadow-sm ring-1 ring-black/5 p-6 border-t-4 border-charcoal-700 flex flex-col">
+                <div className="glass border-t-4 border-t-charcoal-700 p-6 flex flex-col hover:shadow-md transition-all duration-300 relative overflow-hidden">
                     <div className="flex items-center gap-3 mb-4">
-                        <div className="p-2 bg-charcoal-100 rounded-lg text-charcoal-700">
+                        <div className="p-2 bg-gradient-to-br from-charcoal-50 to-charcoal-100 rounded-xl text-charcoal-700 shadow-sm border border-charcoal-200 relative z-10">
                             <ArrowUpTrayIcon className="h-6 w-6" />
                         </div>
-                        <h2 className="text-lg font-bold text-charcoal-800">Restauración Combinada</h2>
+                        <h2 className="text-lg font-bold text-charcoal-800 tracking-tight relative z-10">Restauración Combinada</h2>
                     </div>
-                    <p className="text-sm text-charcoal-500 mb-4 italic">
-                        Cargue <strong>uno o varios archivos ZIP</strong> al mismo tiempo. El sistema los unirá para recrear el historial completo.
+                    <p className="text-sm text-charcoal-500 mb-4 italic relative z-10">
+                        Sube <strong>uno o varios archivos ZIP</strong> simultáneamente. El sistema extraerá e integrará todas las carpetas reconstruyendo el historial de uploads.
                     </p>
 
-                    <div className="bg-fnc-50 border border-fnc-100 p-3 rounded-lg flex gap-2 items-start mb-6">
-                        <ExclamationTriangleIcon className="h-10 w-10 text-fnc-600 shrink-0" />
-                        <p className="text-[11px] text-fnc-800 leading-normal">
-                            <span className="font-bold underline uppercase">ADVERTENCIA CRÍTICA:</span> Esta acción es destructiva.
-                            La base de datos actual será borrada y reemplazada por la BD del archivo "Más Reciente" entre los que suba.
+                    <div className="bg-gradient-to-br from-red-50/90 to-amber-50/90 backdrop-blur-md border border-red-200/50 p-4 rounded-xl flex gap-3 items-start mb-6 shadow-sm relative z-10">
+                        <ExclamationTriangleIcon className="h-8 w-8 text-red-600 shrink-0 drop-shadow-sm mt-0.5" />
+                        <p className="text-[11px] text-red-900 leading-relaxed font-medium">
+                            <span className="font-extrabold uppercase tracking-wide block mb-0.5">Advertencia Destructiva:</span>
+                            La base de datos viva actual será eliminada irrecuperablemente y reemplazada por el SQL del archivo con fecha más reciente entre los ZIP cargados.
                         </p>
                     </div>
 
-                    <form onSubmit={handleImport} className="space-y-4 flex-1 flex flex-col">
-                        <div className="relative border-2 border-dashed border-charcoal-200 rounded-lg p-6 text-center hover:border-fnc-300 transition-colors bg-charcoal-50 flex-1 flex flex-col justify-center items-center">
-                            <input
-                                type="file"
-                                accept=".zip"
-                                multiple
-                                onChange={handleFileChange}
-                                className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
-                                disabled={importLoading}
-                            />
-                            <DocumentDuplicateIcon className="h-8 w-8 text-charcoal-300 mb-2" />
-                            <div className="text-sm text-charcoal-600 font-medium">
-                                Arrastra varios archivos .zip aquí
-                            </div>
-                            <span className="text-xs text-charcoal-400 mt-1">O haz clic para explorar</span>
-                        </div>
-
-                        {/* File list preview */}
-                        {selectedFiles.length > 0 && (
-                            <div className="max-h-32 overflow-y-auto border border-charcoal-100 rounded bg-white p-2">
-                                <div className="text-xs font-bold text-charcoal-600 mb-2 pl-1 shadow-sm">
-                                    {selectedFiles.length} archivo(s) preparado(s) para fusión:
+                    <form onSubmit={handleImport} className="space-y-4 flex-1 flex flex-col relative z-10">
+                        {/* Dropzone modernizada */}
+                        {!selectedFiles.length ? (
+                            <div className="relative border-2 border-dashed border-charcoal-300/60 rounded-xl p-8 text-center hover:border-fnc-400 hover:bg-fnc-50/30 transition-all bg-white/40 flex-1 flex flex-col justify-center items-center group">
+                                <input
+                                    type="file"
+                                    accept=".zip"
+                                    multiple
+                                    onChange={handleFileChange}
+                                    className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
+                                    disabled={importLoading}
+                                />
+                                <div className="p-3 bg-white shadow-sm rounded-full mb-3 group-hover:scale-110 transition-transform duration-300">
+                                    <DocumentDuplicateIcon className="h-6 w-6 text-fnc-500" />
                                 </div>
-                                <ul className="space-y-1">
-                                    {selectedFiles.map((f, idx) => (
-                                        <li key={idx} className="flex justify-between items-center text-xs bg-charcoal-50 px-2 py-1 rounded">
-                                            <span className="truncate flex-1" title={f.name}>📄 {f.name}</span>
-                                            <button
-                                                type="button"
-                                                onClick={() => removeFile(idx)}
-                                                className="text-fnc-500 hover:text-fnc-700 ml-2"
-                                            >✖</button>
-                                        </li>
-                                    ))}
-                                </ul>
+                                <div className="text-sm text-charcoal-700 font-bold tracking-tight">
+                                    Haz clic o arrastra los `.zip`
+                                </div>
+                                <span className="text-xs text-charcoal-400 font-medium mt-1">Soporta selección de múltiples volúmenes</span>
+                            </div>
+                        ) : (
+                            <div className="flex-1 flex flex-col min-h-[140px]">
+                                <div className="max-h-40 overflow-y-auto border border-charcoal-200/60 rounded-xl bg-white/60 backdrop-blur-sm p-2 flex-1 shadow-inner">
+                                    <div className="text-xs font-bold text-charcoal-500 mb-2 pl-2 uppercase tracking-wider py-1 border-b border-charcoal-100">
+                                        Volúmenes en cola ({selectedFiles.length}):
+                                    </div>
+                                    <ul className="space-y-1.5 p-1">
+                                        {selectedFiles.map((f, idx) => (
+                                            <li key={idx} className="flex justify-between items-center text-xs bg-white border border-charcoal-100 shadow-sm px-3 py-2 rounded-lg group">
+                                                <div className="flex items-center gap-2 overflow-hidden">
+                                                    <span className="text-[10px] bg-charcoal-100 text-charcoal-600 font-bold px-1.5 py-0.5 rounded">ZIP</span>
+                                                    <span className="truncate flex-1 font-medium text-charcoal-700" title={f.name}>{f.name}</span>
+                                                </div>
+                                                <button
+                                                    type="button"
+                                                    onClick={() => removeFile(idx)}
+                                                    className="w-6 h-6 rounded-full flex items-center justify-center text-charcoal-400 hover:text-red-600 hover:bg-red-50 transition-colors ml-2 flex-shrink-0"
+                                                >✖</button>
+                                            </li>
+                                        ))}
+                                    </ul>
+                                </div>
+
+                                <button
+                                    type="button"
+                                    onClick={() => setSelectedFiles([])}
+                                    className="mt-2 text-xs text-center font-medium text-fnc-600 hover:text-fnc-700"
+                                >
+                                    Vaciar y subir otros archivos
+                                </button>
                             </div>
                         )}
 
@@ -241,27 +270,36 @@ const BackupSoporte = () => {
                             <button
                                 type="button"
                                 onClick={() => setConfirmRestore(true)}
-                                className="w-full py-2.5 text-sm font-bold bg-yellow-500 text-white rounded-lg hover:bg-yellow-600 transition-colors"
+                                className="w-full mt-auto py-3 pt-3.5 text-sm font-bold bg-amber-500 hover:bg-amber-600 text-white shadow-md rounded-xl transition-all hover:shadow-lg active:scale-[0.98]"
                             >
-                                Validar para Restauración Múltiple
+                                Verificar Integridad de Archivos
                             </button>
                         )}
 
                         {confirmRestore && (
-                            <div className="animate-pulse">
+                            <div className="mt-auto animate-slide-up">
                                 <button
                                     type="submit"
                                     disabled={importLoading}
-                                    className="w-full flex items-center justify-center gap-2 bg-red-600 hover:bg-red-700 disabled:bg-red-300 text-white font-bold py-3 px-4 rounded-lg transition-colors shadow-sm"
+                                    className="w-full relative overflow-hidden flex items-center justify-center gap-2 bg-red-600 hover:bg-red-700 disabled:bg-red-400 text-white font-bold py-3 pt-3.5 px-4 rounded-xl transition-all shadow-md mt-2"
                                 >
-                                    {importLoading ? 'FUSIONANDO...' : '🔥 INICIAR SOBRESCRITURA TOTAL'}
+                                    {importLoading ? (
+                                        <span className="flex items-center gap-2">
+                                            <svg className="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
+                                            REESCRIBIENDO HISTORIAL...
+                                        </span>
+                                    ) : (
+                                        <>🔥 CONFIRMAR SOBRESCRITURA TOTAL</>
+                                    )}
+                                    {/* Peligro stripes background pattern CSS inline simple */}
+                                    {!importLoading && <div className="absolute inset-0 opacity-10 pointer-events-none" style={{ backgroundImage: 'repeating-linear-gradient(45deg, transparent, transparent 10px, #000 10px, #000 20px)' }} />}
                                 </button>
                                 <button
                                     type="button"
                                     onClick={() => setConfirmRestore(false)}
-                                    className="w-full mt-2 py-1 text-xs font-bold text-charcoal-400 hover:underline"
+                                    className="w-full mt-3 py-1 text-xs font-bold text-charcoal-400 hover:text-charcoal-600 transition-colors"
                                 >
-                                    Cancelar Operación
+                                    Abortar Operación Rápido
                                 </button>
                             </div>
                         )}

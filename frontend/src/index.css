@@ -31,6 +31,7 @@
     .main-content {
         flex: 1;
         width: 100%;
+        min-width: 0;
         transition: padding-left 0.3s ease;
     }
 
@@ -72,7 +73,7 @@
 
     /* Navigation Bar (Mobile & Desktop) */
     .nav-bar {
-        @apply fixed bottom-0 left-0 right-0 h-[calc(4.5rem+var(--safe-area-bottom))] bg-white/90 backdrop-blur-xl border-t border-charcoal-100 flex justify-around items-center pb-[var(--safe-area-bottom)] z-[100];
+        @apply fixed bottom-0 left-0 right-0 h-[calc(4.5rem+var(--safe-area-bottom))] bg-white/90 backdrop-blur-xl border-t border-charcoal-100 flex justify-around items-center pb-[var(--safe-area-bottom)] z-40;
     }
 
     .nav-item {
