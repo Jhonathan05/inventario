@@ -52,7 +52,7 @@ services:
       - postgres
 
   frontend:
-    image: puntijhon/inventario-frontend:v1.3.8
+    image: puntijhon/inventario-frontend:v1.3.7
     container_name: inventario-web-zima
     restart: unless-stopped
     ports:
