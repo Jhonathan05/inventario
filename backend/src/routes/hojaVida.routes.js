@@ -64,7 +64,8 @@ router.get('/activo/:activoId', authMiddleware, async (req, res) => {
 router.post('/', authMiddleware, requireRole('ADMIN', 'TECNICO'), upload.single('file'), async (req, res) => {
     try {
         // req.body fields come as strings due to multipart/form-data
-        const { activoId, tipo, descripcion, fecha } = req.body;
+        const { activoId, tipo, descripcion, fecha, ticketId } = req.body;
+        const tId = ticketId ? parseInt(ticketId) : null;
 
         const registro = await prisma.hojaVida.create({
             data: {
@@ -73,9 +74,22 @@ router.post('/', authMiddleware, requireRole('ADMIN', 'TECNICO'), upload.single(
                 descripcion,
                 fecha: new Date(fecha),
                 estado: 'CREADO',
-                registradoPor: req.user.nombre
+                registradoPor: req.user.nombre,
+                ticketId: tId
             }
         });
+
+        // Si viene de un ticket, crear traza en el ticket
+        if (tId) {
+            await prisma.trazaTicket.create({
+                data: {
+                    ticketId: tId,
+                    tipoTraza: 'COMENTARIO',
+                    comentario: `Se registró un evento de Hoja de Vida asociado (ID: ${registro.id}): ${descripcion}`,
+                    creadoPorId: req.user.id
+                }
+            });
+        }
 
         // Handle file upload if present
         if (req.file) {

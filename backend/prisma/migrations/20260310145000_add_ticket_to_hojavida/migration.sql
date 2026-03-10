@@ -1,0 +1,1 @@
+ALTER TABLE hoja_vida ADD COLUMN "ticketId" INTEGER; ALTER TABLE hoja_vida ADD CONSTRAINT hoja_vida_ticketId_fkey FOREIGN KEY ("ticketId") REFERENCES tickets(id) ON DELETE SET NULL ON UPDATE CASCADE;

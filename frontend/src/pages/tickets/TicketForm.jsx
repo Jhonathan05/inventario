@@ -25,18 +25,36 @@ const TicketForm = () => {
     useEffect(() => {
         const fetchData = async () => {
             try {
-                const [funcData, actData] = await Promise.all([
-                    api.get('/funcionarios'),
-                    api.get('/activos')
-                ]);
+                const funcData = await api.get('/funcionarios');
                 setFuncionarios(funcData.data);
-                setActivos(actData.data);
+                // Si no hay funcionario seleccionado, no cargar activos inicialmente o cargar todos (opción elegida: esperar a selección)
+                if (!formData.funcionarioId) {
+                    setActivos([]);
+                }
             } catch {
-                toast.error('Error al cargar datos');
+                toast.error('Error al cargar funcionarios');
             }
         };
         fetchData();
     }, []);
+
+    useEffect(() => {
+        const fetchActivosFiltrados = async () => {
+            if (!formData.funcionarioId) {
+                setActivos([]);
+                return;
+            }
+            try {
+                const res = await api.get(`/activos?funcionarioId=${formData.funcionarioId}`);
+                setActivos(res.data);
+                setFormData(prev => ({ ...prev, activoId: '' })); // Reset activo al cambiar funcionario
+                setActivoSearch('');
+            } catch {
+                toast.error('Error al cargar activos del funcionario');
+            }
+        };
+        fetchActivosFiltrados();
+    }, [formData.funcionarioId]);
 
     const handleFileChange = (e) => {
         const files = Array.from(e.target.files);

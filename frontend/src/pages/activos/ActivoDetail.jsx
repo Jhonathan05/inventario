@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import api from '../../lib/axios';
 import { getImageUrl, formatCurrency, formatDate } from '../../lib/utils';
 import { useAuth } from '../../context/AuthContext';
@@ -11,14 +11,19 @@ import DocumentosList from './components/DocumentosList';
 const ActivoDetail = () => {
     const { id } = useParams();
     const navigate = useNavigate();
+    const location = useLocation();
     const { user } = useAuth();
     const canEdit = user?.rol === 'ADMIN' || user?.rol === 'TECNICO';
 
+    // Capturar ticketId si viene en la URL
+    const queryParams = new URLSearchParams(location.search);
+    const ticketIdEnUrl = queryParams.get('ticketId');
+
     const [activo, setActivo] = useState(null);
     const [loading, setLoading] = useState(true);
-    const [activeTab, setActiveTab] = useState('general');
+    const [activeTab, setActiveTab] = useState(ticketIdEnUrl ? 'hojadevida' : 'general');
     const [isEditModalOpen, setIsEditModalOpen] = useState(false);
-    const [isHVModalOpen, setIsHVModalOpen] = useState(false);
+    const [isHVModalOpen, setIsHVModalOpen] = useState(!!ticketIdEnUrl);
     const [selectedHV, setSelectedHV] = useState(null);
     const [isStatusModalOpen, setIsStatusModalOpen] = useState(false);
 
@@ -369,6 +374,7 @@ const ActivoDetail = () => {
                     open={isHVModalOpen}
                     onClose={() => { setIsHVModalOpen(false); fetchActivo(); }}
                     activoId={activo.id}
+                    ticketId={ticketIdEnUrl}
                 />
             )}
 

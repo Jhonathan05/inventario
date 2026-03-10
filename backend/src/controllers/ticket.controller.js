@@ -116,6 +116,10 @@ exports.obtenerTicketPorId = async (req, res) => {
                         adjuntos: true  // Adjuntos por cada traza/comentario
                     },
                     orderBy: { creadoEn: 'asc' } // asc para timeline cronológico
+                },
+                hojaVida: {
+                    include: { responsable: { select: { id: true, nombre: true } } },
+                    orderBy: { fecha: 'desc' }
                 }
             }
         });

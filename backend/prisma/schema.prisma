@@ -1,6 +1,3 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
 generator client {
   provider = "prisma-client-js"
 }
@@ -10,13 +7,10 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-// ==========================================
-// CATÁLOGOS DEL SISTEMA (Listas desplegables)
-// ==========================================
 model Catalogo {
   id          Int      @id @default(autoincrement())
-  dominio     String   // Ej: 'AREA', 'CARGO'
-  valor       String   // Ej: 'EXTENSION RURAL', 'ANALISTA'
+  dominio     String
+  valor       String
   descripcion String?
   activo      Boolean  @default(true)
   creadoEn    DateTime @default(now())
@@ -25,91 +19,258 @@ model Catalogo {
   @@map("catalogos")
 }
 
-// ==========================================
-// CATEGORÍAS DE ACTIVOS
-// ==========================================
 model Categoria {
   id      Int      @id @default(autoincrement())
   nombre  String   @unique
-  icono   String?  // Nombre del icono para el frontend
+  icono   String?
   activos Activo[]
 
   @@map("categorias")
 }
 
-// ==========================================
-// ACTIVOS TECNOLÓGICOS
-// ==========================================
 model Activo {
-  id            Int          @id @default(autoincrement())
-  placa         String       @unique
-  serial        String?
-  marca         String
-  modelo        String
-  descripcion   String?
-  estado        EstadoActivo @default(DISPONIBLE)
-  categoriaId   Int?
-  categoria     Categoria?   @relation(fields: [categoriaId], references: [id])
-  // Campos adicionales opcionales
-  color         String?
-  ubicacion     String?      // Sede, piso, oficina
-  fechaCompra   DateTime?
-  valorCompra   Decimal?
-  garantiaHasta DateTime?
-  observaciones String?
-  imagen        String?      // URL de la imagen principal
-
-  // ==========================================
-  // CAMPOS NUEVOS - ADMINISTRACIÓN
-  // ==========================================
-  empresaPropietaria   String?   @default("FEDERACION")
-  dependencia          String?   @default("SUCURSAL IBAGUE")
-  fuenteRecurso        String?   // FON1, FON2, FEPC
-  tipoRecurso          String?   // PAC, PROYECTO, RECURSO PROPIO
-  tipoControl          String?   @default("CONTROLADO") // CONTROLADO, ADMINISTRADO
-  estadoOperativo      String?   @default("EN OPERACIÓN") // ALMACENADO, TRÁNSITO, EN OPERACIÓN, BAJA, HURTO
-  razonEstado          String?   @default("DISPONIBLE") // DISPONIBLE, CUSTODIA, etc.
-
-  // ==========================================
-  // CAMPOS NUEVOS - FUNCIONARIO
-  // ==========================================
-  empresaFuncionario   String?   @default("FEDERACION")
-  tipoPersonal         String?   // EMPLEADO, CONTRATISTA
-  cedulaFuncionario    String?
-  shortname            String?
-  nombreFuncionario    String?
-  departamento         String?   @default("TOLIMA")
-  ciudad               String?   @default("IBAGUE")
-  cargo                String?
-  area                 String?
-
-  // ==========================================
-  // CAMPOS NUEVOS - ESPECIFICACIONES
-  // ==========================================
-  tipo                 String?   // EQUIPO ESCRITORIO, EQUIPO PORTATIL, etc.
-  nombreEquipo         String?   // Nombre de red del equipo
-  procesador           String?
-  memoriaRam           String?
-  discoDuro            String?
-  sistemaOperativo     String?
-
-  // Relaciones
-  asignaciones  Asignacion[]
-  hojaVida      HojaVida[]
-  documentos    Documento[]
-  tickets       Ticket[]
-  creadoEn      DateTime     @default(now())
-  actualizadoEn DateTime     @updatedAt
-
-  // ==========================================
-  // CAMPOS NUEVOS - ADICIONALES
-  // ==========================================
-  tiempoUso        String?   // Ej. "3"
-  tipoPropietario  String?   // PROPIO, ARRENDADO, etc.
-  checklist        String?   // Responsable TI (Checklist)
-  ordenRemision    String?   // Número de orden de remisión
+  id                 Int          @id @default(autoincrement())
+  placa              String       @unique
+  serial             String?
+  marca              String
+  modelo             String
+  descripcion        String?
+  estado             EstadoActivo @default(DISPONIBLE)
+  categoriaId        Int?
+  color              String?
+  ubicacion          String?
+  fechaCompra        DateTime?
+  valorCompra        Decimal?
+  garantiaHasta      DateTime?
+  observaciones      String?
+  imagen             String?
+  empresaPropietaria String?      @default("FEDERACION")
+  dependencia        String?      @default("SUCURSAL IBAGUE")
+  fuenteRecurso      String?
+  tipoRecurso        String?
+  tipoControl        String?      @default("CONTROLADO")
+  estadoOperativo    String?      @default("EN OPERACIÓN")
+  razonEstado        String?      @default("DISPONIBLE")
+  empresaFuncionario String?      @default("FEDERACION")
+  tipoPersonal       String?
+  cedulaFuncionario  String?
+  shortname          String?
+  nombreFuncionario  String?
+  departamento       String?      @default("TOLIMA")
+  ciudad             String?      @default("IBAGUE")
+  cargo              String?
+  area               String?
+  tipo               String?
+  nombreEquipo       String?
+  procesador         String?
+  memoriaRam         String?
+  discoDuro          String?
+  sistemaOperativo   String?
+  creadoEn           DateTime     @default(now())
+  actualizadoEn      DateTime     @updatedAt
+  tiempoUso          String?
+  tipoPropietario    String?
+  checklist          String?
+  ordenRemision      String?
+  categoria          Categoria?   @relation(fields: [categoriaId], references: [id])
+  asignaciones       Asignacion[]
+  documentos         Documento[]
+  hojaVida           HojaVida[]
+  tickets            Ticket[]
 
   @@map("activos")
+}
+
+model Funcionario {
+  id                 Int          @id @default(autoincrement())
+  nombre             String
+  cedula             String       @unique
+  codigoPersonal     String?      @unique
+  cargo              String?
+  area               String?
+  email              String?
+  telefono           String?
+  activo             Boolean      @default(true)
+  shortname          String?
+  vinculacion        String?
+  empresaFuncionario String?
+  proyecto           String?
+  departamento       String?
+  ciudad             String?
+  seccional          String?
+  municipio          String?
+  ubicacion          String?
+  piso               String?
+  creadoEn           DateTime     @default(now())
+  actas              Acta[]
+  asignaciones       Asignacion[]
+  tickets            Ticket[]
+
+  @@map("funcionarios")
+}
+
+model Asignacion {
+  id            Int            @id @default(autoincrement())
+  activoId      Int
+  funcionarioId Int
+  fechaInicio   DateTime       @default(now())
+  fechaFin      DateTime?
+  tipo          TipoMovimiento
+  observaciones String?
+  realizadoPor  String?
+  activo        Activo         @relation(fields: [activoId], references: [id])
+  funcionario   Funcionario    @relation(fields: [funcionarioId], references: [id])
+  documentos    Documento[]
+
+  @@map("asignaciones")
+}
+
+model HojaVida {
+  id                   Int                 @id @default(autoincrement())
+  activoId             Int
+  tipo                 TipoServicio
+  descripcion          String
+  tecnico              String?
+  costo                Decimal?
+  fecha                DateTime            @default(now())
+  proximoMantenimiento DateTime?
+  registradoPor        String?
+  casoAranda           String?
+  estado               EstadoMantenimiento @default(EN_PROCESO)
+  diagnostico          String?
+  responsableId        Int?
+  documentos           Documento[]
+  activo               Activo              @relation(fields: [activoId], references: [id])
+  responsable          Usuario?            @relation("ResponsableTicket", fields: [responsableId], references: [id])
+  ticketId             Int?
+  ticket               Ticket?             @relation(fields: [ticketId], references: [id])
+  trazas               TrazaHojaVida[]
+
+  @@map("hoja_vida")
+}
+
+model TrazaHojaVida {
+  id             Int                  @id @default(autoincrement())
+  hojaVidaId     Int
+  estadoAnterior EstadoMantenimiento?
+  estadoNuevo    EstadoMantenimiento
+  observacion    String
+  fecha          DateTime             @default(now())
+  usuarioId      Int?
+  hojaVida       HojaVida             @relation(fields: [hojaVidaId], references: [id])
+  usuario        Usuario?             @relation(fields: [usuarioId], references: [id])
+
+  @@map("trazas_hoja_vida")
+}
+
+model Documento {
+  id            Int          @id @default(autoincrement())
+  nombre        String
+  nombreArchivo String
+  ruta          String
+  tipo          String
+  tamano        Int?
+  activoId      Int?
+  asignacionId  Int?
+  hojaVidaId    Int?
+  ticketId      Int?
+  trazaTicketId Int?
+  creadoEn      DateTime     @default(now())
+  activo        Activo?      @relation(fields: [activoId], references: [id])
+  asignacion    Asignacion?  @relation(fields: [asignacionId], references: [id])
+  hojaVida      HojaVida?    @relation(fields: [hojaVidaId], references: [id])
+  ticket        Ticket?      @relation(fields: [ticketId], references: [id])
+  trazaTicket   TrazaTicket? @relation(fields: [trazaTicketId], references: [id])
+
+  @@map("documentos")
+}
+
+model Usuario {
+  id                      Int             @id @default(autoincrement())
+  nombre                  String
+  email                   String          @unique
+  password                String
+  rol                     Rol             @default(TECNICO)
+  activo                  Boolean         @default(true)
+  creadoEn                DateTime        @default(now())
+  actualizadoEn           DateTime        @updatedAt
+  actasCreadas            Acta[]
+  asignacionesResponsable HojaVida[]      @relation("ResponsableTicket")
+  ticketsAsignados        Ticket[]        @relation("TicketsAsignados")
+  ticketsCreados          Ticket[]        @relation("TicketsCreados")
+  trazas                  TrazaHojaVida[]
+  trazasTicket            TrazaTicket[]
+
+  @@map("usuarios")
+}
+
+model PerfilReporte {
+  id            Int      @id @default(autoincrement())
+  nombre        String   @unique
+  descripcion   String?
+  tipoReporte   String
+  columnas      Json
+  esPredefinido Boolean  @default(false)
+  creadoEn      DateTime @default(now())
+  actualizadoEn DateTime @updatedAt
+
+  @@map("perfiles_reporte")
+}
+
+model Acta {
+  id            Int          @id @default(autoincrement())
+  tipo          String
+  fecha         DateTime     @default(now())
+  archivoUrl    String?
+  observaciones String?
+  creadoPorId   Int
+  funcionarioId Int?
+  detalles      Json
+  creadoPor     Usuario      @relation(fields: [creadoPorId], references: [id])
+  funcionario   Funcionario? @relation(fields: [funcionarioId], references: [id])
+
+  @@map("actas")
+}
+
+model Ticket {
+  id            Int             @id @default(autoincrement())
+  titulo        String
+  descripcion   String
+  estado        EstadoTicket    @default(CREADO)
+  prioridad     PrioridadTicket @default(MEDIA)
+  tipo          TipoTicket      @default(REQUERIMIENTO)
+  funcionarioId Int
+  activoId      Int?
+  asignadoAId   Int?
+  creadoPorId   Int
+  creadoEn      DateTime        @default(now())
+  actualizadoEn DateTime        @updatedAt
+  cerradoEn     DateTime?
+  adjuntos      Documento[]
+  activo        Activo?         @relation(fields: [activoId], references: [id])
+  asignadoA     Usuario?        @relation("TicketsAsignados", fields: [asignadoAId], references: [id])
+  creadoPor     Usuario         @relation("TicketsCreados", fields: [creadoPorId], references: [id])
+  funcionario   Funcionario     @relation(fields: [funcionarioId], references: [id])
+  trazas        TrazaTicket[]
+  hojaVida      HojaVida[]
+
+  @@map("tickets")
+}
+
+model TrazaTicket {
+  id             Int             @id @default(autoincrement())
+  ticketId       Int
+  tipoTraza      TipoTrazaTicket @default(COMENTARIO)
+  comentario     String
+  estadoAnterior EstadoTicket?
+  estadoNuevo    EstadoTicket?
+  creadoPorId    Int
+  creadoEn       DateTime        @default(now())
+  adjuntos       Documento[]
+  creadoPor      Usuario         @relation(fields: [creadoPorId], references: [id])
+  ticket         Ticket          @relation(fields: [ticketId], references: [id], onDelete: Cascade)
+
+  @@map("trazas_ticket")
 }
 
 enum EstadoActivo {
@@ -119,92 +280,10 @@ enum EstadoActivo {
   DADO_DE_BAJA
 }
 
-// ==========================================
-// FUNCIONARIOS
-// ==========================================
-model Funcionario {
-  id           Int          @id @default(autoincrement())
-  nombre       String
-  cedula       String       @unique
-  codigoPersonal String?    @unique
-  cargo        String?
-  area         String?
-  email        String?
-  telefono     String?
-  activo       Boolean      @default(true)
-
-  // ==========================================
-  // CAMPOS NUEVOS - PERFIL EXTENDIDO
-  // ==========================================
-  shortname          String?
-  vinculacion        String?   // EMPLEADO, CONTRATISTA
-  empresaFuncionario String?
-  proyecto           String?
-  departamento       String?
-  ciudad             String?
-  seccional          String?
-  municipio          String?
-  ubicacion          String?
-  piso               String?
-
-  asignaciones Asignacion[]
-  actas        Acta[]
-  tickets      Ticket[]
-  creadoEn     DateTime     @default(now())
-
-  @@map("funcionarios")
-}
-
-// ==========================================
-// ASIGNACIONES (Historial de movimientos)
-// ==========================================
-model Asignacion {
-  id            Int            @id @default(autoincrement())
-  activoId      Int
-  activo        Activo         @relation(fields: [activoId], references: [id])
-  funcionarioId Int
-  funcionario   Funcionario    @relation(fields: [funcionarioId], references: [id])
-  fechaInicio   DateTime       @default(now())
-  fechaFin      DateTime?      // null = asignación activa
-  tipo          TipoMovimiento
-  observaciones String?
-  realizadoPor  String?        // Usuario del sistema que registró el movimiento
-  documentos    Documento[]
-
-  @@map("asignaciones")
-}
-
 enum TipoMovimiento {
   ASIGNACION
   TRASLADO
   DEVOLUCION
-}
-
-// ==========================================
-// HOJA DE VIDA (Mantenimientos, reparaciones, suministros)
-// ==========================================
-model HojaVida {
-  id          Int          @id @default(autoincrement())
-  activoId    Int
-  activo      Activo       @relation(fields: [activoId], references: [id])
-  tipo        TipoServicio
-  descripcion String
-  tecnico     String?      // Proveedor externo o detalle adicional
-  costo       Decimal?
-  fecha       DateTime     @default(now())
-  proximoMantenimiento DateTime?
-  documentos  Documento[]
-  registradoPor String?   // Usuario del sistema que creo el ticket
-  casoAranda    String?
-  estado        EstadoMantenimiento @default(EN_PROCESO)
-  trazas        TrazaHojaVida[]
-  
-  // Nuevos campos para el proceso
-  diagnostico   String?
-  responsableId Int?
-  responsable   Usuario?    @relation("ResponsableTicket", fields: [responsableId], references: [id])
-
-  @@map("hoja_vida")
 }
 
 enum TipoServicio {
@@ -219,76 +298,11 @@ enum TipoServicio {
 enum EstadoMantenimiento {
   CREADO
   EN_PROCESO
-  ESPERA_SUMINISTRO
-  PROCESO_GARANTIA
   SUSPENDIDO
   FINALIZADO
-  CERRADO // Mantener por compatibilidad si hay datos, o migrar
-}
-
-model TrazaHojaVida {
-  id              Int                 @id @default(autoincrement())
-  hojaVidaId      Int
-  hojaVida        HojaVida            @relation(fields: [hojaVidaId], references: [id])
-  estadoAnterior  EstadoMantenimiento?
-  estadoNuevo     EstadoMantenimiento
-  observacion     String
-  fecha           DateTime            @default(now())
-  usuarioId       Int?
-  usuario         Usuario?            @relation(fields: [usuarioId], references: [id])
-
-  @@map("trazas_hoja_vida")
-}
-
-// ==========================================
-// DOCUMENTOS ADJUNTOS (PDF, imágenes)
-// ==========================================
-model Documento {
-  id           Int         @id @default(autoincrement())
-  nombre       String      // Nombre original del archivo
-  nombreArchivo String     // Nombre en el servidor (UUID)
-  ruta         String      // Ruta relativa en el servidor
-  tipo         String      // MIME type: application/pdf, image/jpeg, etc.
-  tamano       Int?        // Tamaño en bytes
-  // Relaciones polimórficas
-  activoId     Int?
-  activo       Activo?     @relation(fields: [activoId], references: [id])
-  asignacionId Int?
-  asignacion   Asignacion? @relation(fields: [asignacionId], references: [id])
-  hojaVidaId   Int?
-  hojaVida     HojaVida?   @relation(fields: [hojaVidaId], references: [id])
-  // Relaciones ITSM Tickets
-  ticketId     Int?
-  ticket       Ticket?     @relation(fields: [ticketId], references: [id])
-  trazaTicketId Int?
-  trazaTicket  TrazaTicket? @relation(fields: [trazaTicketId], references: [id])
-  creadoEn     DateTime    @default(now())
-
-  @@map("documentos")
-}
-
-// ==========================================
-// USUARIOS DEL SISTEMA
-// ==========================================
-model Usuario {
-  id        Int             @id @default(autoincrement())
-  nombre    String
-  email     String          @unique
-  password  String
-  rol       Rol             @default(TECNICO)
-  activo    Boolean         @default(true)
-  creadoEn  DateTime        @default(now())
-  actualizadoEn DateTime    @updatedAt
-  trazas        TrazaHojaVida[]
-  asignacionesResponsable HojaVida[] @relation("ResponsableTicket")
-  actasCreadas  Acta[]
-  
-  // Relaciones ITSM Tickets
-  ticketsAsignados Ticket[] @relation("TicketsAsignados")
-  ticketsCreados   Ticket[] @relation("TicketsCreados")
-  trazasTicket     TrazaTicket[]
-
-  @@map("usuarios")
+  CERRADO
+  ESPERA_SUMINISTRO
+  PROCESO_GARANTIA
 }
 
 enum Rol {
@@ -296,44 +310,6 @@ enum Rol {
   TECNICO
   CONSULTA
 }
-
-// ==========================================
-// PERFILES DE REPORTE
-// ==========================================
-model PerfilReporte {
-  id            Int      @id @default(autoincrement())
-  nombre        String   @unique
-  descripcion   String?
-  tipoReporte   String   // 'inventario', 'asignaciones', etc.
-  columnas      Json     // Array de { key, label, order }
-  esPredefinido Boolean  @default(false)
-  creadoEn      DateTime @default(now())
-  actualizadoEn DateTime @updatedAt
-
-  @@map("perfiles_reporte")
-}
-
-// ==========================================
-// ACTAS Y NOVEDADES
-// ==========================================
-model Acta {
-  id             Int      @id @default(autoincrement())
-  tipo           String   // 'ASIGNACION', 'DEVOLUCION', 'TRASLADO'
-  fecha          DateTime @default(now())
-  archivoUrl     String?  // Ruta del Excel generado
-  observaciones  String?
-  creadoPorId    Int
-  creadoPor      Usuario  @relation(fields: [creadoPorId], references: [id])
-  funcionarioId  Int?     // Funcionario principal (Recibe en Asig/Traslado, Entrega en Dev)
-  funcionario    Funcionario? @relation(fields: [funcionarioId], references: [id])
-  detalles       Json     // Array de { activoId, placa, serial, nombre, marca, modelo }
-
-  @@map("actas")
-}
-
-// ==========================================
-// ITSM - MESA DE AYUDA (Tickets/Casos)
-// ==========================================
 
 enum EstadoTicket {
   CREADO
@@ -359,54 +335,4 @@ enum TipoTrazaTicket {
   COMENTARIO
   CAMBIO_ESTADO
   ASIGNACION
-}
-
-model Ticket {
-  id              Int              @id @default(autoincrement())
-  titulo          String
-  descripcion     String           @db.Text
-  estado          EstadoTicket     @default(CREADO)
-  prioridad       PrioridadTicket  @default(MEDIA)
-  tipo            TipoTicket       @default(REQUERIMIENTO)
-
-  funcionarioId   Int
-  funcionario     Funcionario      @relation(fields: [funcionarioId], references: [id])
-  
-  activoId        Int?             
-  activo          Activo?          @relation(fields: [activoId], references: [id])
-
-  asignadoAId     Int?             
-  asignadoA       Usuario?         @relation("TicketsAsignados", fields: [asignadoAId], references: [id])
-
-  creadoPorId     Int
-  creadoPor       Usuario          @relation("TicketsCreados", fields: [creadoPorId], references: [id])
-
-  trazas          TrazaTicket[]
-  adjuntos        Documento[]
-
-  creadoEn        DateTime         @default(now())
-  actualizadoEn   DateTime         @updatedAt
-  cerradoEn       DateTime?
-
-  @@map("tickets")
-}
-
-model TrazaTicket {
-  id              Int              @id @default(autoincrement())
-  ticketId        Int
-  ticket          Ticket           @relation(fields: [ticketId], references: [id], onDelete: Cascade)
-  
-  tipoTraza       TipoTrazaTicket  @default(COMENTARIO)
-  comentario      String           @db.Text
-  
-  estadoAnterior  EstadoTicket?
-  estadoNuevo     EstadoTicket?
-  
-  creadoPorId     Int
-  creadoPor       Usuario          @relation(fields: [creadoPorId], references: [id])
-  adjuntos        Documento[]      // Archivos adjuntos a esta traza/comentario
-  
-  creadoEn        DateTime         @default(now())
-
-  @@map("trazas_ticket")
 }

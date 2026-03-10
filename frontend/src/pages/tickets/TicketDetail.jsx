@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, Link } from 'react-router-dom';
 import toast from 'react-hot-toast';
 import api from '../../lib/axios';
 import {
@@ -14,7 +14,8 @@ import {
     PaperAirplaneIcon,
     UserPlusIcon,
     TrashIcon,
-    ArrowDownTrayIcon
+    ArrowDownTrayIcon,
+    WrenchIcon
 } from '@heroicons/react/24/outline';
 import { useAuth } from '../../context/AuthContext';
 
@@ -313,6 +314,47 @@ const TicketDetail = () => {
                                         Actualizar
                                     </button>
                                 </div>
+                            </div>
+                            {canEdit && ticket.activoId && (
+                                <div className="pt-2">
+                                    <Link
+                                        to={`/activos/${ticket.activoId}/hojavida/nuevo?ticketId=${ticket.id}`}
+                                        className="w-full inline-flex justify-center items-center px-4 py-2 border border-blue-600 text-sm font-medium rounded-md text-blue-600 bg-white hover:bg-blue-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                                    >
+                                        <WrenchIcon className="h-4 w-4 mr-2" />
+                                        Registrar Mantenimiento
+                                    </Link>
+                                </div>
+                            )}
+                        </div>
+                    )}
+
+                    {/* Mantenimientos Asociados (Hoja de Vida) */}
+                    {ticket.hojaVida && ticket.hojaVida.length > 0 && (
+                        <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden mb-6 mt-6">
+                            <div className="px-5 py-3 border-b border-gray-100 bg-gray-50 flex items-center">
+                                <WrenchIcon className="h-4 w-4 text-gray-400 mr-2" />
+                                <h3 className="text-sm font-semibold text-gray-900">Mantenimientos Asociados</h3>
+                            </div>
+                            <div className="p-4 space-y-3">
+                                {ticket.hojaVida.map((hv) => (
+                                    <div key={hv.id} className="p-3 border border-blue-50 bg-blue-50/30 rounded-lg">
+                                        <div className="flex justify-between items-start mb-1">
+                                            <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-medium bg-blue-100 text-blue-800 uppercase">
+                                                {hv.tipo}
+                                            </span>
+                                            <span className="text-[10px] text-gray-400">{new Date(hv.fecha).toLocaleDateString()}</span>
+                                        </div>
+                                        <p className="text-xs text-gray-700 leading-relaxed line-clamp-2">{hv.descripcion}</p>
+                                        {hv.diagnostico && (
+                                            <p className="mt-1 text-[10px] text-gray-500 italic">Diag: {hv.diagnostico}</p>
+                                        )}
+                                        <div className="mt-2 flex justify-between items-center text-[10px] text-gray-400">
+                                            <span>Por: {hv.responsable?.nombre || 'N/A'}</span>
+                                            <Link to={`/activos/${ticket.activoId}#hojavida`} className="text-blue-500 hover:underline">Ver más</Link>
+                                        </div>
+                                    </div>
+                                ))}
                             </div>
                         </div>
                     )}

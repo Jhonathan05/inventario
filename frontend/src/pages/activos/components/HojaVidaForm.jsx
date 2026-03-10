@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import api from '../../../lib/axios';
 
-const HojaVidaForm = ({ open, onClose, activoId }) => {
+const HojaVidaForm = ({ open, onClose, activoId, ticketId }) => {
     const [formData, setFormData] = useState({
         tipo: 'MANTENIMIENTO',
         descripcion: '',
@@ -33,6 +33,9 @@ const HojaVidaForm = ({ open, onClose, activoId }) => {
             data.append('tipo', formData.tipo);
             data.append('descripcion', formData.descripcion);
             data.append('fecha', formData.fecha);
+            if (ticketId) {
+                data.append('ticketId', ticketId);
+            }
             if (file) {
                 data.append('file', file);
             }
