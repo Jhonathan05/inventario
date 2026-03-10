@@ -66,6 +66,18 @@ router.post('/', authMiddleware, requireRole('ADMIN', 'TECNICO'), upload.single(
         // req.body fields come as strings due to multipart/form-data
         const { activoId, tipo, descripcion, fecha, ticketId } = req.body;
         const tId = ticketId ? parseInt(ticketId) : null;
+        let responsableId = null;
+
+        // Si viene de un ticket, heredar el técnico asignado
+        if (tId) {
+            const ticket = await prisma.ticket.findUnique({
+                where: { id: tId },
+                select: { asignadoAId: true }
+            });
+            if (ticket && ticket.asignadoAId) {
+                responsableId = ticket.asignadoAId;
+            }
+        }
 
         const registro = await prisma.hojaVida.create({
             data: {
@@ -75,7 +87,8 @@ router.post('/', authMiddleware, requireRole('ADMIN', 'TECNICO'), upload.single(
                 fecha: new Date(fecha),
                 estado: 'CREADO',
                 registradoPor: req.user.nombre,
-                ticketId: tId
+                ticketId: tId,
+                responsableId
             }
         });
 

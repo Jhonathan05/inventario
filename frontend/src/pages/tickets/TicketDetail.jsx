@@ -1,4 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
+import jsPDF from 'jspdf';
+import autoTable from 'jspdf-autotable';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import toast from 'react-hot-toast';
 import api from '../../lib/axios';
@@ -15,7 +17,9 @@ import {
     UserPlusIcon,
     TrashIcon,
     ArrowDownTrayIcon,
-    WrenchIcon
+    WrenchIcon,
+    PaperClipIcon,
+    PrinterIcon
 } from '@heroicons/react/24/outline';
 import { useAuth } from '../../context/AuthContext';
 
@@ -158,6 +162,22 @@ const TicketDetail = () => {
         }
     };
 
+    const handleEliminar = async () => {
+        if (!window.confirm('¿ESTÁS COMPLETAMENTE SEGURO? Esta acción eliminará el ticket de forma permanente y NO se puede deshacer.')) return;
+
+        try {
+            setSaving(true);
+            await api.delete(`/tickets/${id}`);
+            toast.success('Ticket eliminado permanentemente');
+            navigate('/tickets');
+        } catch (err) {
+            console.error(err);
+            toast.error('Error al intentar eliminar el ticket');
+        } finally {
+            setSaving(false);
+        }
+    };
+
     const estadoBadgeColor = {
         CREADO: 'bg-gray-100 text-gray-700 border-gray-200',
         EN_CURSO: 'bg-blue-100 text-blue-700 border-blue-200',
@@ -181,19 +201,221 @@ const TicketDetail = () => {
         }
     };
 
-    if (loading || !ticket) {
+    if (loading) {
         return (
             <div className="flex justify-center items-center h-64">
                 <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600" />
             </div>
         );
     }
+    if (!ticket) return <div className="p-8 text-center text-red-500">Ticket no encontrado</div>;
+
+    const exportToPDF = () => {
+        const doc = new jsPDF();
+        const pageWidth = doc.internal.pageSize.getWidth();
+
+        // --- Encabezado ---
+        doc.setFontSize(20);
+        doc.setTextColor(30, 58, 138); // Blue 800
+        doc.text("REPORTE DE SOPORTE TÉCNICO", 14, 22);
+
+        doc.setFontSize(10);
+        doc.setTextColor(100);
+        doc.text("Sistema de Gestión de Inventario", 14, 28);
+        doc.text(`Generado: ${new Date().toLocaleString()}`, pageWidth - 14, 28, { align: 'right' });
+
+        doc.setLineWidth(0.5);
+        doc.setDrawColor(30, 58, 138);
+        doc.line(14, 32, pageWidth - 14, 32);
+
+        // --- Información General ---
+        doc.setFontSize(14);
+        doc.setTextColor(0);
+        doc.text(`Ticket #${ticket.id}: ${ticket.titulo}`, 14, 42);
+
+        const infoGeneral = [
+            ["Estado", ticket.estado, "Prioridad", ticket.prioridad],
+            ["Tipo", ticket.tipo, "Fecha Creación", new Date(ticket.creadoEn).toLocaleString()],
+            ["Solicitante", ticket.funcionario?.nombre || 'N/A', "Área", ticket.funcionario?.area || 'N/A'],
+            ["Activo", ticket.activo ? `${ticket.activo.placa} (${ticket.activo.marca} ${ticket.activo.modelo})` : 'Ninguno', "Responsable", ticket.asignadoA?.nombre || 'Sin asignar']
+        ];
+
+        autoTable(doc, {
+            startY: 48,
+            body: infoGeneral,
+            theme: 'grid',
+            styles: { fontSize: 9, cellPadding: 3 },
+            columnStyles: {
+                0: { fontStyle: 'bold', fillColor: [243, 244, 246], cellWidth: 30 },
+                2: { fontStyle: 'bold', fillColor: [243, 244, 246], cellWidth: 30 }
+            }
+        });
+
+        // --- Descripción ---
+        let currentY = doc.lastAutoTable.finalY + 10;
+        doc.setFontSize(12);
+        doc.setFont(undefined, 'bold');
+        doc.text("Descripción del Problema:", 14, currentY);
+        doc.setFont(undefined, 'normal');
+        doc.setFontSize(10);
+
+        const splitDesc = doc.splitTextToSize(ticket.descripcion, pageWidth - 28);
+        doc.text(splitDesc, 14, currentY + 7);
+        currentY += (splitDesc.length * 5) + 15;
+
+        // --- Trazabilidad (Timeline) ---
+        if (ticket.trazas && ticket.trazas.length > 0) {
+            doc.setFontSize(12);
+            doc.setFont(undefined, 'bold');
+            doc.text("Historial de Trazabilidad:", 14, currentY);
+
+            const trazasBody = ticket.trazas.map(t => [
+                new Date(t.creadoEn).toLocaleString(),
+                t.creadoPor?.nombre || 'Sistema',
+                t.tipoTraza,
+                t.comentario
+            ]);
+
+            autoTable(doc, {
+                startY: currentY + 5,
+                head: [['Fecha', 'Usuario', 'Acción', 'Comentario']],
+                body: trazasBody,
+                theme: 'striped',
+                headStyles: { fillColor: [30, 58, 138] }, // Blue 800 institucional
+                styles: { fontSize: 8 }
+            });
+            currentY = doc.lastAutoTable.finalY + 10;
+        }
+
+        // --- Mantenimientos Relacionados ---
+        if (ticket.hojaVida && ticket.hojaVida.length > 0) {
+            if (currentY + 30 > doc.internal.pageSize.getHeight()) {
+                doc.addPage();
+                currentY = 20;
+            }
+
+            doc.setFontSize(12);
+            doc.setFont(undefined, 'bold');
+            doc.text("Historial de Mantenimientos (Hoja de Vida):", 14, currentY);
+            currentY += 7;
+
+            ticket.hojaVida.forEach((h, index) => {
+                const hBody = [[
+                    new Date(h.fecha).toLocaleDateString(),
+                    h.tipo,
+                    h.descripcion,
+                    h.responsable?.nombre || 'N/A',
+                    h.diagnostico || '-'
+                ]];
+
+                autoTable(doc, {
+                    startY: currentY,
+                    head: index === 0 ? [['Fecha', 'Tipo', 'Descripción', 'Técnico', 'Diagnóstico']] : false,
+                    body: hBody,
+                    theme: 'grid',
+                    headStyles: { fillColor: [30, 58, 138] }, // Blue 800 institucional
+                    styles: { fontSize: 8, cellPadding: 2 }
+                });
+                currentY = doc.lastAutoTable.finalY;
+
+                // Agregar Bitácora de Avances de este mantenimiento
+                if (h.trazas && h.trazas.length > 0) {
+                    const trazasHV = h.trazas.map(t => [
+                        `  >> ${new Date(t.fecha).toLocaleString()}`,
+                        `${t.estadoNuevo}: ${t.observacion} (${t.usuario?.nombre || 'Sist.'})`
+                    ]);
+
+                    autoTable(doc, {
+                        startY: currentY,
+                        body: trazasHV,
+                        theme: 'plain',
+                        styles: { fontSize: 7.5, fontStyle: 'italic', cellPadding: 1.5, textColor: [75, 85, 99] }, // Gray 600
+                        columnStyles: {
+                            0: { cellWidth: 40 },
+                            1: { cellWidth: 'auto' }
+                        }
+                    });
+                    currentY = doc.lastAutoTable.finalY + 4;
+                } else {
+                    currentY += 4;
+                }
+
+                // Salto de página preventivo
+                if (currentY + 25 > doc.internal.pageSize.getHeight()) {
+                    doc.addPage();
+                    currentY = 20;
+                }
+            });
+        }
+
+        // --- Pie de página ---
+        const pageCount = doc.internal.getNumberOfPages();
+        for (let i = 1; i <= pageCount; i++) {
+            doc.setPage(i);
+            doc.setFontSize(8);
+            doc.setTextColor(150);
+            doc.text(`Pag. ${i} de ${pageCount}`, pageWidth / 2, doc.internal.pageSize.getHeight() - 10, { align: 'center' });
+        }
+
+        doc.save(`Ticket_${ticket.id}_Reporte.pdf`);
+    };
 
     return (
-        <div className="max-w-7xl mx-auto space-y-6">
+        <div className="px-2 sm:px-4 md:px-6 lg:px-8 max-w-7xl mx-auto space-y-6">
+
+            {/* Header / Logo (Only Print) */}
+            <div className="print-only header-logo">
+                <div className="flex flex-col">
+                    <h1>REPORTE DE SOPORTE TÉCNICO</h1>
+                    <p className="text-sm">Sistema de Gestión de Inventario y Mesa de Ayuda</p>
+                </div>
+                <div className="text-right">
+                    <p className="font-bold">Ticket ID: #{ticket.id}</p>
+                    <p className="text-xs">Generado: {new Date().toLocaleString()}</p>
+                </div>
+            </div>
+
+            {/* Toolbar */}
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 no-print">
+                <button
+                    onClick={() => navigate('/tickets')}
+                    className="inline-flex items-center text-gray-600 hover:text-gray-900 transition-colors"
+                >
+                    <ArrowLeftIcon className="h-5 w-5 mr-1" />
+                    <span>Volver</span>
+                </button>
+
+                <div className="flex gap-2">
+                    <button
+                        onClick={exportToPDF}
+                        className="inline-flex items-center px-4 py-2 bg-white border border-gray-300 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50 shadow-sm transition-all"
+                    >
+                        <PrinterIcon className="h-4 w-4 mr-2" />
+                        Exportar PDF
+                    </button>
+                    {canEdit && (
+                        <button
+                            onClick={() => navigate(`/tickets/editar/${id}`)}
+                            className="inline-flex items-center px-4 py-2 bg-indigo-600 border border-transparent rounded-lg text-sm font-medium text-white hover:bg-indigo-700 shadow-sm transition-all"
+                        >
+                            <TagIcon className="h-4 w-4 mr-2" />
+                            Editar
+                        </button>
+                    )}
+                    {user?.rol === 'ADMIN' && (
+                        <button
+                            onClick={handleEliminar}
+                            className="inline-flex items-center px-4 py-2 bg-red-50 border border-red-200 rounded-lg text-sm font-medium text-red-600 hover:bg-red-100 shadow-sm transition-all"
+                        >
+                            <TrashIcon className="h-4 w-4 mr-2" />
+                            Eliminar Caso
+                        </button>
+                    )}
+                </div>
+            </div>
             {/* Header */}
             <div className="flex items-center gap-4 bg-white p-4 rounded-xl shadow-sm border border-gray-100">
-                <button onClick={() => navigate('/tickets')} className="p-2 text-gray-400 hover:text-gray-900 rounded-full hover:bg-gray-100">
+                <button onClick={() => navigate('/tickets')} className="p-2 text-gray-400 hover:text-gray-900 rounded-full hover:bg-gray-100 no-print">
                     <ArrowLeftIcon className="w-5 h-5" />
                 </button>
                 <div className="flex-1">
@@ -282,7 +504,7 @@ const TicketDetail = () => {
 
                     {/* Gestión */}
                     {canEdit && (
-                        <div className="bg-gray-50 rounded-xl shadow-sm border border-gray-100 p-5 space-y-4">
+                        <div className="bg-gray-50 rounded-xl shadow-sm border border-gray-100 p-5 space-y-4 no-print">
                             <h3 className="text-xs font-semibold uppercase text-gray-500 tracking-wider">Gestión del Caso</h3>
                             <div>
                                 <label className="text-xs font-semibold text-gray-600 block mb-1">Técnico Asignado</label>
@@ -318,7 +540,7 @@ const TicketDetail = () => {
                             {canEdit && ticket.activoId && (
                                 <div className="pt-2">
                                     <Link
-                                        to={`/activos/${ticket.activoId}/hojavida/nuevo?ticketId=${ticket.id}`}
+                                        to={`/activos/${ticket.activoId}?ticketId=${ticket.id}`}
                                         className="w-full inline-flex justify-center items-center px-4 py-2 border border-blue-600 text-sm font-medium rounded-md text-blue-600 bg-white hover:bg-blue-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
                                     >
                                         <WrenchIcon className="h-4 w-4 mr-2" />
@@ -351,7 +573,7 @@ const TicketDetail = () => {
                                         )}
                                         <div className="mt-2 flex justify-between items-center text-[10px] text-gray-400">
                                             <span>Por: {hv.responsable?.nombre || 'N/A'}</span>
-                                            <Link to={`/activos/${ticket.activoId}#hojavida`} className="text-blue-500 hover:underline">Ver más</Link>
+                                            <Link to={`/activos/${ticket.activoId}#hojavida`} className="text-blue-500 hover:underline no-print">Ver más</Link>
                                         </div>
                                     </div>
                                 ))}
@@ -407,7 +629,7 @@ const TicketDetail = () => {
 
                     {/* Añadir Comentario con adjuntos */}
                     {canEdit && (
-                        <form onSubmit={handleAgregarComentario} className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+                        <form onSubmit={handleAgregarComentario} className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden no-print">
                             <div className="p-4">
                                 <textarea
                                     rows="2"

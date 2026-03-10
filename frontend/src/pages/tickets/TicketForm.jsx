@@ -1,12 +1,14 @@
 import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 import toast from 'react-hot-toast';
 import api from '../../lib/axios';
 import { XMarkIcon, TagIcon, PaperClipIcon, TrashIcon, ExclamationCircleIcon } from '@heroicons/react/24/outline';
 
 const TicketForm = () => {
+    const { id } = useParams();
     const navigate = useNavigate();
     const [loading, setLoading] = useState(false);
+    const isEdit = !!id;
     const [funcionarios, setFuncionarios] = useState([]);
     const [activos, setActivos] = useState([]);
     const [funcSearch, setFuncSearch] = useState('');
@@ -24,15 +26,32 @@ const TicketForm = () => {
 
     useEffect(() => {
         const fetchData = async () => {
+            setLoading(true);
             try {
-                const funcData = await api.get('/funcionarios');
-                setFuncionarios(funcData.data);
-                // Si no hay funcionario seleccionado, no cargar activos inicialmente o cargar todos (opción elegida: esperar a selección)
-                if (!formData.funcionarioId) {
-                    setActivos([]);
+                const [funcRes] = await Promise.all([
+                    api.get('/funcionarios')
+                ]);
+                setFuncionarios(funcRes.data);
+
+                if (isEdit) {
+                    const ticketRes = await api.get(`/tickets/${id}`);
+                    const t = ticketRes.data;
+                    setFormData({
+                        titulo: t.titulo,
+                        descripcion: t.descripcion,
+                        prioridad: t.prioridad,
+                        tipo: t.tipo,
+                        funcionarioId: String(t.funcionarioId),
+                        activoId: t.activoId ? String(t.activoId) : ''
+                    });
+                    setFuncSearch(t.funcionario?.nombre || '');
+                    setActivoSearch(t.activo?.placa || '');
                 }
-            } catch {
-                toast.error('Error al cargar funcionarios');
+            } catch (err) {
+                console.error(err);
+                toast.error('Error al cargar datos');
+            } finally {
+                setLoading(false);
             }
         };
         fetchData();
@@ -68,26 +87,32 @@ const TicketForm = () => {
 
     const handleSubmit = async (e) => {
         e.preventDefault();
-        if (!formData.funcionarioId) { toast.error('Selecciona un funcionario'); return; }
+        setLoading(true);
 
         try {
-            setLoading(true);
+            const data = new FormData();
+            data.append('titulo', formData.titulo);
+            data.append('descripcion', formData.descripcion);
+            data.append('prioridad', formData.prioridad);
+            data.append('tipo', formData.tipo);
+            data.append('funcionarioId', formData.funcionarioId);
+            if (formData.activoId) data.append('activoId', formData.activoId);
 
-            // Use FormData to support file uploads
-            const payload = new FormData();
-            payload.append('titulo', formData.titulo);
-            payload.append('descripcion', formData.descripcion);
-            payload.append('prioridad', formData.prioridad);
-            payload.append('tipo', formData.tipo);
-            payload.append('funcionarioId', formData.funcionarioId);
-            if (formData.activoId) payload.append('activoId', formData.activoId);
-            adjuntos.forEach(file => payload.append('adjuntos', file));
+            adjuntos.forEach(file => {
+                data.append('adjuntos', file);
+            });
 
-            const res = await api.post('/tickets', payload);
-            toast.success('Caso creado exitosamente');
-            navigate(`/tickets/${res.data.id}`);
-        } catch {
-            toast.error('Error al crear el caso');
+            if (isEdit) {
+                await api.put(`/tickets/${id}`, data);
+                toast.success('Ticket actualizado');
+            } else {
+                await api.post('/tickets', data);
+                toast.success('Ticket creado exitosamente');
+            }
+            navigate('/tickets');
+        } catch (error) {
+            console.error(error);
+            toast.error(error.response?.data?.error || 'Error al procesar la solicitud');
         } finally {
             setLoading(false);
         }
@@ -239,7 +264,7 @@ const TicketForm = () => {
                     </button>
                     <button type="submit" disabled={loading}
                         className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 text-sm font-medium disabled:opacity-50 shadow-sm">
-                        {loading ? 'Guardando...' : '✓ Crear Caso'}
+                        {loading ? 'Guardando...' : (isEdit ? '✓ Guardar Cambios' : '✓ Crear Caso')}
                     </button>
                 </div>
             </form>

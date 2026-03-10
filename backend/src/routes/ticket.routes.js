@@ -10,6 +10,8 @@ router.use(authMiddleware);
 // ─── Rutas principales (CRUD) ─────────────────────────
 // Crear ticket con adjuntos opcionales (multipart/form-data, campo 'adjuntos')
 router.post('/', upload.array('adjuntos', 10), ticketController.crearTicket);
+router.put('/:id', upload.array('adjuntos', 10), ticketController.editarTicket);
+router.delete('/:id', ticketController.eliminarTicket);
 router.get('/', ticketController.obtenerTickets);
 router.get('/:id', ticketController.obtenerTicketPorId);
 

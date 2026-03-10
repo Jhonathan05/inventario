@@ -46,8 +46,9 @@ function App() {
                             <Route path="/actas/generar" element={<GenerarActa />} />
                             <Route path="/importar" element={<ImportarDatos />} />
 
-                            {/* Mesa de Ayuda (Creación) */}
+                            {/* Mesa de Ayuda (Creación y Edición) */}
                             <Route path="/tickets/nuevo" element={<TicketForm />} />
+                            <Route path="/tickets/editar/:id" element={<TicketForm />} />
                         </Route>
 
                         {/* Solo ADMIN */}

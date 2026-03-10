@@ -25,6 +25,32 @@ exports.crearTicket = async (req, res) => {
         const { titulo, descripcion, prioridad, tipo, funcionarioId, activoId } = req.body;
         const creadoPorId = req.user.id;
 
+        // Lógica de asignación automática (Solo rol TECNICO)
+        const tecnicos = await prisma.usuario.findMany({
+            where: { rol: 'TECNICO', activo: true },
+            select: {
+                id: true,
+                _count: {
+                    select: {
+                        ticketsAsignados: {
+                            where: {
+                                estado: { in: ['CREADO', 'EN_CURSO'] }
+                            }
+                        }
+                    }
+                }
+            }
+        });
+
+        let asignadoAId = null;
+        if (tecnicos.length > 0) {
+            // Ordenar por cantidad de tickets y tomar el primero (menor carga)
+            const tecnicoMenosCargado = tecnicos.sort((a, b) =>
+                a._count.ticketsAsignados - b._count.ticketsAsignados
+            )[0];
+            asignadoAId = tecnicoMenosCargado.id;
+        }
+
         const ticket = await prisma.ticket.create({
             data: {
                 titulo,
@@ -33,12 +59,15 @@ exports.crearTicket = async (req, res) => {
                 tipo: tipo || 'REQUERIMIENTO',
                 funcionarioId: parseInt(funcionarioId),
                 activoId: activoId ? parseInt(activoId) : null,
+                asignadoAId,
                 creadoPorId,
                 estado: 'CREADO',
                 trazas: {
                     create: {
                         tipoTraza: 'CREACION',
-                        comentario: 'Ticket creado exitosamente.',
+                        comentario: asignadoAId
+                            ? `Ticket creado y asignado automáticamente.`
+                            : 'Ticket creado exitosamente.',
                         estadoNuevo: 'CREADO',
                         creadoPorId
                     }
@@ -118,7 +147,13 @@ exports.obtenerTicketPorId = async (req, res) => {
                     orderBy: { creadoEn: 'asc' } // asc para timeline cronológico
                 },
                 hojaVida: {
-                    include: { responsable: { select: { id: true, nombre: true } } },
+                    include: {
+                        responsable: { select: { id: true, nombre: true } },
+                        trazas: {
+                            include: { usuario: { select: { nombre: true } } },
+                            orderBy: { fecha: 'asc' }
+                        }
+                    },
                     orderBy: { fecha: 'desc' }
                 }
             }
@@ -273,6 +308,81 @@ exports.agregarComentario = async (req, res) => {
     }
 };
 
+// ==========================================
+// EDITAR INFORMACIÓN DEL TICKET
+// ==========================================
+exports.editarTicket = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const { titulo, descripcion, prioridad, tipo, funcionarioId, activoId } = req.body;
+        const usuarioId = req.user.id;
+
+        const ticketActual = await prisma.ticket.findUnique({ where: { id: parseInt(id) } });
+        if (!ticketActual) return res.status(404).json({ error: 'Ticket no encontrado.' });
+
+        const ticketActualizado = await prisma.ticket.update({
+            where: { id: parseInt(id) },
+            data: {
+                titulo,
+                descripcion,
+                prioridad,
+                tipo,
+                funcionarioId: parseInt(funcionarioId),
+                activoId: activoId ? parseInt(activoId) : null,
+                trazas: {
+                    create: {
+                        tipoTraza: 'COMENTARIO',
+                        comentario: 'Información del ticket actualizada.',
+                        creadoPorId: usuarioId
+                    }
+                }
+            },
+            include: {
+                funcionario: true,
+                activo: true,
+                asignadoA: { select: { id: true, nombre: true } }
+            }
+        });
+
+        // Guardar archivos adjuntos opcionales si vienen en la edición
+        if (req.files && req.files.length > 0) {
+            await Promise.all(req.files.map(file => guardarAdjunto(file, ticketActualizado.id, null)));
+        }
+
+        res.json(ticketActualizado);
+    } catch (error) {
+        console.error('Error al editar ticket:', error);
+        res.status(500).json({ error: 'Error al actualizar la información del ticket.' });
+    }
+};
+
+// ==========================================
+// ELIMINAR UN TICKET COMPLETAMENTE
+// ==========================================
+exports.eliminarTicket = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const ticketId = parseInt(id);
+
+        if (req.user.rol !== 'ADMIN') {
+            return res.status(403).json({ error: 'No tienes permisos para eliminar tickets.' });
+        }
+
+        const ticket = await prisma.ticket.findUnique({ where: { id: ticketId } });
+        if (!ticket) return res.status(404).json({ error: 'Ticket no encontrado.' });
+
+        // Nota: Las relaciones como TrazaTicket y Adjunto se manejarán según el esquema (onDelete: Cascade)
+        // o se pueden borrar manualmente aquí si no está definido el cascade.
+        await prisma.ticket.delete({
+            where: { id: ticketId }
+        });
+
+        res.json({ message: 'Ticket eliminado correctamente.' });
+    } catch (error) {
+        console.error('Error al eliminar ticket:', error);
+        res.status(500).json({ error: 'Error al eliminar el ticket.' });
+    }
+};
 // ==========================================
 // DESCARGAR / VER ADJUNTO
 // ==========================================
