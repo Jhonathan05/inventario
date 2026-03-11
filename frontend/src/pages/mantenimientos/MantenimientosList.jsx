@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { Link } from 'react-router-dom';
 import api from '../../lib/axios';
+import { EyeIcon } from '@heroicons/react/24/outline';
 
 const ESTADOS = ['CREADO', 'EN_PROCESO', 'SUSPENDIDO', 'FINALIZADO', 'CERRADO'];
 const TIPOS = ['MANTENIMIENTO', 'REPARACION', 'SUMINISTRO', 'INSPECCION', 'ACTUALIZACION'];
@@ -209,9 +210,10 @@ const MantenimientosList = () => {
                                         <td className="whitespace-nowrap py-3 pl-3 pr-4 text-right text-sm">
                                             <Link
                                                 to={`/activos/${reg.activo?.id}`}
-                                                className="text-indigo-600 hover:text-indigo-900 font-medium"
+                                                className="inline-flex items-center justify-center text-indigo-600 hover:text-indigo-900 bg-indigo-50 hover:bg-indigo-100 p-2 rounded-full transition-colors"
+                                                title="Ver detalle del activo"
                                             >
-                                                Ver Activo →
+                                                <EyeIcon className="h-5 w-5" />
                                             </Link>
                                         </td>
                                     </tr>
@@ -250,9 +252,11 @@ const MantenimientosList = () => {
                                 </div>
                                 <Link
                                     to={`/activos/${reg.activo?.id}`}
-                                    className="mt-2 block text-center text-xs text-indigo-700 bg-indigo-50 rounded-md px-2 py-1.5 font-medium hover:bg-indigo-100"
+                                    className="mt-2 flex items-center justify-center text-xs text-indigo-700 bg-indigo-50 rounded-md px-3 py-2 font-medium hover:bg-indigo-100"
+                                    title="Ver detalle del activo"
                                 >
-                                    Ver Activo →
+                                    <EyeIcon className="h-4 w-4 mr-1" />
+                                    Ver Activo
                                 </Link>
                             </div>
                         ))}

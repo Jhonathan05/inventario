@@ -226,4 +226,31 @@ router.put('/:id/procesar', authMiddleware, requireRole('ADMIN', 'TECNICO'), upl
     }
 });
 
+// DELETE /api/hojavida/:id
+// Solo ADMIN puede eliminar registros de Hoja de Vida
+router.delete('/:id', authMiddleware, requireRole('ADMIN'), async (req, res) => {
+    try {
+        const { id } = req.params;
+        const hvId = parseInt(id);
+
+        const hv = await prisma.hojaVida.findUnique({ where: { id: hvId } });
+        if (!hv) return res.status(404).json({ error: 'Registro no encontrado' });
+
+        // Borrar registros relacionados manualmente si no hay onDelete: Cascade en el esquema
+        // 1. Trazas (Bitácora)
+        await prisma.trazaHojaVida.deleteMany({ where: { hojaVidaId: hvId } });
+
+        // 2. Referencias de Documentos
+        await prisma.documento.deleteMany({ where: { hojaVidaId: hvId } });
+
+        // 3. Borrar el registro principal
+        await prisma.hojaVida.delete({ where: { id: hvId } });
+
+        res.json({ message: 'Registro de mantenimiento eliminado correctamente' });
+    } catch (err) {
+        console.error('Error deleting HojaVida:', err);
+        res.status(500).json({ error: 'Error al eliminar el registro' });
+    }
+});
+
 module.exports = router;

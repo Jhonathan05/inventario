@@ -3,6 +3,8 @@ import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import api from '../../lib/axios';
 import { getImageUrl, formatCurrency, formatDate } from '../../lib/utils';
 import { useAuth } from '../../context/AuthContext';
+import { TrashIcon, EyeIcon, PencilSquareIcon } from '@heroicons/react/24/outline';
+import { toast } from 'react-hot-toast';
 import ActivosForm from './ActivosForm';
 import HojaVidaForm from './components/HojaVidaForm';
 import EstadoHojaVidaForm from './components/EstadoHojaVidaForm';
@@ -42,6 +44,19 @@ const ActivoDetail = () => {
             console.error(err);
         } finally {
             setLoading(false);
+        }
+    };
+
+    const handleEliminarMantenimiento = async (hvId) => {
+        if (!window.confirm('¿Estás seguro de eliminar este registro de mantenimiento? Esta acción no se puede deshacer.')) return;
+
+        try {
+            await api.delete(`/hojavida/${hvId}`);
+            toast.success('Mantenimiento eliminado correctamente');
+            fetchActivo();
+        } catch (err) {
+            console.error(err);
+            toast.error(err.response?.data?.error || 'Error al eliminar el registro');
         }
     };
 
@@ -301,12 +316,28 @@ const ActivoDetail = () => {
                                                 </span>
                                             </td>
                                             <td className="whitespace-nowrap px-3 py-4 text-sm text-right">
-                                                <button
-                                                    onClick={() => { setSelectedHV(hv); setIsStatusModalOpen(true); }}
-                                                    className="text-indigo-600 hover:text-indigo-900 font-medium"
-                                                >
-                                                    {(hv.estado === 'FINALIZADO' || hv.estado === 'CERRADO' || !canEdit) ? 'Ver' : 'Gestionar'}
-                                                </button>
+                                                <div className="flex justify-end gap-2">
+                                                    <button
+                                                        onClick={() => { setSelectedHV(hv); setIsStatusModalOpen(true); }}
+                                                        className="text-indigo-600 hover:text-indigo-900 font-medium p-1 hover:bg-indigo-50 rounded-full transition-colors"
+                                                        title={(hv.estado === 'FINALIZADO' || hv.estado === 'CERRADO' || !canEdit) ? 'Ver detalles' : 'Gestionar evento'}
+                                                    >
+                                                        {(hv.estado === 'FINALIZADO' || hv.estado === 'CERRADO' || !canEdit) ? (
+                                                            <EyeIcon className="h-5 w-5" />
+                                                        ) : (
+                                                            <PencilSquareIcon className="h-5 w-5" />
+                                                        )}
+                                                    </button>
+                                                    {user?.rol === 'ADMIN' && (
+                                                        <button
+                                                            onClick={() => handleEliminarMantenimiento(hv.id)}
+                                                            className="text-red-600 hover:text-red-900"
+                                                            title="Eliminar registro"
+                                                        >
+                                                            <TrashIcon className="h-4 w-4" />
+                                                        </button>
+                                                    )}
+                                                </div>
                                             </td>
                                         </tr>
                                     ))}
@@ -328,9 +359,19 @@ const ActivoDetail = () => {
                                             <span className="font-medium text-gray-900 text-sm">{hv.tipo}</span>
                                             <span className="text-xs text-gray-500 ml-2">{formatDate(hv.fecha)}</span>
                                         </div>
-                                        <span className={`inline-flex items-center rounded-md px-2 py-0.5 text-xs font-medium ring-1 ring-inset ${getHVStatusBadge(hv.estado)}`}>
-                                            {hv.estado?.replace('_', ' ')}
-                                        </span>
+                                        <div className="flex items-center gap-2">
+                                            <span className={`inline-flex items-center rounded-md px-2 py-0.5 text-xs font-medium ring-1 ring-inset ${getHVStatusBadge(hv.estado)}`}>
+                                                {hv.estado?.replace('_', ' ')}
+                                            </span>
+                                            {user?.rol === 'ADMIN' && (
+                                                <button
+                                                    onClick={() => handleEliminarMantenimiento(hv.id)}
+                                                    className="text-red-600 p-1"
+                                                >
+                                                    <TrashIcon className="h-4 w-4" />
+                                                </button>
+                                            )}
+                                        </div>
                                     </div>
                                     <p className="text-sm text-gray-600 line-clamp-2">{hv.descripcion}</p>
                                     <div className="text-xs text-gray-500 mt-2 space-y-0.5">
@@ -341,9 +382,14 @@ const ActivoDetail = () => {
                                     <div className="mt-3 pt-3 border-t border-gray-100 flex justify-end">
                                         <button
                                             onClick={() => { setSelectedHV(hv); setIsStatusModalOpen(true); }}
-                                            className="text-xs text-indigo-700 bg-indigo-50 rounded-md px-3 py-1.5 font-medium hover:bg-indigo-100"
+                                            className="text-indigo-700 bg-indigo-50 hover:bg-indigo-100 rounded-lg p-2 font-medium transition-colors"
+                                            title={(hv.estado === 'FINALIZADO' || hv.estado === 'CERRADO' || !canEdit) ? 'Ver detalles' : 'Gestionar evento'}
                                         >
-                                            {(hv.estado === 'FINALIZADO' || hv.estado === 'CERRADO' || !canEdit) ? 'Ver Detalles' : 'Gestionar'}
+                                            {(hv.estado === 'FINALIZADO' || hv.estado === 'CERRADO' || !canEdit) ? (
+                                                <EyeIcon className="h-5 w-5" />
+                                            ) : (
+                                                <PencilSquareIcon className="h-5 w-5" />
+                                            )}
                                         </button>
                                     </div>
                                 </div>
