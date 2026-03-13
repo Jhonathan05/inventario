@@ -5,8 +5,7 @@ const prisma = new PrismaClient();
 const { authMiddleware, requireRole } = require('../middleware/auth.middleware');
 const path = require('path');
 const fs = require('fs');
-// const XLSX = require('xlsx'); // Reemplazado por exceljs
-const ExcelJS = require('exceljs');
+const XlsxPopulate = require('xlsx-populate');
 
 // Función auxiliar para obtener fecha formateada
 const getFormattedDate = (date = new Date()) => {
@@ -18,69 +17,72 @@ const getFormattedDate = (date = new Date()) => {
     return `${yyyy} / ${mm} / ${dd}`;
 };
 
-// ==========================================
 // HELPER PARA GENERAR WORKBOOK (EXCEL)
 // ==========================================
 const crearWorkbookActa = async (data) => {
     const { tipo, activos, funcionarioOrigen, funcionarioDestino, usuarioTI, observaciones, fecha } = data;
     const templatePath = path.join(__dirname, '../../plantillas/novedad_activo.xlsx');
 
-    if (!fs.existsSync(templatePath)) {
-        throw new Error('Plantilla "novedad_activo.xlsx" no encontrada.');
-    }
+    // Cargar con xlsx-populate (este respeta mejor los logos)
+    const workbook = await XlsxPopulate.fromFileAsync(templatePath);
+    const sheet = workbook.sheet(0);
 
-    const workbook = new ExcelJS.Workbook();
-    await workbook.xlsx.readFile(templatePath);
-    const worksheet = workbook.worksheets[0];
+    // Mapeo de encabezados
+    sheet.cell('L7').value(getFormattedDate(new Date(fecha))).style("fontColor", "000000");
+    sheet.cell('H7').value((funcionarioOrigen?.ciudad || 'IBAGUÉ').toUpperCase()).style("fontColor", "000000");
 
-    const setCell = (cellRef, value) => {
-        const cell = worksheet.getCell(cellRef);
-        cell.value = value;
-    };
+    let tipoTexto = 'INVENTARIO FÍSICO';
+    let entrega = usuarioTI || {};
+    let recibe = funcionarioOrigen || {};
 
-    setCell('L7', getFormattedDate(new Date(fecha)));
-
-    let tipoNovedadExcel = '';
-    let quienEntrega = {};
-    let quienRecibe = {};
-
-    if (tipo === 'ASIGNACION') {
-        quienEntrega = usuarioTI;
-        quienRecibe = funcionarioOrigen;
-        tipoNovedadExcel = 'Inventario Físico';
-    } else if (tipo === 'DEVOLUCION') {
-        quienEntrega = funcionarioOrigen;
-        quienRecibe = usuarioTI;
-        tipoNovedadExcel = 'Inventario Físico';
+    if (tipo === 'DEVOLUCION') {
+        entrega = funcionarioOrigen || {};
+        recibe = usuarioTI || {};
     } else if (tipo === 'TRASLADO') {
-        quienEntrega = funcionarioOrigen;
-        quienRecibe = funcionarioDestino;
-        tipoNovedadExcel = 'Cambio de responsable';
+        entrega = funcionarioOrigen || {};
+        recibe = funcionarioDestino || {};
+        tipoTexto = 'CAMBIO DE RESPONSABLE';
     }
 
-    setCell('E7', tipoNovedadExcel);
+    sheet.cell('E7').value(tipoTexto).style("fontColor", "000000");
 
-    // Llenar activos (filas 11-25)
-    let currentRow = 11;
-    activos.forEach((activo) => {
-        if (currentRow > 25) return;
-        setCell(`E${currentRow}`, activo.tipo || activo.descripcion || 'ACTIVO');
-        setCell(`G${currentRow}`, activo.marca || '-');
-        setCell(`H${currentRow}`, activo.modelo || '-');
-        setCell(`I${currentRow}`, activo.serial || 'S/N');
-        setCell(`J${currentRow}`, activo.placa || '-');
-        setCell(`K${currentRow}`, observaciones || '');
-        currentRow++;
-    });
+    // Llenar tabla de activos (Filas 11 a 25)
+    for (let i = 0; i < 15; i++) {
+        const rowNum = 11 + i;
+        const activo = activos[i];
+
+        if (activo) {
+            sheet.cell(`C${rowNum}`).value((activo.placa || activo.id || i + 1).toString().toUpperCase()).style("fontColor", "000000");
+            sheet.cell(`E${rowNum}`).value((activo.tipo || activo.descripcion || '').toUpperCase()).style("fontColor", "000000");
+            sheet.cell(`G${rowNum}`).value((activo.marca || '').toUpperCase()).style("fontColor", "000000");
+            sheet.cell(`H${rowNum}`).value((activo.modelo || '').toUpperCase()).style("fontColor", "000000");
+            sheet.cell(`I${rowNum}`).value((activo.serial || 'N/A').toUpperCase()).style("fontColor", "000000");
+            sheet.cell(`J${rowNum}`).value((activo.placa || 'N/A').toUpperCase()).style("fontColor", "000000");
+            sheet.cell(`K${rowNum}`).value((observaciones || 'N/A').toUpperCase()).style("fontColor", "000000");
+        } else {
+            // Si no hay activo, todo es N/A
+            sheet.cell(`C${rowNum}`).value('N/A').style("fontColor", "000000");
+            sheet.cell(`E${rowNum}`).value('N/A').style("fontColor", "000000");
+            sheet.cell(`G${rowNum}`).value('N/A').style("fontColor", "000000");
+            sheet.cell(`H${rowNum}`).value('N/A').style("fontColor", "000000");
+            sheet.cell(`I${rowNum}`).value('N/A').style("fontColor", "000000");
+            sheet.cell(`J${rowNum}`).value('N/A').style("fontColor", "000000");
+            sheet.cell(`K${rowNum}`).value('N/A').style("fontColor", "000000");
+        }
+    }
 
     // Firmas
-    setCell('E28', quienEntrega.nombre);
-    setCell('K28', quienEntrega.cargo);
-    setCell('J28', quienEntrega.codigoPersonal || '');
+    // ENTREGA (Fila 28)
+    sheet.cell('E28').value((entrega.nombre || '').toUpperCase()).style("fontColor", "000000");
+    sheet.cell('J28').value((entrega.codigoPersonal || '').toUpperCase()).style("fontColor", "000000");
+    sheet.cell('K28').value((entrega.cargo || '').toUpperCase()).style("fontColor", "000000");
+    sheet.cell('C28').value((entrega.area || entrega.dependencia || 'TIC').toUpperCase()).style("fontColor", "000000");
 
-    setCell('E31', quienRecibe.nombre);
-    setCell('K31', quienRecibe.cargo);
-    setCell('J31', quienRecibe.codigoPersonal || '');
+    // RECIBE (Fila 31)
+    sheet.cell('E31').value((recibe.nombre || '').toUpperCase()).style("fontColor", "000000");
+    sheet.cell('J31').value((recibe.codigoPersonal || '').toUpperCase()).style("fontColor", "000000");
+    sheet.cell('K31').value((recibe.cargo || '').toUpperCase()).style("fontColor", "000000");
+    sheet.cell('C31').value((recibe.area || recibe.dependencia || '').toUpperCase()).style("fontColor", "000000");
 
     return workbook;
 };
@@ -191,14 +193,12 @@ router.post('/generar', authMiddleware, requireRole('ADMIN', 'TECNICO'), async (
             fecha: new Date()
         };
 
-        // 3. Persistencia en Base de Datos
-
-        // 4. Persistencia en Base de Datos
+        // 4. Persistencia en Base de Datos (usamos tx para asegurar atomicidad)
         const resultado = await prisma.$transaction(async (tx) => {
             const acta = await tx.acta.create({
                 data: {
                     tipo: tipo,
-                    archivoUrl: null, // Ya no se genera archivo físico al crear
+                    archivoUrl: null,
                     observaciones: observaciones,
                     creadoPorId: usuario.id,
                     funcionarioId: parseInt(funcionarioId),
@@ -345,10 +345,8 @@ router.get('/:id/download-xlsx', authMiddleware, async (req, res) => {
 
         const snapshot = typeof acta.detalles === 'string' ? JSON.parse(acta.detalles) : acta.detalles;
 
-        // Si el snapshot es del formato antiguo (solo array de activos), no podemos regenerar bien.
-        // Pero para nuevos registros, tendrá todo.
         if (!snapshot || !snapshot.activos) {
-            return res.status(400).json({ error: 'Este acta no tiene suficiente información para ser regenerada (formato antiguo).' });
+            return res.status(400).json({ error: 'Este acta no tiene suficiente información para ser regenerada.' });
         }
 
         const workbook = await crearWorkbookActa({
@@ -357,15 +355,44 @@ router.get('/:id/download-xlsx', authMiddleware, async (req, res) => {
             fecha: acta.fecha
         });
 
-        res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
-        res.setHeader('Content-Disposition', `attachment; filename=Acta_${acta.tipo}_${acta.id}.xlsx`);
+        const tempDir = path.join(__dirname, '../../uploads/temp');
+        if (!fs.existsSync(tempDir)) fs.mkdirSync(tempDir, { recursive: true });
 
-        await workbook.xlsx.write(res);
-        res.end();
+        const tempFileName = `Acta_${acta.id}_${Date.now()}.xlsx`;
+        const tempFilePath = path.join(tempDir, tempFileName);
+
+        await workbook.toFileAsync(tempFilePath);
+
+        res.download(tempFilePath, `Acta_${acta.id}.xlsx`);
 
     } catch (error) {
         console.error('Error al generar Excel:', error);
         res.status(500).json({ error: 'Error al generar el archivo Excel' });
+    }
+});
+
+// Eliminar Acta DEFINITIVAMENTE (Solo ADMIN)
+router.delete('/:id', authMiddleware, requireRole(['ADMIN']), async (req, res) => {
+    try {
+        const { id } = req.params;
+        
+        // Verificar si existe antes de borrar
+        const acta = await prisma.acta.findUnique({
+            where: { id: parseInt(id) }
+        });
+
+        if (!acta) {
+            return res.status(404).json({ error: 'Acta no encontrada' });
+        }
+
+        await prisma.acta.delete({
+            where: { id: parseInt(id) }
+        });
+
+        res.json({ message: 'Acta eliminada definitivamente del sistema' });
+    } catch (error) {
+        console.error('Error eliminando acta:', error);
+        res.status(500).json({ error: 'Error interno al intentar eliminar el acta' });
     }
 });
 

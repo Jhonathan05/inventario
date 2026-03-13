@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import axios from '../../lib/axios';
 import { useNavigate } from 'react-router-dom';
-import { PlusIcon, ArrowDownTrayIcon, DocumentTextIcon, MagnifyingGlassIcon } from '@heroicons/react/24/outline';
+import { PlusIcon, ArrowDownTrayIcon, DocumentTextIcon, MagnifyingGlassIcon, TrashIcon } from '@heroicons/react/24/outline';
 import { formatDate } from '../../lib/utils';
 import { useAuth } from '../../context/AuthContext';
 
@@ -12,6 +12,7 @@ const ActasList = () => {
     const [searchTerm, setSearchTerm] = useState('');
     const { user } = useAuth();
     const canEdit = user?.rol === 'ADMIN' || user?.rol === 'TECNICO';
+    const isAdmin = user?.rol === 'ADMIN';
 
     useEffect(() => {
         loadActas();
@@ -28,6 +29,22 @@ const ActasList = () => {
         }
     };
 
+    const handleDelete = async (actaId) => {
+        if (!window.confirm('¿Estás seguro de que deseas eliminar definitivamente esta acta? Esta acción no se puede deshacer.')) {
+            return;
+        }
+
+        try {
+            await axios.delete(`/actas/${actaId}`);
+            // Actualizar la lista localmente
+            setActas(actas.filter(a => a.id !== actaId));
+            alert('Acta eliminada correctamente.');
+        } catch (err) {
+            console.error('Error eliminando acta:', err);
+            alert(err.response?.data?.error || 'No se pudo eliminar el acta.');
+        }
+    };
+
     const handleDownload = async (actaId) => {
         try {
             const response = await axios({
@@ -36,7 +53,7 @@ const ActasList = () => {
                 responseType: 'blob', // Importante para descargar archivos
             });
 
-            const url = window.URL.createObjectURL(new Blob([response.data]));
+            const url = window.URL.createObjectURL(response.data);
             const link = document.createElement('a');
             link.href = url;
             link.setAttribute('download', `Acta_${actaId}.xlsx`);
@@ -46,7 +63,7 @@ const ActasList = () => {
             window.URL.revokeObjectURL(url);
         } catch (err) {
             console.error('Error descargando el acta:', err);
-            alert('Error al generar el archivo para descargar.');
+            alert('Error al generar el archivo Excel para descargar.');
         }
     };
 
@@ -165,14 +182,25 @@ const ActasList = () => {
                                             <td className="px-6 py-4 whitespace-nowrap text-sm text-charcoal-700 font-semibold">{entrega}</td>
                                             <td className="px-6 py-4 whitespace-nowrap text-sm text-charcoal-700 font-semibold">{recibe}</td>
                                             <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                                                <button
-                                                    onClick={() => handleDownload(acta.id)}
-                                                    className="inline-flex items-center text-xs font-bold text-fnc-600 bg-fnc-50 hover:bg-fnc-100 border border-fnc-200 rounded-lg px-3 py-1.5 transition-colors shadow-sm gap-1 ml-auto"
-                                                    title="Re-generar y descargar Excel"
-                                                >
-                                                    <ArrowDownTrayIcon className="h-4 w-4" />
-                                                    XLS
-                                                </button>
+                                                <div className="flex items-center justify-end gap-2">
+                                                    <button
+                                                        onClick={() => handleDownload(acta.id)}
+                                                        className="inline-flex items-center text-xs font-bold text-fnc-600 bg-fnc-50 hover:bg-fnc-100 border border-fnc-200 rounded-lg px-3 py-1.5 transition-colors shadow-sm gap-1"
+                                                        title="Re-generar y descargar Excel"
+                                                    >
+                                                        <ArrowDownTrayIcon className="h-4 w-4" />
+                                                        Excel
+                                                    </button>
+                                                    {isAdmin && (
+                                                        <button
+                                                            onClick={() => handleDelete(acta.id)}
+                                                            className="inline-flex items-center text-xs font-bold text-red-600 bg-red-50 hover:bg-red-100 border border-red-200 rounded-lg px-2 py-1.5 transition-colors shadow-sm"
+                                                            title="Eliminar acta definitivamente"
+                                                        >
+                                                            <TrashIcon className="h-4 w-4" />
+                                                        </button>
+                                                    )}
+                                                </div>
                                             </td>
                                         </tr>
                                     )

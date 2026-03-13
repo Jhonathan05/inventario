@@ -63,7 +63,7 @@ services:
     networks:
       - inventario-network
     environment:
-      - VITE_API_URL=http://localhost:3003/api
+      - VITE_API_URL=/api
       - CHOKIDAR_USEPOLLING=true
 
   # Adminer Database GUI

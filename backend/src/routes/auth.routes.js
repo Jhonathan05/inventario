@@ -28,11 +28,12 @@ router.post('/login', async (req, res) => {
             { expiresIn: '8h' }
         );
 
-        res.json({
+        return res.json({
             token,
             usuario: { id: usuario.id, nombre: usuario.nombre, email: usuario.email, rol: usuario.rol },
         });
     } catch (err) {
+        console.error('Error en /api/auth/login:', err);
         res.status(500).json({ error: 'Error interno al iniciar sesión' });
     }
 });
