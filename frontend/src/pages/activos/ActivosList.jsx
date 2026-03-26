@@ -466,7 +466,10 @@ const ActivosList = () => {
                                                                 {activo.marca} {activo.modelo}
                                                             </Link>
                                                         </div>
-                                                        <div className="text-sm text-charcoal-500 font-medium">Placa: <span className="text-charcoal-700">{activo.placa}</span></div>
+                                                        <div className="text-sm text-charcoal-500 font-medium">
+                                                            P: <span className="text-charcoal-700">{activo.placa}</span> | 
+                                                            AF: <span className="text-charcoal-700">{activo.activoFijo || 'N/A'}</span>
+                                                        </div>
                                                     </div>
                                                 </div>
                                             </td>

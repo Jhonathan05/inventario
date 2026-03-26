@@ -43,7 +43,8 @@ model Categoria {
 model Activo {
   id            Int          @id @default(autoincrement())
   placa         String       @unique
-  serial        String?
+  serial        String?      @unique
+  activoFijo    String?      @unique
   marca         String
   modelo        String
   descripcion   String?

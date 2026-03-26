@@ -28,6 +28,7 @@ const DEFAULT_STATE = {
     tipo: '',
     placa: '',
     serial: '',
+    activoFijo: '',
     marca: '',
     modelo: '',
     nombreEquipo: '',
@@ -193,6 +194,7 @@ const ActivosForm = ({ open, onClose, activo }) => {
                 tipo: activo.tipo || '',
                 placa: activo.placa || '',
                 serial: activo.serial || '',
+                activoFijo: activo.activoFijo || '',
                 marca: activo.marca || '',
                 modelo: activo.modelo || '',
                 nombreEquipo: activo.nombreEquipo || '',
@@ -420,8 +422,11 @@ const ActivosForm = ({ open, onClose, activo }) => {
                                 <Field label="Serial">
                                     <input type="text" name="serial" value={formData.serial} onChange={e => setFormData(p => ({ ...p, serial: e.target.value.toUpperCase() }))} className={inputCls} />
                                 </Field>
-                                <Field label="Placa *" required>
+                                <Field label="Placa" required>
                                     <input type="text" name="placa" required value={formData.placa} onChange={e => setFormData(p => ({ ...p, placa: e.target.value.toUpperCase() }))} className={inputCls} />
+                                </Field>
+                                <Field label="Activo Fijo">
+                                    <input type="text" name="activoFijo" value={formData.activoFijo} onChange={e => setFormData(p => ({ ...p, activoFijo: e.target.value.toUpperCase() }))} className={inputCls} />
                                 </Field>
                                 <SelectWithAdd
                                     label="Marca *"

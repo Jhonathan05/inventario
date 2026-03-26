@@ -1,6 +1,6 @@
 const jwt = require('jsonwebtoken');
 
-const authMiddleware = (req, res, next) => {
+const authMiddleware = async (req, res, next) => {
     const authHeader = req.headers['authorization'];
     const token = authHeader && authHeader.split(' ')[1];
 
@@ -10,6 +10,18 @@ const authMiddleware = (req, res, next) => {
 
     try {
         const decoded = jwt.verify(token, process.env.JWT_SECRET);
+        
+        // Verificación adicional de usuario activo en BD
+        const prisma = require('../lib/prisma');
+        const user = await prisma.usuario.findUnique({
+            where: { id: decoded.id },
+            select: { activo: true }
+        });
+
+        if (!user || !user.activo) {
+            return res.status(403).json({ error: 'Usuario inactivo o no encontrado. Acceso denegado.' });
+        }
+
         req.user = decoded;
         next();
     } catch (err) {

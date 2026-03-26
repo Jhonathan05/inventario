@@ -89,7 +89,7 @@ const ActivoDetail = () => {
                             {activo.marca} {activo.modelo}
                         </h1>
                         <p className="text-sm text-gray-500">
-                            Placa: {activo.placa} | Serial: {activo.serial}
+                            Placa: {activo.placa} | AF: {activo.activoFijo || 'N/A'} | Serial: {activo.serial}
                         </p>
                     </div>
                     <div className="flex items-center gap-2 flex-wrap">
@@ -139,6 +139,7 @@ const ActivoDetail = () => {
                                     <InfoItem label="Tipo de Equipo" value={activo.tipo} />
                                     <InfoItem label="Nombre de Equipo" value={activo.nombreEquipo} />
                                     <InfoItem label="Ubicación" value={activo.ubicacion} />
+                                    <InfoItem label="Activo Fijo" value={activo.activoFijo} />
                                     <InfoItem label="Valor Compra" value={formatCurrency(activo.valorCompra)} />
                                     <InfoItem label="Fecha Compra" value={formatDate(activo.fechaCompra)} />
                                     <InfoItem label="Garantía Hasta" value={formatDate(activo.garantiaHasta)} />
