@@ -40,7 +40,7 @@ router.get('/', authMiddleware, async (req, res) => {
 // GET /api/funcionarios/opciones  — valores únicos para filtros (desde Catálogos)
 router.get('/opciones', authMiddleware, async (req, res) => {
     try {
-        const [areasRaw, cargosRaw] = await Promise.all([
+        const [areasRaw, cargosRaw, ciudadesRaw, seccionalesRaw] = await Promise.all([
             prisma.catalogo.findMany({
                 where: { dominio: 'AREA', activo: true },
                 select: { valor: true },
@@ -51,12 +51,25 @@ router.get('/opciones', authMiddleware, async (req, res) => {
                 select: { valor: true },
                 orderBy: { valor: 'asc' },
             }),
+            prisma.catalogo.findMany({
+                where: { dominio: 'CIUDAD', activo: true },
+                select: { valor: true },
+                orderBy: { valor: 'asc' },
+            }),
+            prisma.catalogo.findMany({
+                where: { dominio: 'SECCIONAL', activo: true },
+                select: { valor: true },
+                orderBy: { valor: 'asc' },
+            }),
         ]);
         res.json({
             areas: areasRaw.map(r => r.valor),
             cargos: cargosRaw.map(r => r.valor),
+            ciudades: ciudadesRaw.map(r => r.valor),
+            seccionales: seccionalesRaw.map(r => r.valor),
         });
     } catch (err) {
+        console.error('Error fetching options:', err);
         res.status(500).json({ error: 'Error al obtener opciones' });
     }
 });

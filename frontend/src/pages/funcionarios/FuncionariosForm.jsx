@@ -1,39 +1,61 @@
 import { useState, useEffect } from 'react';
 import api from '../../lib/axios';
+import SelectWithAdd from '../../components/SelectWithAdd';
+import CatalogModal from '../../components/CatalogModal';
+
+const DEFAULT_STATE = {
+    nombre: '',
+    shortname: '',
+    cedula: '',
+    codigoPersonal: '',
+    cargo: '',
+    area: '',
+    email: '',
+    telefono: '',
+    activo: true,
+    vinculacion: '',
+    empresaFuncionario: '',
+    proyecto: '',
+    departamento: 'TOLIMA',
+    ciudad: '',
+    seccional: '',
+    municipio: '',
+    ubicacion: '',
+    piso: ''
+};
 
 const FuncionariosForm = ({ open, onClose, funcionario }) => {
-    const [formData, setFormData] = useState({
-        nombre: '',
-        shortname: '',
-        cedula: '',
-        codigoPersonal: '',
-        cargo: '',
-        area: '',
-        email: '',
-        telefono: '',
-        activo: true,
-        vinculacion: '',
-        empresaFuncionario: '',
-        proyecto: '',
-        departamento: '',
-        ciudad: '',
-        seccional: '',
-        municipio: '',
-        ubicacion: '',
-        piso: ''
-    });
+    const [formData, setFormData] = useState(DEFAULT_STATE);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
-    const [options, setOptions] = useState({ areas: [], cargos: [] });
+    const [options, setOptions] = useState({ areas: [], cargos: [], ciudades: [], seccionales: [] });
+    
+    // Visibility states
+    const [showLaboral, setShowLaboral] = useState(false);
+    const [showUbicacion, setShowUbicacion] = useState(false);
 
     useEffect(() => {
         fetchOptions();
     }, []);
 
+    const sortList = (list) => {
+        return [...list].sort((a, b) => {
+            const valA = (a.nombre || a.valor || a).toString().toUpperCase();
+            const valB = (b.nombre || b.valor || b).toString().toUpperCase();
+            return valA.localeCompare(valB);
+        });
+    };
+
     const fetchOptions = async () => {
         try {
             const response = await api.get('/funcionarios/opciones');
-            setOptions(response.data);
+            const sortedOptions = {
+                areas: sortList(response.data.areas || []),
+                cargos: sortList(response.data.cargos || []),
+                ciudades: sortList(response.data.ciudades || []),
+                seccionales: sortList(response.data.seccionales || [])
+            };
+            setOptions(sortedOptions);
         } catch (err) {
             console.error('Error fetching options:', err);
         }
@@ -77,21 +99,55 @@ const FuncionariosForm = ({ open, onClose, funcionario }) => {
             if (name === 'email') {
                 newValue = value.toLowerCase();
             } else if (['cedula', 'telefono', 'codigoPersonal'].includes(name)) {
-                newValue = value; // mantener como viene (puede tener letras en códigos)
+                newValue = value;
             } else {
-                // todos los demás campos de texto → MAYÚSCULAS
                 newValue = value.toUpperCase();
             }
         }
 
-        setFormData(prev => ({
-            ...prev,
-            [name]: newValue
-        }));
+        setFormData(prev => {
+            const next = { ...prev, [name]: newValue };
+            
+            // Lógica de sincronización de Ciudad -> Municipio y Ubicación
+            if (name === 'ciudad') {
+                // Solo sincronizar si el municipio/ubicacion están vacíos o eran iguales al valor anterior
+                if (!prev.municipio || prev.municipio === prev.ciudad) {
+                    next.municipio = newValue;
+                }
+                if (!prev.ubicacion || prev.ubicacion === prev.ciudad) {
+                    next.ubicacion = newValue;
+                }
+            }
+            
+            return next;
+        });
     };
 
     const handleSubmit = async (e) => {
         e.preventDefault();
+        
+        // Validación de campos obligatorios
+        const requiredFields = [
+            { key: 'nombre', label: 'Nombre Completo' },
+            { key: 'cedula', label: 'Cédula' },
+            { key: 'email', label: 'Email' },
+            { key: 'cargo', label: 'Cargo' },
+            { key: 'departamento', label: 'Departamento' },
+            { key: 'ciudad', label: 'Ciudad' },
+            { key: 'seccional', label: 'Seccional' },
+            { key: 'municipio', label: 'Municipio' },
+            { key: 'ubicacion', label: 'Ubicación' }
+        ];
+
+        const missing = requiredFields.filter(f => !formData[f.key]);
+        if (missing.length > 0) {
+            setError(`Los siguientes campos son obligatorios: ${missing.map(f => f.label).join(', ')}`);
+            // Scroll to top to see error
+            const modalElement = e.target.closest('.overflow-y-auto');
+            if (modalElement) modalElement.scrollTo({ top: 0, behavior: 'smooth' });
+            return;
+        }
+
         setLoading(true);
         setError('');
 
@@ -117,158 +173,231 @@ const FuncionariosForm = ({ open, onClose, funcionario }) => {
         }
     };
 
+    // Catalog Modal State
+    const [activeModal, setActiveModal] = useState({ open: false, domain: '', title: '' });
+
+    const handleOpenCatalogModal = (domain, title) => {
+        setActiveModal({ open: true, domain, title });
+    };
+
+    const handleCatalogSuccess = () => {
+        fetchOptions();
+    };
+
     if (!open) return null;
+
+    const inputCls = "mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm border p-2 bg-white uppercase";
+    const emailCls = inputCls.replace('uppercase', 'lowercase');
+
+    // Local components for clean UI
+    const SectionHeader = ({ title, icon }) => (
+        <div className="flex items-center gap-2 mb-4 border-b pb-2">
+            <span className="text-xl">{icon}</span>
+            <h4 className="text-md font-bold text-gray-800 uppercase tracking-tight">{title}</h4>
+        </div>
+    );
+
+    const Field = ({ label, children, required }) => (
+        <div className="flex flex-col">
+            <label className="block text-xs font-semibold text-gray-600 uppercase mb-1">
+                {label} {required && <span className="text-red-500">*</span>}
+            </label>
+            {children}
+        </div>
+    );
 
     return (
         <div className="fixed inset-0 z-50 overflow-y-auto" role="dialog" aria-modal="true">
             <div className="flex items-center justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
                 <div className="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity" onClick={() => onClose(false)}></div>
                 <span className="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
-                <div className="relative inline-block align-bottom bg-white rounded-lg px-4 pt-5 pb-4 text-left shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-4xl sm:w-full sm:p-6 w-full max-h-[90vh] overflow-y-auto">
-                    <h3 className="text-xl font-bold text-gray-900 mb-4 border-b pb-2">
-                        {funcionario ? 'Editar Funcionario' : 'Nuevo Funcionario'}
-                    </h3>
+                <div className="relative inline-block align-bottom bg-white rounded-lg px-4 pt-5 pb-4 text-left shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-5xl sm:w-full sm:p-6 w-full max-h-[95vh] overflow-y-auto">
+                    <div className="flex items-center justify-between mb-4 border-b pb-4">
+                        <h3 className="text-2xl font-black text-gray-900 flex items-center gap-2">
+                            <span className="bg-indigo-600 text-white p-1 rounded">👤</span>
+                            {funcionario ? 'EDITAR FUNCIONARIO' : 'NUEVO FUNCIONARIO'}
+                        </h3>
+                        <button onClick={() => onClose(false)} className="text-gray-400 hover:text-gray-500">
+                            <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                            </svg>
+                        </button>
+                    </div>
 
-                    {error && <div className="mb-4 text-sm text-red-600 bg-red-50 p-3 rounded-md border border-red-200">{error}</div>}
+                    {error && (
+                        <div className="mb-6 p-4 bg-red-50 border-l-4 border-red-500 text-red-700 rounded shadow-sm">
+                            <p className="font-bold">Error de validación</p>
+                            <p className="text-sm">{error}</p>
+                        </div>
+                    )}
 
-                    <form onSubmit={handleSubmit} className="space-y-6">
-
-                        {/* SECCIÓN: INFORMACIÓN BÁSICA Y CONTACTO */}
-                        <div className="bg-gray-50 p-4 rounded-md border border-gray-200">
-                            <h4 className="text-md font-semibold text-gray-800 mb-3">Información Personal y Contacto</h4>
-                            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                                <div>
-                                    <label className="block text-sm font-medium text-gray-700">Nombre Completo *</label>
-                                    <input type="text" name="nombre" required className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm border p-2 bg-white" value={formData.nombre} onChange={handleChange} />
-                                </div>
-                                <div>
-                                    <label className="block text-sm font-medium text-gray-700">Alias / Nombre Corto</label>
-                                    <input type="text" name="shortname" className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm border p-2 bg-white" value={formData.shortname} onChange={handleChange} placeholder="Ej. JUAN.PEREZ" />
-                                </div>
-                                <div>
-                                    <label className="block text-sm font-medium text-gray-700">Cédula *</label>
-                                    <input type="text" name="cedula" required className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm border p-2 bg-white" value={formData.cedula} onChange={handleChange} />
-                                </div>
-                                <div>
-                                    <label className="block text-sm font-medium text-gray-700">Email</label>
-                                    <input
-                                        type="email"
-                                        name="email"
-                                        className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm border p-2 bg-white"
-                                        value={formData.email}
-                                        onChange={handleChange}
-                                        placeholder="ejemplo@empresa.com"
-                                    />
-                                </div>
-                                <div>
-                                    <label className="block text-sm font-medium text-gray-700">Teléfono</label>
-                                    <input type="text" name="telefono" className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm border p-2 bg-white" value={formData.telefono} onChange={handleChange} />
-                                </div>
-                                <div className="flex items-center mt-6">
-                                    <input
-                                        id="activo"
-                                        name="activo"
-                                        type="checkbox"
-                                        checked={formData.activo}
-                                        onChange={handleChange}
-                                        className="h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-600"
-                                    />
-                                    <label htmlFor="activo" className="ml-2 block text-sm font-medium text-gray-900">
-                                        Funcionario Activo
+                    <form onSubmit={handleSubmit} className="space-y-8">
+                        {/* SECCIÓN 1: DATOS PERSONALES */}
+                        <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
+                            <div className="bg-gray-50 px-4 py-3 border-b border-gray-200">
+                                <SectionHeader title="Información Personal y Contacto" icon="📋" />
+                            </div>
+                            <div className="p-4 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                                <Field label="Nombre Completo" required>
+                                    <input type="text" name="nombre" value={formData.nombre} onChange={handleChange} className={inputCls} placeholder="EJ. JUAN PEREZ" />
+                                </Field>
+                                <Field label="Alias / Nombre Corto">
+                                    <input type="text" name="shortname" value={formData.shortname} onChange={handleChange} className={inputCls} placeholder="EJ. JPEREZ" />
+                                </Field>
+                                <Field label="Cédula" required>
+                                    <input type="text" name="cedula" value={formData.cedula} onChange={handleChange} className={inputCls} />
+                                </Field>
+                                <Field label="Email (Corporativo)" required>
+                                    <input type="email" name="email" value={formData.email} onChange={handleChange} className={emailCls} placeholder="ejemplo@empresa.com" />
+                                </Field>
+                                <Field label="Teléfono de Contacto">
+                                    <input type="text" name="telefono" value={formData.telefono} onChange={handleChange} className={inputCls} />
+                                </Field>
+                                <div className="flex items-end pb-2">
+                                    <label className="relative inline-flex items-center cursor-pointer">
+                                        <input type="checkbox" name="activo" checked={formData.activo} onChange={handleChange} className="sr-only peer" />
+                                        <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-indigo-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-indigo-600"></div>
+                                        <span className="ml-3 text-sm font-bold text-gray-700 uppercase">Funcionario Activo</span>
                                     </label>
                                 </div>
                             </div>
                         </div>
 
-                        {/* SECCIÓN: INFORMACIÓN LABORAL */}
-                        <div className="bg-gray-50 p-4 rounded-md border border-gray-200">
-                            <h4 className="text-md font-semibold text-gray-800 mb-3">Información Laboral Corporativa</h4>
-                            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                                <div>
-                                    <label className="block text-sm font-medium text-gray-700">Cód. Personal (Interno)</label>
-                                    <input type="text" name="codigoPersonal" className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm border p-2 bg-white" value={formData.codigoPersonal} onChange={handleChange} />
-                                </div>
-                                <div>
-                                    <label className="block text-sm font-medium text-gray-700">Vinculación</label>
-                                    <select name="vinculacion" className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm border p-2 bg-white" value={formData.vinculacion} onChange={handleChange}>
-                                        <option value="">Seleccione...</option>
-                                        <option value="EMPLEADO">EMPLEADO</option>
-                                        <option value="CONTRATISTA">CONTRATISTA</option>
-                                    </select>
-                                </div>
-                                <div>
-                                    <label className="block text-sm font-medium text-gray-700">Cargo</label>
-                                    <select name="cargo" className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm border p-2 bg-white" value={formData.cargo} onChange={handleChange}>
-                                        <option value="">Seleccione...</option>
-                                        {options.cargos.map(cargo => (
-                                            <option key={cargo} value={cargo}>{cargo}</option>
-                                        ))}
-                                    </select>
-
-                                </div>
-                                <div>
-                                    <label className="block text-sm font-medium text-gray-700">Área / Dependencia</label>
-                                    <select name="area" className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm border p-2 bg-white" value={formData.area} onChange={handleChange}>
-                                        <option value="">Seleccione...</option>
-                                        {options.areas.map(area => (
-                                            <option key={area} value={area}>{area}</option>
-                                        ))}
-                                    </select>
-
-                                </div>
-                                <div>
-                                    <label className="block text-sm font-medium text-gray-700">Empresa (Tercero)</label>
-                                    <input type="text" name="empresaFuncionario" className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm border p-2 bg-white" value={formData.empresaFuncionario} onChange={handleChange} />
-                                </div>
-                                <div>
-                                    <label className="block text-sm font-medium text-gray-700">Proyecto</label>
-                                    <input type="text" name="proyecto" className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm border p-2 bg-white" value={formData.proyecto} onChange={handleChange} />
-                                </div>
+                        {/* SECCIÓN 2: INFORMACIÓN LABORAL */}
+                        <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
+                            <div className="bg-indigo-50 px-4 py-3 border-b border-indigo-100 flex items-center justify-between">
+                                <SectionHeader title="Información Laboral Corporativa" icon="🏢" />
+                                <button 
+                                    type="button" 
+                                    onClick={() => setShowLaboral(!showLaboral)}
+                                    className="text-xs font-bold text-indigo-700 bg-white px-3 py-1 rounded-full border border-indigo-200 shadow-sm"
+                                >
+                                    {showLaboral ? '▲ CONTRAER' : '▼ EXPANDIR'}
+                                </button>
                             </div>
+                            {showLaboral && (
+                                <div className="p-4 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 animate-fadeIn">
+                                    <Field label="Cód. Personal (Interno)">
+                                        <input type="text" name="codigoPersonal" value={formData.codigoPersonal} onChange={handleChange} className={inputCls} />
+                                    </Field>
+                                    <SelectWithAdd
+                                        label="Vinculación"
+                                        name="vinculacion"
+                                        value={formData.vinculacion}
+                                        onChange={handleChange}
+                                        options={['EMPLEADO', 'CONTRATISTA', 'EXTERNO', 'PASANTE']}
+                                    />
+                                    <SelectWithAdd
+                                        label="Cargo"
+                                        name="cargo"
+                                        required
+                                        value={formData.cargo}
+                                        onChange={handleChange}
+                                        options={options.cargos}
+                                        canAdd
+                                        onAdd={() => handleOpenCatalogModal('CARGO', 'Nuevo Cargo')}
+                                    />
+                                    <SelectWithAdd
+                                        label="Área / Dependencia"
+                                        name="area"
+                                        value={formData.area}
+                                        onChange={handleChange}
+                                        options={options.areas}
+                                        canAdd
+                                        onAdd={() => handleOpenCatalogModal('AREA', 'Nueva Área')}
+                                    />
+                                    <Field label="Empresa (Tercero)">
+                                        <input type="text" name="empresaFuncionario" value={formData.empresaFuncionario} onChange={handleChange} className={inputCls} />
+                                    </Field>
+                                    <Field label="Proyecto / Centro de Costos">
+                                        <input type="text" name="proyecto" value={formData.proyecto} onChange={handleChange} className={inputCls} />
+                                    </Field>
+                                </div>
+                            )}
                         </div>
 
-                        {/* SECCIÓN: UBICACIÓN GEOGRÁFICA Y FÍSICA */}
-                        <div className="bg-gray-50 p-4 rounded-md border border-gray-200">
-                            <h4 className="text-md font-semibold text-gray-800 mb-3">Ubicación</h4>
-                            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                                <div>
-                                    <label className="block text-sm font-medium text-gray-700">Departamento</label>
-                                    <input type="text" name="departamento" className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm border p-2 bg-white" value={formData.departamento} onChange={handleChange} />
-                                </div>
-                                <div>
-                                    <label className="block text-sm font-medium text-gray-700">Ciudad</label>
-                                    <input type="text" name="ciudad" className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm border p-2 bg-white" value={formData.ciudad} onChange={handleChange} />
-                                </div>
-                                <div>
-                                    <label className="block text-sm font-medium text-gray-700">Seccional</label>
-                                    <input type="text" name="seccional" className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm border p-2 bg-white" value={formData.seccional} onChange={handleChange} />
-                                </div>
-                                <div>
-                                    <label className="block text-sm font-medium text-gray-700">Municipio</label>
-                                    <input type="text" name="municipio" className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm border p-2 bg-white" value={formData.municipio} onChange={handleChange} />
-                                </div>
-                                <div>
-                                    <label className="block text-sm font-medium text-gray-700">Ubicación (Sede Fija)</label>
-                                    <input type="text" name="ubicacion" className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm border p-2 bg-white" value={formData.ubicacion} onChange={handleChange} />
-                                </div>
-                                <div>
-                                    <label className="block text-sm font-medium text-gray-700">Piso / Oficina</label>
-                                    <input type="text" name="piso" className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm border p-2 bg-white" value={formData.piso} onChange={handleChange} />
-                                </div>
+                        {/* SECCIÓN 3: UBICACIÓN */}
+                        <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
+                            <div className="bg-emerald-50 px-4 py-3 border-b border-emerald-100 flex items-center justify-between">
+                                <SectionHeader title="Ubicación y Sede" icon="📍" />
+                                <button 
+                                    type="button" 
+                                    onClick={() => setShowUbicacion(!showUbicacion)}
+                                    className="text-xs font-bold text-emerald-700 bg-white px-3 py-1 rounded-full border border-emerald-200 shadow-sm"
+                                >
+                                    {showUbicacion ? '▲ CONTRAER' : '▼ EXPANDIR'}
+                                </button>
                             </div>
+                            {showUbicacion && (
+                                <div className="p-4 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 animate-fadeIn">
+                                    <Field label="Departamento" required>
+                                        <input type="text" name="departamento" value={formData.departamento} onChange={handleChange} className={inputCls} />
+                                    </Field>
+                                    <SelectWithAdd
+                                        label="Ciudad / Municipio"
+                                        name="ciudad"
+                                        required
+                                        value={formData.ciudad}
+                                        onChange={handleChange}
+                                        options={options.ciudades}
+                                        canAdd
+                                        onAdd={() => handleOpenCatalogModal('CIUDAD', 'Nueva Ciudad')}
+                                    />
+                                    <SelectWithAdd
+                                        label="Seccional / Oficina Principal"
+                                        name="seccional"
+                                        required
+                                        value={formData.seccional}
+                                        onChange={handleChange}
+                                        options={options.seccionales}
+                                        canAdd
+                                        onAdd={() => handleOpenCatalogModal('SECCIONAL', 'Nueva Seccional')}
+                                    />
+                                    <Field label="Municipio Específico" required>
+                                        <input type="text" name="municipio" value={formData.municipio} onChange={handleChange} className={inputCls} />
+                                    </Field>
+                                    <Field label="Ubicación / Sede Fija" required>
+                                        <input type="text" name="ubicacion" value={formData.ubicacion} onChange={handleChange} className={inputCls} />
+                                    </Field>
+                                    <Field label="Piso / Oficina / Puesto">
+                                        <input type="text" name="piso" value={formData.piso} onChange={handleChange} className={inputCls} />
+                                    </Field>
+                                </div>
+                            )}
                         </div>
 
-                        <div className="mt-6 flex justify-end gap-3 pt-4 border-t">
-                            <button type="button" onClick={() => onClose(false)} className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
-                                Cancelar
+                        <div className="flex gap-4 justify-end pt-6 border-t border-gray-100">
+                            <button
+                                type="button"
+                                onClick={() => onClose(false)}
+                                className="px-6 py-2.5 text-sm font-bold text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 shadow-sm transition-all"
+                            >
+                                CANCELAR
                             </button>
-                            <button type="submit" disabled={loading} className="px-4 py-2 text-sm font-medium text-white bg-indigo-600 border border-transparent rounded-md shadow-sm hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50">
-                                {loading ? 'Guardando...' : 'Guardar Información'}
+                            <button
+                                type="submit"
+                                disabled={loading}
+                                className="px-8 py-2.5 text-sm font-black text-white bg-indigo-600 rounded-lg hover:bg-indigo-700 shadow-md hover:shadow-lg disabled:opacity-50 transition-all flex items-center gap-2"
+                            >
+                                {loading ? 'GUARDANDO...' : (
+                                    <>
+                                        <span>✓</span>
+                                        <span>GUARDAR FUNCIONARIO</span>
+                                    </>
+                                )}
                             </button>
                         </div>
                     </form>
                 </div>
             </div>
+
+            <CatalogModal 
+                open={activeModal.open} 
+                onClose={() => setActiveModal(prev => ({ ...prev, open: false }))}
+                domain={activeModal.domain} 
+                title={activeModal.title}
+                onSaveSuccess={handleCatalogSuccess}
+            /> 
         </div>
     );
 };

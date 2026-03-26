@@ -32,6 +32,13 @@ router.post('/', authMiddleware, requireRole('ADMIN', 'TECNICO'), async (req, re
     try {
         const { activoId, funcionarioId, tipo, observaciones } = req.body;
 
+        // Verificar estado actual del activo
+        const activo = await prisma.activo.findUnique({ where: { id: parseInt(activoId) } });
+        if (!activo) return res.status(404).json({ error: 'Activo no encontrado' });
+        if (activo.estado === 'DADO_DE_BAJA') {
+            return res.status(400).json({ error: 'No se puede asignar un activo que ha sido dado de baja' });
+        }
+
         // Cerrar asignación activa anterior
         await prisma.asignacion.updateMany({
             where: { activoId: parseInt(activoId), fechaFin: null },
