@@ -25,6 +25,39 @@ exports.crearTicket = async (req, res) => {
         const { titulo, descripcion, prioridad, tipo, funcionarioId, activoId, solucionTecnica, conclusiones } = req.body;
         const creadoPorId = req.user.id;
 
+        // --- ASIGNACIÓN AUTOMÁTICA POR CARGA DE TRABAJO ---
+        let asignadoAId = null;
+        let comentarioAsignacion = 'Ticket creado exitosamente.';
+
+        try {
+            // 1. Obtener analistas activos
+            const analistas = await prisma.usuario.findMany({
+                where: { rol: 'ANALISTA_TIC', activo: true },
+                select: { id: true, nombre: true }
+            });
+
+            if (analistas.length > 0) {
+                // 2. Contar casos activos por cada analista (excluyendo RESUELTO y COMPLETADO)
+                const analistasConCarga = await Promise.all(analistas.map(async (a) => {
+                    const count = await prisma.ticket.count({
+                        where: {
+                            asignadoAId: a.id,
+                            NOT: { estado: { in: ['RESUELTO', 'COMPLETADO'] } }
+                        }
+                    });
+                    return { ...a, count };
+                }));
+
+                // 3. Seleccionar al que tiene menos casos
+                analistasConCarga.sort((a, b) => a.count - b.count);
+                const seleccionado = analistasConCarga[0];
+                asignadoAId = seleccionado.id;
+                comentarioAsignacion = `Asignación automática por carga de trabajo (${seleccionado.count} casos previos).`;
+            }
+        } catch (assignError) {
+            console.error('Error en asignación automática:', assignError);
+        }
+
         const ticket = await prisma.ticket.create({
             data: {
                 titulo,
@@ -34,13 +67,15 @@ exports.crearTicket = async (req, res) => {
                 funcionarioId: parseInt(funcionarioId),
                 activoId: activoId ? parseInt(activoId) : null,
                 creadoPorId,
+                asignadoAId,
                 estado: 'CREADO',
+                leido: false,
                 solucionTecnica,
                 conclusiones,
                 trazas: {
                     create: {
-                        tipoTraza: 'CREACION',
-                        comentario: 'Ticket creado exitosamente.',
+                        tipoTraza: asignadoAId ? 'ASIGNACION' : 'CREACION',
+                        comentario: comentarioAsignacion,
                         estadoNuevo: 'CREADO',
                         creadoPorId
                     }
@@ -49,6 +84,7 @@ exports.crearTicket = async (req, res) => {
             include: {
                 funcionario: true,
                 activo: true,
+                asignadoA: { select: { id: true, nombre: true } },
                 creadoPor: { select: { id: true, nombre: true } }
             }
         });
@@ -124,6 +160,15 @@ exports.obtenerTicketPorId = async (req, res) => {
 
         if (!ticket) {
             return res.status(404).json({ error: 'Ticket no encontrado.' });
+        }
+
+        // --- MARCAR COMO LEÍDO SI EL ASIGNADO CONSULTA ---
+        if (ticket.asignadoAId === req.user.id && !ticket.leido) {
+            await prisma.ticket.update({
+                where: { id: parseInt(id) },
+                data: { leido: true }
+            });
+            ticket.leido = true;
         }
 
         res.json(ticket);
@@ -288,5 +333,56 @@ exports.descargarAdjunto = async (req, res) => {
     } catch (error) {
         console.error('Error al descargar adjunto:', error);
         res.status(500).json({ error: 'Error al descargar el archivo.' });
+    }
+};
+
+// ==========================================
+// OBTENER RESUMEN DE ALERTAS (Contadores para Navbar)
+// ==========================================
+exports.obtenerResumenAlertas = async (req, res) => {
+    try {
+        const usuarioId = req.user.id;
+
+        // 1. Conteo de tickets asignados no leídos
+        const nuevos = await prisma.ticket.count({
+            where: {
+                asignadoAId: usuarioId,
+                leido: false
+            }
+        });
+
+        // 2. Conteo de tickets asignados activos (pendientes por solucionar/cerrar)
+        const pendientes = await prisma.ticket.count({
+            where: {
+                asignadoAId: usuarioId,
+                NOT: { estado: { in: ['RESUELTO', 'COMPLETADO'] } }
+            }
+        });
+
+        // 3. Obtener los últimos 5 tickets activos para el dropdown
+        const listaRecientes = await prisma.ticket.findMany({
+            where: {
+                asignadoAId: usuarioId,
+                NOT: { estado: { in: ['RESUELTO', 'COMPLETADO'] } }
+            },
+            select: {
+                id: true,
+                titulo: true,
+                estado: true,
+                leido: true,
+                creadoEn: true
+            },
+            orderBy: { creadoEn: 'desc' },
+            take: 5
+        });
+
+        res.json({
+            nuevos,
+            pendientes,
+            listaRecientes
+        });
+    } catch (error) {
+        console.error('Error al obtener resumen de alertas:', error);
+        res.status(500).json({ error: 'Error interno al obtener alertas.' });
     }
 };

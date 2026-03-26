@@ -11,6 +11,7 @@ router.use(authMiddleware);
 // Crear ticket con adjuntos opcionales (multipart/form-data, campo 'adjuntos')
 router.post('/', upload.array('adjuntos', 10), ticketController.crearTicket);
 router.get('/', ticketController.obtenerTickets);
+router.get('/resumen-alertas', ticketController.obtenerResumenAlertas);
 router.get('/:id', ticketController.obtenerTicketPorId);
 
 // ─── Ciclo de vida ────────────────────────────────────

@@ -18,6 +18,7 @@ import {
     PaperClipIcon
 } from '@heroicons/react/24/outline';
 import { useAuth } from '../../context/AuthContext';
+import { generateTicketReport } from './reports/TicketReport';
 
 // Helper: icon + label for file type
 const getFileInfo = (tipoMime, nombre) => {
@@ -438,11 +439,11 @@ const TicketDetail = () => {
                             </div>
                             <div className="pt-2">
                                 <button
-                                    onClick={() => window.print()}
+                                    onClick={() => generateTicketReport(ticket, user)}
                                     className="w-full py-2 bg-gray-900 text-white rounded-lg text-xs font-bold hover:bg-black transition-colors flex items-center justify-center gap-2 shadow-xl"
                                 >
                                     <ArrowDownTrayIcon className="w-4 h-4" />
-                                    IMPRIMIR REPORTE DE CICLO DE VIDA
+                                    GENERAR REPORTE DE CICLO DE VIDA (PDF)
                                 </button>
                             </div>
                         </div>
