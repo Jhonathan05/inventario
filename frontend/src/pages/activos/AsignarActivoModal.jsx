@@ -20,10 +20,18 @@ const AsignarActivoModal = ({ open, onClose, activo }) => {
         }
     }, [open, activo]);
 
+    const sortList = (list) => {
+        return [...list].sort((a, b) => {
+            const valA = (a.nombre || a.valor || a).toString().toUpperCase();
+            const valB = (b.nombre || b.valor || b).toString().toUpperCase();
+            return valA.localeCompare(valB);
+        });
+    };
+
     const fetchFuncionarios = async () => {
         try {
             const res = await api.get('/funcionarios?activo=true');
-            setFuncionarios(res.data);
+            setFuncionarios(sortList(res.data));
         } catch (err) {
             console.error(err);
         }

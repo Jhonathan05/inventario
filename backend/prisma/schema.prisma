@@ -343,7 +343,9 @@ model Acta {
 enum EstadoTicket {
   CREADO
   EN_CURSO
+  EJECUCION
   SIN_RESPUESTA
+  RESUELTO
   COMPLETADO
 }
 
@@ -385,6 +387,10 @@ model Ticket {
 
   creadoPorId     Int
   creadoPor       Usuario          @relation("TicketsCreados", fields: [creadoPorId], references: [id])
+
+  // --- Documentación Técnica (Bitácora) ---
+  solucionTecnica String?          @db.Text
+  conclusiones    String?          @db.Text
 
   trazas          TrazaTicket[]
   adjuntos        Documento[]

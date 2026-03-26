@@ -136,12 +136,33 @@ const TicketDetail = () => {
     const handleCambiarEstado = async () => {
         if (nuevoEstado === ticket.estado) return;
         try {
-            await api.put(`/tickets/${id}/estado`, { nuevoEstado });
+            await api.put(`/tickets/${id}/estado`, { 
+                nuevoEstado,
+                solucionTecnica: ticket.solucionTecnica,
+                conclusiones: ticket.conclusiones
+            });
             toast.success('Estado actualizado');
             cargarDatos();
         } catch {
             toast.error('Error al cambiar estado');
             setNuevoEstado(ticket.estado);
+        }
+    };
+
+    const handleGuardarNotasTecnicas = async () => {
+        setSaving(true);
+        try {
+            await api.put(`/tickets/${id}/estado`, { 
+                nuevoEstado: ticket.estado,
+                solucionTecnica: ticket.solucionTecnica,
+                conclusiones: ticket.conclusiones
+            });
+            toast.success('Notas técnicas guardadas');
+            cargarDatos();
+        } catch {
+            toast.error('Error al guardar notas');
+        } finally {
+            setSaving(false);
         }
     };
 
@@ -160,8 +181,10 @@ const TicketDetail = () => {
     const estadoBadgeColor = {
         CREADO: 'bg-gray-100 text-gray-700 border-gray-200',
         EN_CURSO: 'bg-blue-100 text-blue-700 border-blue-200',
+        EJECUCION: 'bg-amber-100 text-amber-700 border-amber-200',
         SIN_RESPUESTA: 'bg-red-100 text-red-700 border-red-200',
-        COMPLETADO: 'bg-green-100 text-green-700 border-green-200'
+        RESUELTO: 'bg-emerald-100 text-emerald-700 border-emerald-200',
+        COMPLETADO: 'bg-indigo-100 text-indigo-700 border-indigo-200'
     };
 
     const prioridadColor = {
@@ -189,7 +212,42 @@ const TicketDetail = () => {
     }
 
     return (
-        <div className="max-w-7xl mx-auto space-y-6">
+        <div className="max-w-7xl mx-auto space-y-6 ticket-detail-container">
+            {/* Estilos para Impresión de Reporte */}
+            <style>
+                {`
+                @media print {
+                    @page { margin: 20mm; }
+                    body { background: white !important; font-size: 12pt; }
+                    .nav-bar, .no-print, button, form, .actions-bar { display: none !important; }
+                    .max-w-7xl { max-width: 100% !important; margin: 0 !important; }
+                    .shadow-sm, .border { border: none !important; box-shadow: none !important; }
+                    .bg-gray-50 { background: white !important; border: 1px solid #eee !important; }
+                    .ticket-header-print { display: block !important; margin-bottom: 2rem; border-bottom: 2px solid #333; padding-bottom: 1rem; }
+                    .grid { display: block !important; }
+                    .lg\\:grid-cols-3 { grid-template-columns: 1fr !important; }
+                    .space-y-6 > * + * { margin-top: 2rem !important; }
+                    .text-blue-600, .text-indigo-600 { color: black !important; font-weight: bold; }
+                    .bg-blue-100, .bg-emerald-100, .bg-amber-100 { background: transparent !important; border: 1px solid #333 !important; }
+                    textarea { border: none !important; background: transparent !important; overflow: visible !important; height: auto !important; }
+                }
+                .ticket-header-print { display: none; }
+                `}
+            </style>
+
+            {/* Encabezado Profesional para el Reporte (Solo Impresión) */}
+            <div className="ticket-header-print">
+                <div className="flex justify-between items-start">
+                    <div>
+                        <h1 className="text-2xl font-black text-gray-900 uppercase">Bitácora de Soporte Técnico</h1>
+                        <p className="text-sm font-bold text-gray-600">SISTEMA DE INVENTARIO Y GESTIÓN TI</p>
+                    </div>
+                    <div className="text-right">
+                        <p className="text-xl font-bold">CASO #{ticket.id}</p>
+                        <p className="text-xs text-gray-500 uppercase">Generado el: {new Date().toLocaleString()}</p>
+                    </div>
+                </div>
+            </div>
             {/* Header */}
             <div className="flex items-center gap-4 bg-white p-4 rounded-xl shadow-sm border border-gray-100">
                 <button onClick={() => navigate('/tickets')} className="p-2 text-gray-400 hover:text-gray-900 rounded-full hover:bg-gray-100">
@@ -305,7 +363,9 @@ const TicketDetail = () => {
                                         className="flex-1 text-sm border border-gray-200 rounded-md shadow-sm bg-white focus:ring-blue-500">
                                         <option value="CREADO">Creado</option>
                                         <option value="EN_CURSO">En Curso</option>
+                                        <option value="EJECUCION">En Ejecución</option>
                                         <option value="SIN_RESPUESTA">Sin Respuesta</option>
+                                        <option value="RESUELTO">Resuelto</option>
                                         <option value="COMPLETADO">Completado</option>
                                     </select>
                                     <button onClick={handleCambiarEstado} disabled={nuevoEstado === ticket.estado}
@@ -314,12 +374,60 @@ const TicketDetail = () => {
                                     </button>
                                 </div>
                             </div>
+                            <div className="pt-2">
+                                <button
+                                    onClick={() => window.print()}
+                                    className="w-full py-2 bg-gray-900 text-white rounded-lg text-xs font-bold hover:bg-black transition-colors flex items-center justify-center gap-2"
+                                >
+                                    <ArrowDownTrayIcon className="w-4 h-4" />
+                                    IMPRIMIR BITÁCORA DEL CASO
+                                </button>
+                            </div>
                         </div>
                     )}
                 </div>
 
-                {/* Panel Derecho: Timeline */}
-                <div className="lg:col-span-2 flex flex-col gap-4">
+                {/* Panel Derecho: Timeline & Notebook */}
+                <div className="lg:col-span-2 flex flex-col gap-6">
+                    {/* Bitácora Técnica Personal */}
+                    {canEdit && (
+                        <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
+                            <h2 className="text-base font-bold text-gray-900 mb-4 flex items-center gap-2">
+                                <ChatBubbleLeftIcon className="w-5 h-5 text-indigo-500" /> Bitácora Técnica (Personal)
+                            </h2>
+                            <div className="space-y-4">
+                                <div>
+                                    <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest block mb-1.5">Solución Técnica Aplicada</label>
+                                    <textarea
+                                        rows="4"
+                                        value={ticket.solucionTecnica || ''}
+                                        onChange={e => setTicket({ ...ticket, solucionTecnica: e.target.value })}
+                                        className="w-full text-sm p-3 bg-gray-50 border border-gray-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all resize-none"
+                                        placeholder="Documenta aquí los pasos técnicos realizados..."
+                                    />
+                                </div>
+                                <div>
+                                    <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest block mb-1.5">Conclusiones / Observaciones Finales</label>
+                                    <textarea
+                                        rows="2"
+                                        value={ticket.conclusiones || ''}
+                                        onChange={e => setTicket({ ...ticket, conclusiones: e.target.value })}
+                                        className="w-full text-sm p-3 bg-gray-50 border border-gray-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all resize-none"
+                                        placeholder="Resumen final del cierre del caso..."
+                                    />
+                                </div>
+                                <div className="flex justify-end">
+                                    <button
+                                        onClick={handleGuardarNotasTecnicas}
+                                        disabled={saving}
+                                        className="px-4 py-2 bg-indigo-600 text-white rounded-lg text-sm font-semibold hover:bg-indigo-700 shadow-lg shadow-indigo-100 transition-all active:scale-95 disabled:opacity-50"
+                                    >
+                                        {saving ? 'Guardando...' : 'Guardar Notas Técnicas'}
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    )}
                     <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100 flex-1">
                         <h2 className="text-base font-bold text-gray-900 mb-6 flex items-center gap-2">
                             <ClockIcon className="w-5 h-5 text-gray-400" /> Trazabilidad del Caso

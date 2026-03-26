@@ -16,6 +16,14 @@ const AssetIcon = ({ tipo, categoria, className = 'h-full w-full p-2.5 text-char
             d={getAssetIconPath(tipo, categoria?.nombre)} />
     </svg>
 );
+    
+const sortList = (list) => {
+    return [...list].sort((a, b) => {
+        const valA = (a.nombre || a.valor || a).toString().toUpperCase();
+        const valB = (b.nombre || b.valor || b).toString().toUpperCase();
+        return valA.localeCompare(valB);
+    });
+};
 
 const ActivosList = () => {
     const { user } = useAuth();
@@ -48,8 +56,8 @@ const ActivosList = () => {
     const [historialLoading, setHistorialLoading] = useState(false);
 
     useEffect(() => {
-        api.get('/categorias').then(res => setCategorias(res.data)).catch(() => { });
-        api.get('/funcionarios').then(res => setFuncionarios(res.data)).catch(() => { });
+        api.get('/categorias').then(res => setCategorias(sortList(res.data))).catch(() => { });
+        api.get('/funcionarios').then(res => setFuncionarios(sortList(res.data))).catch(() => { });
         api.get('/catalogos').then(res => {
             const grouped = res.data.reduce((acc, curr) => {
                 if (!acc[curr.dominio]) acc[curr.dominio] = [];
@@ -57,9 +65,9 @@ const ActivosList = () => {
                 return acc;
             }, {});
             setCatalogs({
-                EMPRESA_PROPIETARIA: grouped['EMPRESA_PROPIETARIA'] || [],
-                ESTADO_OPERATIVO: grouped['ESTADO_OPERATIVO'] || [],
-                TIPO_EQUIPO: grouped['TIPO_EQUIPO'] || []
+                EMPRESA_PROPIETARIA: sortList(grouped['EMPRESA_PROPIETARIA'] || []),
+                ESTADO_OPERATIVO: sortList(grouped['ESTADO_OPERATIVO'] || []),
+                TIPO_EQUIPO: sortList(grouped['TIPO_EQUIPO'] || [])
             });
         }).catch(() => { });
     }, []);
