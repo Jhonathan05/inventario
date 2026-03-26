@@ -154,6 +154,54 @@ router.put('/:id', authMiddleware, requireRole('ADMIN', 'TECNICO'), upload.singl
     }
 });
 
+// POST /api/activos/:id/baja - Dar de baja un activo
+router.post('/:id/baja', authMiddleware, requireRole('ADMIN'), async (req, res) => {
+    try {
+        const id = parseInt(req.params.id);
+        const { motivo } = req.body;
+
+        const activo = await prisma.activo.findUnique({ where: { id } });
+        if (!activo) return res.status(404).json({ error: 'Activo no encontrado' });
+        if (activo.estado === 'DADO_DE_BAJA') return res.status(400).json({ error: 'El activo ya está dado de baja' });
+
+        // 1. Cerrar asignación activa si existe
+        await prisma.asignacion.updateMany({
+            where: { activoId: id, fechaFin: null },
+            data: { 
+                fechaFin: new Date(),
+                observaciones: `Cierre automático por BAJA del activo. ${motivo || ''}`
+            },
+        });
+
+        // 2. Actualizar estado del activo
+        const actualizado = await prisma.activo.update({
+            where: { id },
+            data: { 
+                estado: 'DADO_DE_BAJA',
+                estadoOperativo: 'BAJA',
+                razonEstado: motivo || 'BAJA DEFINITIVA'
+            },
+        });
+
+        // 3. Crear registro en Hoja de Vida
+        await prisma.hojaVida.create({
+            data: {
+                activoId: id,
+                tipo: 'INSPECCION',
+                descripcion: `BAJA DEL ACTIVO: ${motivo || 'Sin observaciones'}`,
+                fecha: new Date(),
+                estado: 'FINALIZADO',
+                registradoPor: req.user.nombre
+            }
+        });
+
+        res.json({ message: 'Activo dado de baja correctamente', activo: actualizado });
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ error: 'Error al procesar la baja' });
+    }
+});
+
 // DELETE /api/activos/:id
 router.delete('/:id', authMiddleware, requireRole('ADMIN'), async (req, res) => {
     try {

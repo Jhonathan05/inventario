@@ -281,11 +281,89 @@ router.delete('/perfiles/:id', authMiddleware, requireRole('ADMIN', 'TECNICO'), 
     }
 });
 
+const { formatAssetForCMDB, generateCMDB_CSV } = require('../utils/cmdbExport');
+
+// GET /api/reportes/cmdb/export - Exportación completa en formato CSV para CMDB
+router.get('/cmdb/export', authMiddleware, requireRole('ADMIN', 'TECNICO'), async (req, res) => {
+    try {
+        const activos = await prisma.activo.findMany({
+            include: {
+                categoria: true,
+                asignaciones: {
+                    where: { fechaFin: null },
+                    include: { funcionario: true },
+                    take: 1,
+                },
+            },
+            orderBy: { id: 'asc' },
+        });
+
+        const csv = generateCMDB_CSV(activos);
+        
+        res.setHeader('Content-Type', 'text/csv');
+        res.setHeader('Content-Disposition', `attachment; filename=inventario_cmdb_${new Date().toISOString().split('T')[0]}.csv`);
+        res.set('Content-Type', 'text/csv');
+        res.status(200).send(csv);
+    } catch (error) {
+        console.error('Error exportando CMDB:', error);
+        res.status(500).json({ error: 'Error al generar exportación CMDB' });
+    }
+});
+
 // POST /api/reportes/perfiles/seed - Crear perfiles predefinidos
 router.post('/perfiles/seed', authMiddleware, requireRole('ADMIN', 'TECNICO'), async (req, res) => {
     try {
         const existing = await prisma.perfilReporte.findFirst({ where: { nombre: 'CMDB USUARIO FINAL' } });
-        if (existing) return res.json({ message: 'Perfiles predefinidos ya existen', perfil: existing });
+        
+        const columnasCMDB = [
+            { key: 'empresaPropietaria', label: 'EMPRESA PROPIETARIO DEL EQUIPO' },
+            { key: 'dependencia', label: 'DEPENDENCIA' },
+            { key: 'fuenteRecurso', label: 'FUENTE DE RECURSO' },
+            { key: 'empresaFuncionario', label: 'EMPRESA FUNCIONARIO' },
+            { key: 'tipoPersonal', label: 'EMPLEADO OR CONTRATISTA' },
+            { key: 'cedulaFuncionario', label: 'CEDULA DEL FUNCIONARIO/CONTRATISTA' },
+            { key: 'shortname', label: 'SHORTNAME' },
+            { key: 'nombreFuncionario', label: 'NOMBRES Y APELLIDOS' },
+            { key: 'departamento', label: 'DEPARTAMENTO' },
+            { key: 'ciudad', label: 'CIUDAD' },
+            { key: 'cargo', label: 'CARGO' },
+            { key: 'area', label: 'ÁREA' },
+            { key: 'ubicacion', label: 'UBICACIÓN Y PISO' },
+            { key: 'tipoRecurso', label: 'TIPO DE RECURSO' },
+            { key: 'tipo', label: 'TIPO' },
+            { key: 'serial', label: 'SERIAL' },
+            { key: 'activoFijo', label: 'ACTIVO FIJO' },
+            { key: 'placa', label: 'PLACA' },
+            { key: 'marca', label: 'MARCA' },
+            { key: 'modelo', label: 'MODELO' },
+            { key: 'nombreEquipo', label: 'NOMBRE DE EQUIPO' },
+            { key: 'direccionIp', label: 'DIRECCIÓN IP' },
+            { key: 'direccionMac', label: 'DIRECCIÓN MAC' },
+            { key: 'puertoRed', label: 'PUERTO RED' },
+            { key: 'vlan', label: 'VLAN' },
+            { key: 'estadoOperativo', label: 'ESTADO OPERATIVO' },
+            { key: 'razonEstado', label: 'RAZÓN DEL ESTADO' },
+            { key: 'tipoControl', label: 'ADMINISTRADO/CONTROLADO' },
+            { key: 'procesador', label: 'PROCESADOR' },
+            { key: 'memoriaRam', label: 'MEMORIA RAM' },
+            { key: 'discoDuro', label: 'TAMAÑO DISCO DURO' },
+            { key: 'sistemaOperativo', label: 'SISTEMA OPERATIVO' },
+            { key: 'fechaCompra', label: 'FECHA DE COMPRA' },
+            { key: 'garantiaHasta', label: 'FIN DE GARANTIA' },
+            { key: 'tiempoUso', label: 'TIEMPO USO (AÑOS)' },
+            { key: 'tipoPropiedad', label: 'TIPO DE PROPIEDAD' },
+            { key: 'checklistTI', label: 'CHEKLIST (RESPONSABLE TI)' },
+            { key: 'ordenRemision', label: 'ORDEN DE REMISIÓN' },
+            { key: 'observaciones', label: 'OBSERVACIONES' },
+        ];
+
+        if (existing) {
+            await prisma.perfilReporte.update({
+                where: { id: existing.id },
+                data: { columnas: columnasCMDB }
+            });
+            return res.json({ message: 'Perfil CMDB actualizado', perfil: existing });
+        }
 
         const perfil = await prisma.perfilReporte.create({
             data: {
@@ -293,43 +371,7 @@ router.post('/perfiles/seed', authMiddleware, requireRole('ADMIN', 'TECNICO'), a
                 descripcion: 'Formato estándar CMDB para reporte de equipos asignados a usuarios finales',
                 tipoReporte: 'inventario',
                 esPredefinido: true,
-                columnas: [
-                    { key: 'empresaPropietaria', label: 'EMPRESA PROPIETARIO DEL EQUIPO' },
-                    { key: 'dependencia', label: 'DEPENDENCIA' },
-                    { key: 'fuenteRecurso', label: 'FUENTE DE RECURSO' },
-                    { key: 'empresaFuncionario', label: 'EMPRESA FUNCIONARIO' },
-                    { key: 'tipoPersonal', label: 'EMPLEADO O CONTRATISTA' },
-                    { key: 'cedulaFuncionario', label: 'CEDULA DEL FUNCIONARIO/CONTRATISTA' },
-                    { key: 'shortname', label: 'SHORTNAME' },
-                    { key: 'nombreFuncionario', label: 'NOMBRES Y APELLIDOS' },
-                    { key: 'departamento', label: 'DEPARTAMENTO' },
-                    { key: 'ciudad', label: 'CIUDAD' },
-                    { key: 'cargo', label: 'CARGO' },
-                    { key: 'area', label: 'ÁREA' },
-                    { key: 'ubicacion', label: 'UBICACIÓN Y PISO' },
-                    { key: 'tipoRecurso', label: 'TIPO DE RECURSO' },
-                    { key: 'tipo', label: 'TIPO' },
-                    { key: 'serial', label: 'SERIAL' },
-                    { key: 'activoFijo', label: 'ACTIVO FIJO' },
-                    { key: 'placa', label: 'PLACA' },
-                    { key: 'marca', label: 'MARCA' },
-                    { key: 'modelo', label: 'MODELO' },
-                    { key: 'nombreEquipo', label: 'NOMBRE DE EQUIPO' },
-                    { key: 'estadoOperativo', label: 'ESTADO OPERATIVO' },
-                    { key: 'razonEstado', label: 'RAZÓN DEL ESTADO' },
-                    { key: 'tipoControl', label: 'ADMINISTRADO/CONTROLADO' },
-                    { key: 'procesador', label: 'PROCESADOR' },
-                    { key: 'memoriaRam', label: 'MEMORIA RAM' },
-                    { key: 'discoDuro', label: 'TAMAÑO DISCO DURO' },
-                    { key: 'sistemaOperativo', label: 'SISTEMA OPERATIVO' },
-                    { key: 'fechaCompra', label: 'FECHA DE COMPRA' },
-                    { key: 'garantiaHasta', label: 'FIN DE GARANTIA' },
-                    { key: 'tiempoUso', label: 'TIEMPO USO (AÑOS)' },
-                    { key: 'tipoPropiedad', label: 'TIPO DE PROPIEDAD' },
-                    { key: 'checklistTI', label: 'CHEKLIST (RESPONSABLE TI)' },
-                    { key: 'ordenRemision', label: 'ORDEN DE REMISIÓN' },
-                    { key: 'observaciones', label: 'OBSERVACIONES' },
-                ],
+                columnas: columnasCMDB,
             },
         });
         res.status(201).json({ message: 'Perfil CMDB creado', perfil });

@@ -93,6 +93,10 @@ model Activo {
   memoriaRam           String?
   discoDuro            String?
   sistemaOperativo     String?
+  direccionIp          String?
+  direccionMac         String?
+  puertoRed            String?
+  vlan                 String?
 
   // Relaciones
   asignaciones  Asignacion[]

@@ -110,10 +110,22 @@ const ActivosForm = ({ open, onClose, activo }) => {
     // Modal state for adding new options
     const [activeModal, setActiveModal] = useState({ open: false, domain: '', title: '', isCategory: false });
 
+    // Visibility states
+    const [showFuncionario, setShowFuncionario] = useState(false);
+    const [showCompraGarantia, setShowCompraGarantia] = useState(false);
+
     useEffect(() => {
         fetchCategorias();
         fetchAllCatalogs();
     }, []);
+
+    const sortList = (list) => {
+        return [...list].sort((a, b) => {
+            const valA = (a.nombre || a.valor || a).toString().toUpperCase();
+            const valB = (b.nombre || b.valor || b).toString().toUpperCase();
+            return valA.localeCompare(valB);
+        });
+    };
 
     const fetchAllCatalogs = async () => {
         try {
@@ -123,7 +135,14 @@ const ActivosForm = ({ open, onClose, activo }) => {
                 acc[item.dominio].push(item.valor);
                 return acc;
             }, {});
-            setCatalogs(prev => ({ ...prev, ...grouped }));
+
+            // Sort all catalog lists
+            const sortedGrouped = {};
+            Object.keys(grouped).forEach(domain => {
+                sortedGrouped[domain] = sortList(grouped[domain]);
+            });
+
+            setCatalogs(prev => ({ ...prev, ...sortedGrouped }));
         } catch (err) {
             console.error('Error fetching catalogs:', err);
         }
@@ -135,13 +154,13 @@ const ActivosForm = ({ open, onClose, activo }) => {
 
     const handleCatalogSuccess = (newVal) => {
         if (activeModal.isCategory) {
-            setCategorias(prev => [...prev, newVal]);
+            setCategorias(prev => sortList([...prev, newVal]));
             setFormData(prev => ({ ...prev, categoriaId: newVal.id }));
         } else {
             const val = newVal.valor;
             setCatalogs(prev => ({
                 ...prev,
-                [activeModal.domain]: [...prev[activeModal.domain], val]
+                [activeModal.domain]: sortList([...prev[activeModal.domain], val])
             }));
             const fieldName = getFieldNameByDomain(activeModal.domain);
             if (fieldName) {
@@ -219,7 +238,7 @@ const ActivosForm = ({ open, onClose, activo }) => {
     const fetchCategorias = async () => {
         try {
             const res = await api.get('/categorias');
-            setCategorias(res.data);
+            setCategorias(sortList(res.data));
         } catch (err) {
             console.error(err);
         }
@@ -240,6 +259,23 @@ const ActivosForm = ({ open, onClose, activo }) => {
 
     const handleSubmit = async (e) => {
         e.preventDefault();
+        
+        // Validación explícita de campos obligatorios
+        const requiredFields = [
+            { key: 'tipo', label: 'Tipo de Equipo' },
+            { key: 'serial', label: 'Serial' },
+            { key: 'placa', label: 'Placa' },
+            { key: 'marca', label: 'Marca' },
+            { key: 'modelo', label: 'Modelo' }
+        ];
+
+        const missing = requiredFields.filter(f => !formData[f.key]);
+        if (missing.length > 0) {
+            setError(`Los siguientes campos son obligatorios: ${missing.map(f => f.label).join(', ')}`);
+            setLoading(false);
+            return;
+        }
+
         setLoading(true);
         setError('');
         try {
@@ -363,64 +399,81 @@ const ActivosForm = ({ open, onClose, activo }) => {
                                 />
                             </div>
                         </div>
-
+ 
                         {/* SECCIÓN 2: FUNCIONARIO — solo lectura, los datos vienen del módulo Funcionarios */}
-                        <div className="bg-green-50 rounded-lg p-4">
-                            <SectionHeader title="Información del Funcionario" icon="👤" />
-                            <p className="text-xs text-gray-500 mb-3 italic">Estos campos son informativos y se actualizan desde el módulo de Funcionarios.</p>
-                            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-                                <Field label="Empresa Funcionario">
-                                    <input type="text" name="empresaFuncionario" value={formData.empresaFuncionario} readOnly disabled className={`${inputCls} bg-gray-100 text-gray-500 cursor-not-allowed`} />
-                                </Field>
-                                <Field label="Empleado o Contratista">
-                                    <input type="text" name="tipoPersonal" value={formData.tipoPersonal} readOnly disabled className={`${inputCls} bg-gray-100 text-gray-500 cursor-not-allowed`} />
-                                </Field>
-                                <Field label="Cédula del Funcionario">
-                                    <input type="text" name="cedulaFuncionario" value={formData.cedulaFuncionario} readOnly disabled className={`${inputCls} bg-gray-100 text-gray-500 cursor-not-allowed`} />
-                                </Field>
-                                <Field label="Shortname">
-                                    <input type="text" name="shortname" value={formData.shortname} readOnly disabled className={`${inputCls} bg-gray-100 text-gray-500 cursor-not-allowed`} />
-                                </Field>
-                                <div className="col-span-2">
-                                    <Field label="Nombres y Apellidos">
-                                        <input type="text" name="nombreFuncionario" value={formData.nombreFuncionario} readOnly disabled className={`${inputCls} bg-gray-100 text-gray-500 cursor-not-allowed`} />
-                                    </Field>
-                                </div>
-                                <Field label="Departamento">
-                                    <input type="text" name="departamento" value={formData.departamento} readOnly disabled className={`${inputCls} bg-gray-100 text-gray-500 cursor-not-allowed`} />
-                                </Field>
-                                <Field label="Ciudad">
-                                    <input type="text" name="ciudad" value={formData.ciudad} readOnly disabled className={`${inputCls} bg-gray-100 text-gray-500 cursor-not-allowed`} />
-                                </Field>
-                                <div className="col-span-2">
-                                    <Field label="Cargo">
-                                        <input type="text" name="cargo" value={formData.cargo} readOnly disabled className={`${inputCls} bg-gray-100 text-gray-500 cursor-not-allowed`} />
-                                    </Field>
-                                </div>
-                                <Field label="Área">
-                                    <input type="text" name="area" value={formData.area} readOnly disabled className={`${inputCls} bg-gray-100 text-gray-500 cursor-not-allowed`} />
-                                </Field>
-                                <Field label="Ubicación y Piso">
-                                    <input type="text" name="ubicacion" value={formData.ubicacion} readOnly disabled className={`${inputCls} bg-gray-100 text-gray-500 cursor-not-allowed`} />
-                                </Field>
+                        <div className="bg-green-50 rounded-lg p-4 border border-green-100">
+                            <div className="flex items-center justify-between mb-4">
+                                <SectionHeader title="Información del Funcionario" icon="👤" />
+                                <button 
+                                    type="button"
+                                    onClick={() => setShowFuncionario(!showFuncionario)}
+                                    className="text-xs font-medium text-green-700 hover:text-green-800 bg-white px-2 py-1 rounded border border-green-200 shadow-sm transition-all"
+                                >
+                                    {showFuncionario ? '▲ Contraer' : '▼ Expandir Detalle'}
+                                </button>
                             </div>
+                            
+                            {showFuncionario ? (
+                                <>
+                                    <p className="text-xs text-gray-500 mb-3 italic">Estos campos son informativos y se actualizan desde el módulo de Funcionarios.</p>
+                                    <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                                        <Field label="Empresa Funcionario">
+                                            <input type="text" name="empresaFuncionario" value={formData.empresaFuncionario} readOnly disabled className={`${inputCls} bg-gray-100 text-gray-500 cursor-not-allowed`} />
+                                        </Field>
+                                        <Field label="Empleado o Contratista">
+                                            <input type="text" name="tipoPersonal" value={formData.tipoPersonal} readOnly disabled className={`${inputCls} bg-gray-100 text-gray-500 cursor-not-allowed`} />
+                                        </Field>
+                                        <Field label="Cédula del Funcionario">
+                                            <input type="text" name="cedulaFuncionario" value={formData.cedulaFuncionario} readOnly disabled className={`${inputCls} bg-gray-100 text-gray-500 cursor-not-allowed`} />
+                                        </Field>
+                                        <Field label="Shortname">
+                                            <input type="text" name="shortname" value={formData.shortname} readOnly disabled className={`${inputCls} bg-gray-100 text-gray-500 cursor-not-allowed`} />
+                                        </Field>
+                                        <div className="col-span-2">
+                                            <Field label="Nombres y Apellidos">
+                                                <input type="text" name="nombreFuncionario" value={formData.nombreFuncionario} readOnly disabled className={`${inputCls} bg-gray-100 text-gray-500 cursor-not-allowed`} />
+                                            </Field>
+                                        </div>
+                                        <Field label="Departamento">
+                                            <input type="text" name="departamento" value={formData.departamento} readOnly disabled className={`${inputCls} bg-gray-100 text-gray-500 cursor-not-allowed`} />
+                                        </Field>
+                                        <Field label="Ciudad">
+                                            <input type="text" name="ciudad" value={formData.ciudad} readOnly disabled className={`${inputCls} bg-gray-100 text-gray-500 cursor-not-allowed`} />
+                                        </Field>
+                                        <div className="col-span-2">
+                                            <Field label="Cargo">
+                                                <input type="text" name="cargo" value={formData.cargo} readOnly disabled className={`${inputCls} bg-gray-100 text-gray-500 cursor-not-allowed`} />
+                                            </Field>
+                                        </div>
+                                        <Field label="Área">
+                                            <input type="text" name="area" value={formData.area} readOnly disabled className={`${inputCls} bg-gray-100 text-gray-500 cursor-not-allowed`} />
+                                        </Field>
+                                        <Field label="Ubicación y Piso">
+                                            <input type="text" name="ubicacion" value={formData.ubicacion} readOnly disabled className={`${inputCls} bg-gray-100 text-gray-500 cursor-not-allowed`} />
+                                        </Field>
+                                    </div>
+                                </>
+                            ) : (
+                                <p className="text-xs text-green-600 font-medium">{formData.nombreFuncionario || 'Sin asignar a funcionario'}</p>
+                            )}
                         </div>
-
+ 
                         {/* SECCIÓN 3: EQUIPO */}
-                        <div className="bg-amber-50 rounded-lg p-4">
+                        <div className="bg-amber-50 rounded-lg p-4 border border-amber-100">
                             <SectionHeader title="Características del Equipo" icon="💻" />
                             <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
                                 <SelectWithAdd
                                     label="Tipo de Equipo"
                                     name="tipo"
+                                    required
                                     value={formData.tipo}
                                     onChange={handleChange}
                                     options={catalogs.TIPO_EQUIPO}
                                     canAdd={canEditCatalogs}
                                     onAdd={() => handleOpenCatalogModal('TIPO_EQUIPO', 'Tipo de Equipo')}
                                 />
-                                <Field label="Serial">
-                                    <input type="text" name="serial" value={formData.serial} onChange={e => setFormData(p => ({ ...p, serial: e.target.value.toUpperCase() }))} className={inputCls} />
+                                <Field label="Serial" required>
+                                    <input type="text" name="serial" required value={formData.serial} onChange={e => setFormData(p => ({ ...p, serial: e.target.value.toUpperCase() }))} className={inputCls} />
                                 </Field>
                                 <Field label="Placa" required>
                                     <input type="text" name="placa" required value={formData.placa} onChange={e => setFormData(p => ({ ...p, placa: e.target.value.toUpperCase() }))} className={inputCls} />
@@ -429,8 +482,9 @@ const ActivosForm = ({ open, onClose, activo }) => {
                                     <input type="text" name="activoFijo" value={formData.activoFijo} onChange={e => setFormData(p => ({ ...p, activoFijo: e.target.value.toUpperCase() }))} className={inputCls} />
                                 </Field>
                                 <SelectWithAdd
-                                    label="Marca *"
+                                    label="Marca"
                                     name="marca"
+                                    required
                                     value={formData.marca}
                                     onChange={handleChange}
                                     options={catalogs.MARCA}
@@ -438,8 +492,9 @@ const ActivosForm = ({ open, onClose, activo }) => {
                                     onAdd={() => handleOpenCatalogModal('MARCA', 'Marca')}
                                 />
                                 <SelectWithAdd
-                                    label="Modelo *"
+                                    label="Modelo"
                                     name="modelo"
+                                    required
                                     value={formData.modelo}
                                     onChange={handleChange}
                                     options={catalogs.MODELO}
@@ -491,41 +546,52 @@ const ActivosForm = ({ open, onClose, activo }) => {
                                 </div>
                             </div>
                         </div>
-
+ 
                         {/* SECCIÓN 4: COMPRA Y GARANTÍA */}
-                        <div className="bg-purple-50 rounded-lg p-4">
-                            <SectionHeader title="Compra y Garantía" icon="📅" />
-                            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-                                <Field label="Fecha de Compra">
-                                    <input type="date" name="fechaCompra" value={formData.fechaCompra} onChange={handleChange} className={inputCls} />
-                                </Field>
-                                <Field label="Fin de Garantía">
-                                    <input type="date" name="garantiaHasta" value={formData.garantiaHasta} onChange={handleChange} className={inputCls} />
-                                </Field>
-                                <Field label="Tiempo de Uso">
-                                    <div className={`${inputCls} bg-gray-100 text-gray-600`}>
-                                        {tiempoUso || '—'}
-                                    </div>
-                                </Field>
-                                <Field label="Valor de Compra">
-                                    <input type="number" name="valorCompra" value={formData.valorCompra} onChange={handleChange} className={inputCls} />
-                                </Field>
-                                <div className="col-span-2 lg:col-span-4">
-                                    <Field label="Observaciones">
-                                        <textarea name="observaciones" rows="2" value={formData.observaciones} onChange={handleChange} className={inputCls}></textarea>
+                        <div className="bg-purple-50 rounded-lg p-4 border border-purple-100">
+                            <div className="flex items-center justify-between mb-4">
+                                <SectionHeader title="Compra y Garantía" icon="📅" />
+                                <button 
+                                    type="button"
+                                    onClick={() => setShowCompraGarantia(!showCompraGarantia)}
+                                    className="text-xs font-medium text-purple-700 hover:text-purple-800 bg-white px-2 py-1 rounded border border-purple-200 shadow-sm transition-all"
+                                >
+                                    {showCompraGarantia ? '▲ Contraer' : '▼ Expandir'}
+                                </button>
+                            </div>
+                            
+                            {showCompraGarantia && (
+                                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                                    <Field label="Fecha de Compra">
+                                        <input type="date" name="fechaCompra" value={formData.fechaCompra} onChange={handleChange} className={inputCls} />
                                     </Field>
-                                </div>
-                                <div className="col-span-2 lg:col-span-4">
-                                    <Field label="Imagen Principal">
-                                        <div className="flex items-center gap-4 mt-1">
-                                            {preview && <img src={preview} alt="Preview" className="h-16 w-16 object-cover rounded shadow" />}
-                                            <input type="file" accept="image/*" onChange={handleImageChange} className="text-sm text-gray-500 file:mr-4 file:py-1.5 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100" />
+                                    <Field label="Fin de Garantía">
+                                        <input type="date" name="garantiaHasta" value={formData.garantiaHasta} onChange={handleChange} className={inputCls} />
+                                    </Field>
+                                    <Field label="Tiempo de Uso">
+                                        <div className={`${inputCls} bg-gray-100 text-gray-600`}>
+                                            {tiempoUso || '—'}
                                         </div>
                                     </Field>
+                                    <Field label="Valor de Compra">
+                                        <input type="number" name="valorCompra" value={formData.valorCompra} onChange={handleChange} className={inputCls} />
+                                    </Field>
+                                    <div className="col-span-2 lg:col-span-4">
+                                        <Field label="Observaciones">
+                                            <textarea name="observaciones" rows="2" value={formData.observaciones} onChange={handleChange} className={inputCls}></textarea>
+                                        </Field>
+                                    </div>
+                                    <div className="col-span-2 lg:col-span-4">
+                                        <Field label="Imagen Principal">
+                                            <div className="flex items-center gap-4 mt-1">
+                                                {preview && <img src={preview} alt="Preview" className="h-16 w-16 object-cover rounded shadow" />}
+                                                <input type="file" accept="image/*" onChange={handleImageChange} className="text-sm text-gray-500 file:mr-4 file:py-1.5 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100" />
+                                            </div>
+                                        </Field>
+                                    </div>
                                 </div>
-                            </div>
+                            )}
                         </div>
-
                         {/* FOOTER BUTTONS */}
                         <div className="flex gap-3 justify-end pt-2 border-t border-gray-200">
                             <button
