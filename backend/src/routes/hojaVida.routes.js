@@ -77,6 +77,15 @@ router.post('/', authMiddleware, requireRole('ADMIN', 'TECNICO'), upload.single(
             }
         });
 
+        // ACTUALIZACIÓN DE ESTADO DEL ACTIVO
+        // Si el tipo es mantenimiento o reparación, bloqueamos el activo
+        if (['MANTENIMIENTO', 'REPARACION', 'SUMINISTRO'].includes(tipo)) {
+            await prisma.activo.update({
+                where: { id: parseInt(activoId) },
+                data: { estado: 'EN_MANTENIMIENTO' }
+            });
+        }
+
         // Handle file upload if present
         if (req.file) {
             await prisma.documento.create({
@@ -143,6 +152,26 @@ router.put('/:id/procesar', authMiddleware, requireRole('ADMIN', 'TECNICO'), upl
             where: { id: parseInt(id) },
             data: dataToUpdate
         });
+
+        // ACTUALIZACIÓN DE ESTADO DEL ACTIVO SEGÚN ESTADO DEL EVENTO
+        if (estado === 'FINALIZADO' || estado === 'CERRADO') {
+            // Buscamos si el activo tiene una asignación vigente
+            const asignacionActiva = await prisma.asignacion.findFirst({
+                where: { activoId: hv.activoId, fechaFin: null }
+            });
+
+            // Si tiene asignación, vuelve a ASIGNADO, sino a DISPONIBLE
+            await prisma.activo.update({
+                where: { id: hv.activoId },
+                data: { estado: asignacionActiva ? 'ASIGNADO' : 'DISPONIBLE' }
+            });
+        } else if (['CREADO', 'EN_PROCESO', 'ESPERA_SUMINISTRO', 'PROCESO_GARANTIA'].includes(estado)) {
+            // Asegurar que esté en mantenimiento si aún no termina
+            await prisma.activo.update({
+                where: { id: hv.activoId },
+                data: { estado: 'EN_MANTENIMIENTO' }
+            });
+        }
 
         // Handle file upload if present
         if (req.file) {

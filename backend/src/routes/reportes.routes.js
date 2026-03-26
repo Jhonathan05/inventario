@@ -310,6 +310,7 @@ router.post('/perfiles/seed', authMiddleware, requireRole('ADMIN', 'TECNICO'), a
                     { key: 'tipoRecurso', label: 'TIPO DE RECURSO' },
                     { key: 'tipo', label: 'TIPO' },
                     { key: 'serial', label: 'SERIAL' },
+                    { key: 'activoFijo', label: 'ACTIVO FIJO' },
                     { key: 'placa', label: 'PLACA' },
                     { key: 'marca', label: 'MARCA' },
                     { key: 'modelo', label: 'MODELO' },

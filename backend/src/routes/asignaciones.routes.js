@@ -48,7 +48,11 @@ router.post('/', authMiddleware, requireRole('ADMIN', 'TECNICO'), async (req, re
             data: { estado: nuevoEstado },
         });
 
-        // Crear nueva asignación (solo si no es devolución sin funcionario)
+        // Crear nueva asignación (No se crea para DEVOLUCION ya que solo cierra la anterior)
+        if (tipo === 'DEVOLUCION') {
+            return res.status(201).json({ message: 'Activo devuelto a TI correctamente' });
+        }
+
         const data = {
             activoId: parseInt(activoId),
             funcionarioId: parseInt(funcionarioId),
