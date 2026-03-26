@@ -375,6 +375,7 @@ model Ticket {
   estado          EstadoTicket     @default(CREADO)
   prioridad       PrioridadTicket  @default(MEDIA)
   tipo            TipoTicket       @default(REQUERIMIENTO)
+  leido           Boolean          @default(false)
 
   funcionarioId   Int
   funcionario     Funcionario      @relation(fields: [funcionarioId], references: [id])
