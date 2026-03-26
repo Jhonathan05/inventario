@@ -5,7 +5,7 @@ import { generateMaintenanceReport } from '../reports/MaintenanceReport';
 
 const EstadoHojaVidaForm = ({ open, onClose, hojaVida, activo }) => {
     const { user } = useAuth();
-    const canEdit = user?.rol === 'ADMIN' || user?.rol === 'TECNICO';
+    const canEdit = user?.rol === 'ADMIN' || user?.rol === 'ANALISTA_TIC';
     const isReadOnly = !canEdit || hojaVida.estado === 'FINALIZADO';
 
     const [formData, setFormData] = useState({
@@ -23,13 +23,13 @@ const EstadoHojaVidaForm = ({ open, onClose, hojaVida, activo }) => {
     const [error, setError] = useState('');
 
     useEffect(() => {
-        // Fetch users for dropdown - Assuming role 'Analista TIC' corresponds to TECNICO or similar in DB
+        // Fetch users for dropdown - Analista TIC
         const fetchUsuarios = async () => {
             try {
                 // Adjust this filter based on your user roles
                 const res = await api.get('/usuarios'); // Need an endpoint for this or filter locally
                 // Filter for technicians/analysts
-                const tecnicos = res.data.filter(u => u.rol === 'TECNICO' || u.rol === 'ADMIN');
+                const tecnicos = res.data.filter(u => u.rol === 'ANALISTA_TIC' || u.rol === 'ADMIN');
                 setUsuarios(tecnicos);
             } catch (err) {
                 console.error("Error fetching users", err);

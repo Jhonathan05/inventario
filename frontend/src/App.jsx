@@ -40,8 +40,8 @@ function App() {
                             <Route path="/tickets/:id" element={<TicketDetail />} />
                         </Route>
 
-                        {/* ADMIN y TECNICO */}
-                        <Route element={<ProtectedRoute allowedRoles={['ADMIN', 'TECNICO']} />}>
+                        {/* ADMIN y ANALISTA TIC */}
+                        <Route element={<ProtectedRoute allowedRoles={['ADMIN', 'ANALISTA_TIC']} />}>
                             <Route path="/categorias" element={<Categorias />} />
                             <Route path="/actas/generar" element={<GenerarActa />} />
                             <Route path="/importar" element={<ImportarDatos />} />

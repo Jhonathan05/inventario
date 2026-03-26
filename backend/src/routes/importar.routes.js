@@ -264,7 +264,7 @@ router.get('/plantilla/cmdb', (req, res) => {
 // ──────────────────────────────────────────────────────────────────────────────
 // POST /api/importar/activos  — procesa archivo xlsx de activos
 // ──────────────────────────────────────────────────────────────────────────────
-router.post('/activos', authMiddleware, requireRole('ADMIN', 'TECNICO'), upload.single('archivo'), async (req, res) => {
+router.post('/activos', authMiddleware, requireRole('ADMIN', 'ANALISTA_TIC'), upload.single('archivo'), async (req, res) => {
     if (!req.file) return res.status(400).json({ error: 'No se recibió ningún archivo.' });
 
     try {
@@ -360,7 +360,7 @@ router.post('/activos', authMiddleware, requireRole('ADMIN', 'TECNICO'), upload.
 // ──────────────────────────────────────────────────────────────────────────────
 // POST /api/importar/funcionarios  — procesa archivo xlsx de funcionarios
 // ──────────────────────────────────────────────────────────────────────────────
-router.post('/funcionarios', authMiddleware, requireRole('ADMIN', 'TECNICO'), upload.single('archivo'), async (req, res) => {
+router.post('/funcionarios', authMiddleware, requireRole('ADMIN', 'ANALISTA_TIC'), upload.single('archivo'), async (req, res) => {
     if (!req.file) return res.status(400).json({ error: 'No se recibió ningún archivo.' });
 
     try {
@@ -442,7 +442,7 @@ router.post('/funcionarios', authMiddleware, requireRole('ADMIN', 'TECNICO'), up
 // ──────────────────────────────────────────────────────────────────────────────
 // POST /api/importar/cmdb  — procesa importación unificada (CMDB)
 // ──────────────────────────────────────────────────────────────────────────────
-router.post('/cmdb', authMiddleware, requireRole('ADMIN', 'TECNICO'), upload.single('archivo'), async (req, res) => {
+router.post('/cmdb', authMiddleware, requireRole('ADMIN', 'ANALISTA_TIC'), upload.single('archivo'), async (req, res) => {
     if (!req.file) return res.status(400).json({ error: 'No se recibió ningún archivo.' });
 
     try {

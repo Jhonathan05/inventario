@@ -29,7 +29,7 @@ export const REPORT_TYPES = [
     {
         id: 'mantenimiento',
         name: 'Mantenimiento y Hoja de Vida',
-        description: 'Eventos de servicio técnico: tipo, estado, costo, diagnóstico',
+        description: 'Eventos de servicios: tipo, estado, costo, diagnóstico',
         icon: '🔧',
         color: 'yellow',
         endpoint: '/reportes/mantenimiento',
@@ -137,7 +137,7 @@ export const REPORT_COLUMNS = {
         { key: 'fecha', label: 'Fecha', default: true, group: 'Evento' },
         { key: 'descripcion', label: 'Descripción', default: true, group: 'Evento' },
         { key: 'diagnostico', label: 'Diagnóstico', default: true, group: 'Evento' },
-        { key: 'tecnico', label: 'Técnico/Proveedor', default: true, group: 'Evento' },
+        { key: 'tecnico', label: 'Analista/Proveedor', default: true, group: 'Evento' },
         { key: 'responsable', label: 'Responsable', default: true, group: 'Evento' },
         { key: 'casoAranda', label: 'Caso Aranda', default: true, group: 'Evento' },
         { key: 'costo', label: 'Costo', default: true, group: 'Evento' },

@@ -31,7 +31,7 @@ const MANAGEMENT_SECTIONS = [
 
 const Categorias = () => {
     const { user } = useAuth();
-    const canEdit = user?.rol === 'ADMIN' || user?.rol === 'TECNICO';
+    const canEdit = user?.rol === 'ADMIN' || user?.rol === 'ANALISTA_TIC';
 
     const [activeSection, setActiveSection] = useState(MANAGEMENT_SECTIONS[0]);
     const [activeDomain, setActiveDomain] = useState(null);

@@ -28,7 +28,7 @@ router.get('/', authMiddleware, async (req, res) => {
 });
 
 // POST /api/asignaciones - Asignar, trasladar o devolver
-router.post('/', authMiddleware, requireRole('ADMIN', 'TECNICO'), async (req, res) => {
+router.post('/', authMiddleware, requireRole('ADMIN', 'ANALISTA_TIC'), async (req, res) => {
     try {
         const { activoId, funcionarioId, tipo, observaciones } = req.body;
 
@@ -46,16 +46,44 @@ router.post('/', authMiddleware, requireRole('ADMIN', 'TECNICO'), async (req, re
         });
 
         // Determinar nuevo estado del activo
-        let nuevoEstado = 'DISPONIBLE';
-        if (tipo === 'ASIGNACION' || tipo === 'TRASLADO') nuevoEstado = 'ASIGNADO';
+        let nuevoEstado = 'ASIGNADO';
+        if (tipo === 'DEVOLUCION') nuevoEstado = 'DISPONIBLE';
+        
+        const dataActivo = { estado: nuevoEstado };
+        
+        if (tipo === 'DEVOLUCION') {
+            dataActivo.cedulaFuncionario = null;
+            dataActivo.nombreFuncionario = null;
+            dataActivo.shortname = null;
+            dataActivo.cargo = null;
+            dataActivo.area = null;
+            dataActivo.ubicacion = null;
+            dataActivo.departamento = null;
+            dataActivo.ciudad = null;
+            dataActivo.empresaFuncionario = null;
+            dataActivo.tipoPersonal = null;
+        } else {
+            const funcionario = await prisma.funcionario.findUnique({ where: { id: parseInt(funcionarioId) } });
+            if (!funcionario) return res.status(404).json({ error: 'Funcionario no encontrado' });
+            
+            dataActivo.cedulaFuncionario = funcionario.cedula;
+            dataActivo.nombreFuncionario = funcionario.nombre;
+            dataActivo.shortname = funcionario.shortname;
+            dataActivo.cargo = funcionario.cargo;
+            dataActivo.area = funcionario.area;
+            dataActivo.ubicacion = funcionario.ubicacion;
+            dataActivo.departamento = funcionario.departamento;
+            dataActivo.ciudad = funcionario.ciudad;
+            dataActivo.empresaFuncionario = funcionario.empresaFuncionario;
+            dataActivo.tipoPersonal = funcionario.vinculacion;
+        }
 
-        // Actualizar estado del activo
+        // Actualizar estado del activo con los datos del funcionario (Sincronización/Caché)
         await prisma.activo.update({
             where: { id: parseInt(activoId) },
-            data: { estado: nuevoEstado },
+            data: dataActivo,
         });
 
-        // Crear nueva asignación (No se crea para DEVOLUCION ya que solo cierra la anterior)
         if (tipo === 'DEVOLUCION') {
             return res.status(201).json({ message: 'Activo devuelto a TI correctamente' });
         }
@@ -80,7 +108,7 @@ router.post('/', authMiddleware, requireRole('ADMIN', 'TECNICO'), async (req, re
 });
 
 // POST /api/asignaciones/devolucion - Devolver a TI
-router.post('/devolucion', authMiddleware, requireRole('ADMIN', 'TECNICO'), async (req, res) => {
+router.post('/devolucion', authMiddleware, requireRole('ADMIN', 'ANALISTA_TIC'), async (req, res) => {
     try {
         const { activoId, observaciones } = req.body;
 
@@ -90,10 +118,22 @@ router.post('/devolucion', authMiddleware, requireRole('ADMIN', 'TECNICO'), asyn
             data: { fechaFin: new Date() },
         });
 
-        // Marcar activo como disponible
+        // Marcar activo como disponible y limpiar caché de funcionario
         await prisma.activo.update({
             where: { id: parseInt(activoId) },
-            data: { estado: 'DISPONIBLE' },
+            data: { 
+                estado: 'DISPONIBLE',
+                cedulaFuncionario: null,
+                nombreFuncionario: null,
+                shortname: null,
+                cargo: null,
+                area: null,
+                ubicacion: null,
+                departamento: null,
+                ciudad: null,
+                empresaFuncionario: null,
+                tipoPersonal: null
+            },
         });
 
         res.json({ message: 'Activo devuelto a TI correctamente' });

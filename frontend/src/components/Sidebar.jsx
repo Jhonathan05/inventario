@@ -18,15 +18,15 @@ const Sidebar = () => {
     const { user } = useAuth();
 
     const navigation = [
-        { name: 'Inicio', href: '/', icon: HomeIcon, roles: ['ADMIN', 'TECNICO', 'CONSULTA'] },
-        { name: 'Activos', href: '/activos', icon: ComputerDesktopIcon, roles: ['ADMIN', 'TECNICO', 'CONSULTA'] },
-        { name: 'Funcionarios', href: '/funcionarios', icon: UserGroupIcon, roles: ['ADMIN', 'TECNICO', 'CONSULTA'] },
-        { name: 'HelpDesk', href: '/tickets', icon: TicketIcon, roles: ['ADMIN', 'TECNICO', 'CONSULTA'] },
-        { name: 'Mantenimientos', href: '/mantenimientos', icon: WrenchScrewdriverIcon, roles: ['ADMIN', 'TECNICO', 'CONSULTA'] },
-        { name: 'Categorías', href: '/categorias', icon: TagIcon, roles: ['ADMIN', 'TECNICO'] },
-        { name: 'Reportes', href: '/reportes', icon: DocumentTextIcon, roles: ['ADMIN', 'TECNICO', 'CONSULTA'] },
-        { name: 'Actas', href: '/actas', icon: ClipboardDocumentCheckIcon, roles: ['ADMIN', 'TECNICO', 'CONSULTA'] },
-        { name: 'Importar', href: '/importar', icon: ArrowDownTrayIcon, roles: ['ADMIN', 'TECNICO'] },
+        { name: 'Inicio', href: '/', icon: HomeIcon, roles: ['ADMIN', 'ANALISTA_TIC', 'CONSULTA'] },
+        { name: 'Activos', href: '/activos', icon: ComputerDesktopIcon, roles: ['ADMIN', 'ANALISTA_TIC', 'CONSULTA'] },
+        { name: 'Funcionarios', href: '/funcionarios', icon: UserGroupIcon, roles: ['ADMIN', 'ANALISTA_TIC', 'CONSULTA'] },
+        { name: 'HelpDesk', href: '/tickets', icon: TicketIcon, roles: ['ADMIN', 'ANALISTA_TIC', 'CONSULTA'] },
+        { name: 'Mantenimientos', href: '/mantenimientos', icon: WrenchScrewdriverIcon, roles: ['ADMIN', 'ANALISTA_TIC', 'CONSULTA'] },
+        { name: 'Categorías', href: '/categorias', icon: TagIcon, roles: ['ADMIN', 'ANALISTA_TIC'] },
+        { name: 'Reportes', href: '/reportes', icon: DocumentTextIcon, roles: ['ADMIN', 'ANALISTA_TIC', 'CONSULTA'] },
+        { name: 'Actas', href: '/actas', icon: ClipboardDocumentCheckIcon, roles: ['ADMIN', 'ANALISTA_TIC', 'CONSULTA'] },
+        { name: 'Importar', href: '/importar', icon: ArrowDownTrayIcon, roles: ['ADMIN', 'ANALISTA_TIC'] },
         { name: 'Usuarios', href: '/usuarios', icon: UsersIcon, roles: ['ADMIN'] },
         { name: 'Backups', href: '/soporte', icon: CircleStackIcon, roles: ['ADMIN'] },
     ];

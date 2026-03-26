@@ -20,7 +20,7 @@ const TicketsList = () => {
     const [estadoFiltro, setEstadoFiltro] = useState('');
     const navigate = useNavigate();
     const { user } = useAuth();
-    const canEdit = user?.rol === 'ADMIN' || user?.rol === 'TECNICO';
+    const canEdit = user?.rol === 'ADMIN' || user?.rol === 'ANALISTA_TIC';
 
     useEffect(() => {
         cargarTickets();

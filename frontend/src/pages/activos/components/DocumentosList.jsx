@@ -4,7 +4,7 @@ import { useAuth } from '../../../context/AuthContext';
 
 const DocumentosList = ({ activoId, documentos, onUpdate }) => {
     const { user } = useAuth();
-    const canEdit = user?.rol === 'ADMIN' || user?.rol === 'TECNICO';
+    const canEdit = user?.rol === 'ADMIN' || user?.rol === 'ANALISTA_TIC';
 
     const [uploading, setUploading] = useState(false);
     const [error, setError] = useState('');

@@ -25,7 +25,7 @@ router.get('/', authMiddleware, async (req, res) => {
 });
 
 // POST /api/catalogos
-router.post('/', authMiddleware, requireRole('ADMIN', 'TECNICO'), async (req, res) => {
+router.post('/', authMiddleware, requireRole('ADMIN', 'ANALISTA_TIC'), async (req, res) => {
     try {
         const { dominio, valor, descripcion, activo } = req.body;
 
@@ -51,7 +51,7 @@ router.post('/', authMiddleware, requireRole('ADMIN', 'TECNICO'), async (req, re
 });
 
 // PUT /api/catalogos/:id
-router.put('/:id', authMiddleware, requireRole('ADMIN', 'TECNICO'), async (req, res) => {
+router.put('/:id', authMiddleware, requireRole('ADMIN', 'ANALISTA_TIC'), async (req, res) => {
     try {
         const id = parseInt(req.params.id);
         const { dominio, valor, descripcion, activo } = req.body;

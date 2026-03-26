@@ -79,7 +79,7 @@ export const generateMaintenanceReport = (activo, hojaVida) => {
                 ['Tipo de Evento', hojaVida.tipo],
                 ['Estado Actual', hojaVida.estado],
                 ['Fecha de Inicio', formatDate(hojaVida.fecha)],
-                ['Técnico Responsable', hojaVida.responsable?.nombre || hojaVida.tecnico || 'Sin Asignar'],
+                ['Analista Responsable', hojaVida.responsable?.nombre || hojaVida.tecnico || 'Sin Asignar'],
                 ['Caso Aranda', hojaVida.casoAranda || 'N/A'],
                 ['Costo Reportado', formatCurrency(hojaVida.costo || 0)],
                 ['Descripción del Problema', hojaVida.descripcion]
@@ -145,7 +145,7 @@ export const generateMaintenanceReport = (activo, hojaVida) => {
             doc.line(120, finalY, 180, finalY);
 
             doc.setFontSize(9);
-            doc.text('Firma del Técnico', 60, finalY + 5, { align: 'center' });
+            doc.text('Firma del Analista', 60, finalY + 5, { align: 'center' });
             doc.text('Recibido a Satisfacción', 150, finalY + 5, { align: 'center' });
         }
 

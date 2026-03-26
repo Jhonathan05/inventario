@@ -6,7 +6,7 @@ const UsuarioForm = ({ open, onClose, usuario }) => {
         nombre: '',
         email: '',
         password: '',
-        rol: 'TECNICO', // Valor por defecto seguro
+        rol: 'ANALISTA_TIC', // Valor por defecto seguro
         activo: true
     });
     const [loading, setLoading] = useState(false);
@@ -18,7 +18,7 @@ const UsuarioForm = ({ open, onClose, usuario }) => {
                 nombre: usuario.nombre || '',
                 email: usuario.email || '',
                 password: '', // No mostramos la contraseña actual
-                rol: usuario.rol || 'TECNICO',
+                rol: usuario.rol || 'ANALISTA_TIC',
                 activo: usuario.activo ?? true
             });
         } else {
@@ -26,7 +26,7 @@ const UsuarioForm = ({ open, onClose, usuario }) => {
                 nombre: '',
                 email: '',
                 password: '',
-                rol: 'TECNICO',
+                rol: 'ANALISTA_TIC',
                 activo: true
             });
         }
@@ -129,7 +129,7 @@ const UsuarioForm = ({ open, onClose, usuario }) => {
                                 <select name="rol" required className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm border p-2 bg-white" value={formData.rol} onChange={handleChange}>
                                     <option value="ADMIN">Administrador</option>
                                     <option value="CONSULTA">Consulta</option>
-                                    <option value="TECNICO">Técnico / Analista</option>
+                                    <option value="ANALISTA_TIC">Analista TIC</option>
                                 </select>
                             </div>
 

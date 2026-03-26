@@ -280,7 +280,7 @@ model Usuario {
   nombre    String
   email     String          @unique
   password  String
-  rol       Rol             @default(TECNICO)
+  rol       Rol             @default(ANALISTA_TIC)
   activo    Boolean         @default(true)
   creadoEn  DateTime        @default(now())
   actualizadoEn DateTime    @updatedAt
@@ -298,7 +298,7 @@ model Usuario {
 
 enum Rol {
   ADMIN
-  TECNICO
+  ANALISTA_TIC
   CONSULTA
 }
 

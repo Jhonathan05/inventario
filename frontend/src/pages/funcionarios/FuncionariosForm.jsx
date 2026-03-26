@@ -100,8 +100,13 @@ const FuncionariosForm = ({ open, onClose, funcionario }) => {
                 ubicacion: funcionario.ubicacion || '',
                 piso: funcionario.piso || ''
             });
+            // Inteligencia: Expandir secciones si tienen datos
+            if (funcionario.cargo || funcionario.area || funcionario.vinculacion) setShowLaboral(true);
+            if (funcionario.ciudad || funcionario.seccional || funcionario.municipio) setShowUbicacion(true);
         } else {
             setFormData(DEFAULT_STATE);
+            setShowLaboral(false);
+            setShowUbicacion(false);
         }
     }, [funcionario]);
 
@@ -156,6 +161,11 @@ const FuncionariosForm = ({ open, onClose, funcionario }) => {
         const missing = requiredFields.filter(f => !formData[f.key]);
         if (missing.length > 0) {
             setError(`Los siguientes campos son obligatorios: ${missing.map(f => f.label).join(', ')}`);
+            
+            // Inteligencia: Expandir secciones si el error está dentro de ellas
+            if (missing.some(f => ['cargo'].includes(f.key))) setShowLaboral(true);
+            if (missing.some(f => ['departamento', 'ciudad', 'seccional', 'municipio', 'ubicacion'].includes(f.key))) setShowUbicacion(true);
+
             // Scroll to top to see error
             const modalElement = e.target.closest('.overflow-y-auto');
             if (modalElement) modalElement.scrollTo({ top: 0, behavior: 'smooth' });

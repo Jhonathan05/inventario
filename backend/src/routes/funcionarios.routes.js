@@ -95,7 +95,7 @@ router.get('/:id', authMiddleware, async (req, res) => {
 });
 
 // POST /api/funcionarios
-router.post('/', authMiddleware, requireRole('ADMIN', 'TECNICO'), async (req, res) => {
+router.post('/', authMiddleware, requireRole('ADMIN', 'ANALISTA_TIC'), async (req, res) => {
     try {
         const data = req.body;
         if (data.codigoPersonal === '') data.codigoPersonal = null;
@@ -116,7 +116,7 @@ router.post('/', authMiddleware, requireRole('ADMIN', 'TECNICO'), async (req, re
 });
 
 // PUT /api/funcionarios/:id
-router.put('/:id', authMiddleware, requireRole('ADMIN', 'TECNICO'), async (req, res) => {
+router.put('/:id', authMiddleware, requireRole('ADMIN', 'ANALISTA_TIC'), async (req, res) => {
     try {
         const data = req.body;
         if (data.codigoPersonal === '') data.codigoPersonal = null;

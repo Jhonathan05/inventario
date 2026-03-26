@@ -86,7 +86,7 @@ const crearWorkbookActa = async (data) => {
 };
 
 // Generar Novedad
-router.post('/generar', authMiddleware, requireRole('ADMIN', 'TECNICO'), async (req, res) => {
+router.post('/generar', authMiddleware, requireRole('ADMIN', 'ANALISTA_TIC'), async (req, res) => {
     try {
         const { tipo, funcionarioId, activosIds, observaciones, funcionarioDestinoId } = req.body;
         const usuario = req.user; // Usuario logueado (TI)

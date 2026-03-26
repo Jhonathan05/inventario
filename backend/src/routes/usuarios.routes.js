@@ -5,7 +5,7 @@ const prisma = require('../lib/prisma');
 const { authMiddleware, requireRole } = require('../middleware/auth.middleware');
 
 // GET /api/usuarios
-router.get('/', authMiddleware, requireRole('ADMIN', 'TECNICO'), async (req, res) => {
+router.get('/', authMiddleware, requireRole('ADMIN', 'ANALISTA_TIC'), async (req, res) => {
     try {
         const usuarios = await prisma.usuario.findMany({
             select: { id: true, nombre: true, email: true, rol: true, activo: true, creadoEn: true },
