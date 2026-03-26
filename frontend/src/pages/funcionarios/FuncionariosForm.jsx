@@ -24,6 +24,23 @@ const DEFAULT_STATE = {
     piso: ''
 };
 
+// Sub-components moved outside to avoid re-renders and focus loss
+const SectionHeader = ({ title, icon }) => (
+    <div className="flex items-center gap-2 mb-4 border-b pb-2">
+        <span className="text-xl">{icon}</span>
+        <h4 className="text-md font-bold text-gray-800 uppercase tracking-tight">{title}</h4>
+    </div>
+);
+
+const Field = ({ label, id, children, required }) => (
+    <div className="flex flex-col">
+        <label htmlFor={id} className="block text-xs font-semibold text-gray-600 uppercase mb-1 cursor-pointer">
+            {label} {required && <span className="text-red-500">*</span>}
+        </label>
+        {children}
+    </div>
+);
+
 const FuncionariosForm = ({ open, onClose, funcionario }) => {
     const [formData, setFormData] = useState(DEFAULT_STATE);
     const [loading, setLoading] = useState(false);
@@ -62,7 +79,6 @@ const FuncionariosForm = ({ open, onClose, funcionario }) => {
     };
 
     useEffect(() => {
-
         if (funcionario) {
             setFormData({
                 nombre: funcionario.nombre || '',
@@ -77,7 +93,7 @@ const FuncionariosForm = ({ open, onClose, funcionario }) => {
                 vinculacion: funcionario.vinculacion || '',
                 empresaFuncionario: funcionario.empresaFuncionario || '',
                 proyecto: funcionario.proyecto || '',
-                departamento: funcionario.departamento || '',
+                departamento: funcionario.departamento || 'TOLIMA',
                 ciudad: funcionario.ciudad || '',
                 seccional: funcionario.seccional || '',
                 municipio: funcionario.municipio || '',
@@ -85,9 +101,7 @@ const FuncionariosForm = ({ open, onClose, funcionario }) => {
                 piso: funcionario.piso || ''
             });
         } else {
-            setFormData({
-                nombre: '', shortname: '', cedula: '', codigoPersonal: '', cargo: '', area: '', email: '', telefono: '', activo: true, vinculacion: '', empresaFuncionario: '', proyecto: '', departamento: '', ciudad: '', seccional: '', municipio: '', ubicacion: '', piso: ''
-            });
+            setFormData(DEFAULT_STATE);
         }
     }, [funcionario]);
 
@@ -189,23 +203,6 @@ const FuncionariosForm = ({ open, onClose, funcionario }) => {
     const inputCls = "mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm border p-2 bg-white uppercase";
     const emailCls = inputCls.replace('uppercase', 'lowercase');
 
-    // Local components for clean UI
-    const SectionHeader = ({ title, icon }) => (
-        <div className="flex items-center gap-2 mb-4 border-b pb-2">
-            <span className="text-xl">{icon}</span>
-            <h4 className="text-md font-bold text-gray-800 uppercase tracking-tight">{title}</h4>
-        </div>
-    );
-
-    const Field = ({ label, children, required }) => (
-        <div className="flex flex-col">
-            <label className="block text-xs font-semibold text-gray-600 uppercase mb-1">
-                {label} {required && <span className="text-red-500">*</span>}
-            </label>
-            {children}
-        </div>
-    );
-
     return (
         <div className="fixed inset-0 z-50 overflow-y-auto" role="dialog" aria-modal="true">
             <div className="flex items-center justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
@@ -238,24 +235,24 @@ const FuncionariosForm = ({ open, onClose, funcionario }) => {
                                 <SectionHeader title="Información Personal y Contacto" icon="📋" />
                             </div>
                             <div className="p-4 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                                <Field label="Nombre Completo" required>
-                                    <input type="text" name="nombre" value={formData.nombre} onChange={handleChange} className={inputCls} placeholder="EJ. JUAN PEREZ" />
+                                <Field label="Nombre Completo" id="nombre" required>
+                                    <input type="text" id="nombre" name="nombre" value={formData.nombre} onChange={handleChange} className={inputCls} placeholder="EJ. JUAN PEREZ" autoComplete="name" />
                                 </Field>
-                                <Field label="Alias / Nombre Corto">
-                                    <input type="text" name="shortname" value={formData.shortname} onChange={handleChange} className={inputCls} placeholder="EJ. JPEREZ" />
+                                <Field label="Alias / Nombre Corto" id="shortname">
+                                    <input type="text" id="shortname" name="shortname" value={formData.shortname} onChange={handleChange} className={inputCls} placeholder="EJ. JPEREZ" autoComplete="username" />
                                 </Field>
-                                <Field label="Cédula" required>
-                                    <input type="text" name="cedula" value={formData.cedula} onChange={handleChange} className={inputCls} />
+                                <Field label="Cédula" id="cedula" required>
+                                    <input type="text" id="cedula" name="cedula" value={formData.cedula} onChange={handleChange} className={inputCls} autoComplete="off" />
                                 </Field>
-                                <Field label="Email (Corporativo)" required>
-                                    <input type="email" name="email" value={formData.email} onChange={handleChange} className={emailCls} placeholder="ejemplo@empresa.com" />
+                                <Field label="Email (Corporativo)" id="email" required>
+                                    <input type="email" id="email" name="email" value={formData.email} onChange={handleChange} className={emailCls} placeholder="ejemplo@empresa.com" autoComplete="email" />
                                 </Field>
-                                <Field label="Teléfono de Contacto">
-                                    <input type="text" name="telefono" value={formData.telefono} onChange={handleChange} className={inputCls} />
+                                <Field label="Teléfono de Contacto" id="telefono">
+                                    <input type="text" id="telefono" name="telefono" value={formData.telefono} onChange={handleChange} className={inputCls} autoComplete="tel" />
                                 </Field>
                                 <div className="flex items-end pb-2">
                                     <label className="relative inline-flex items-center cursor-pointer">
-                                        <input type="checkbox" name="activo" checked={formData.activo} onChange={handleChange} className="sr-only peer" />
+                                        <input type="checkbox" id="activo" name="activo" checked={formData.activo} onChange={handleChange} className="sr-only peer" />
                                         <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-indigo-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-indigo-600"></div>
                                         <span className="ml-3 text-sm font-bold text-gray-700 uppercase">Funcionario Activo</span>
                                     </label>
@@ -277,15 +274,15 @@ const FuncionariosForm = ({ open, onClose, funcionario }) => {
                             </div>
                             {showLaboral && (
                                 <div className="p-4 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 animate-fadeIn">
-                                    <Field label="Cód. Personal (Interno)">
-                                        <input type="text" name="codigoPersonal" value={formData.codigoPersonal} onChange={handleChange} className={inputCls} />
+                                    <Field label="Cód. Personal (Interno)" id="codigoPersonal">
+                                        <input type="text" id="codigoPersonal" name="codigoPersonal" value={formData.codigoPersonal} onChange={handleChange} className={inputCls} autoComplete="off" />
                                     </Field>
                                     <SelectWithAdd
                                         label="Vinculación"
                                         name="vinculacion"
                                         value={formData.vinculacion}
                                         onChange={handleChange}
-                                        options={['EMPLEADO', 'CONTRATISTA', 'EXTERNO', 'PASANTE']}
+                                        options={sortList(['EMPLEADO', 'CONTRATISTA', 'EXTERNO', 'PASANTE'])}
                                     />
                                     <SelectWithAdd
                                         label="Cargo"
@@ -306,11 +303,11 @@ const FuncionariosForm = ({ open, onClose, funcionario }) => {
                                         canAdd
                                         onAdd={() => handleOpenCatalogModal('AREA', 'Nueva Área')}
                                     />
-                                    <Field label="Empresa (Tercero)">
-                                        <input type="text" name="empresaFuncionario" value={formData.empresaFuncionario} onChange={handleChange} className={inputCls} />
+                                    <Field label="Empresa (Tercero)" id="empresaFuncionario">
+                                        <input type="text" id="empresaFuncionario" name="empresaFuncionario" value={formData.empresaFuncionario} onChange={handleChange} className={inputCls} autoComplete="organization" />
                                     </Field>
-                                    <Field label="Proyecto / Centro de Costos">
-                                        <input type="text" name="proyecto" value={formData.proyecto} onChange={handleChange} className={inputCls} />
+                                    <Field label="Proyecto / Centro de Costos" id="proyecto">
+                                        <input type="text" id="proyecto" name="proyecto" value={formData.proyecto} onChange={handleChange} className={inputCls} autoComplete="off" />
                                     </Field>
                                 </div>
                             )}
@@ -330,8 +327,8 @@ const FuncionariosForm = ({ open, onClose, funcionario }) => {
                             </div>
                             {showUbicacion && (
                                 <div className="p-4 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 animate-fadeIn">
-                                    <Field label="Departamento" required>
-                                        <input type="text" name="departamento" value={formData.departamento} onChange={handleChange} className={inputCls} />
+                                    <Field label="Departamento" id="departamento" required>
+                                        <input type="text" id="departamento" name="departamento" value={formData.departamento} onChange={handleChange} className={inputCls} autoComplete="address-level1" />
                                     </Field>
                                     <SelectWithAdd
                                         label="Ciudad / Municipio"
@@ -353,14 +350,14 @@ const FuncionariosForm = ({ open, onClose, funcionario }) => {
                                         canAdd
                                         onAdd={() => handleOpenCatalogModal('SECCIONAL', 'Nueva Seccional')}
                                     />
-                                    <Field label="Municipio Específico" required>
-                                        <input type="text" name="municipio" value={formData.municipio} onChange={handleChange} className={inputCls} />
+                                    <Field label="Municipio Específico" id="municipio" required>
+                                        <input type="text" id="municipio" name="municipio" value={formData.municipio} onChange={handleChange} className={inputCls} autoComplete="address-level2" />
                                     </Field>
-                                    <Field label="Ubicación / Sede Fija" required>
-                                        <input type="text" name="ubicacion" value={formData.ubicacion} onChange={handleChange} className={inputCls} />
+                                    <Field label="Ubicación / Sede Fija" id="ubicacion" required>
+                                        <input type="text" id="ubicacion" name="ubicacion" value={formData.ubicacion} onChange={handleChange} className={inputCls} autoComplete="street-address" />
                                     </Field>
-                                    <Field label="Piso / Oficina / Puesto">
-                                        <input type="text" name="piso" value={formData.piso} onChange={handleChange} className={inputCls} />
+                                    <Field label="Piso / Oficina / Puesto" id="piso">
+                                        <input type="text" id="piso" name="piso" value={formData.piso} onChange={handleChange} className={inputCls} autoComplete="off" />
                                     </Field>
                                 </div>
                             )}

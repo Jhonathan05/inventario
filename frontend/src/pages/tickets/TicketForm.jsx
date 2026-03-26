@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import toast from 'react-hot-toast';
 import api from '../../lib/axios';
+import SelectWithAdd from '../../components/SelectWithAdd';
 import { XMarkIcon, TagIcon, PaperClipIcon, TrashIcon, ExclamationCircleIcon } from '@heroicons/react/24/outline';
 
 const TicketForm = () => {
@@ -9,9 +10,16 @@ const TicketForm = () => {
     const [loading, setLoading] = useState(false);
     const [funcionarios, setFuncionarios] = useState([]);
     const [activos, setActivos] = useState([]);
-    const [funcSearch, setFuncSearch] = useState('');
-    const [activoSearch, setActivoSearch] = useState('');
+    const [mostrarTodosLosActivos, setMostrarTodosLosActivos] = useState(false);
     const [adjuntos, setAdjuntos] = useState([]); // Files to attach
+    
+    const sortList = (list) => {
+        return [...list].sort((a, b) => {
+            const valA = (a.nombre || a.valor || a).toString().toUpperCase();
+            const valB = (b.nombre || b.valor || b).toString().toUpperCase();
+            return valA.localeCompare(valB);
+        });
+    };
 
     const [formData, setFormData] = useState({
         titulo: '',
@@ -29,8 +37,8 @@ const TicketForm = () => {
                     api.get('/funcionarios'),
                     api.get('/activos')
                 ]);
-                setFuncionarios(funcData.data);
-                setActivos(actData.data);
+                setFuncionarios(sortList(funcData.data));
+                setActivos(sortList(actData.data));
             } catch {
                 toast.error('Error al cargar datos');
             }
@@ -75,13 +83,25 @@ const TicketForm = () => {
         }
     };
 
-    const filteredFuncionarios = funcionarios.filter(f =>
-        `${f.nombre} ${f.cedula}`.toLowerCase().includes(funcSearch.toLowerCase())
-    );
+    const handleFormChange = (e) => {
+        const { name, value } = e.target;
+        setFormData(prev => {
+            const next = { ...prev, [name]: value };
+            // Si cambia el funcionario, resetear el activo o al menos forzar filtrado
+            if (name === 'funcionarioId') {
+                // Opcional: setMostrarTodosLosActivos(false);
+            }
+            return next;
+        });
+    };
 
-    const filteredActivos = activos.filter(a =>
-        `${a.placa} ${a.marca || ''} ${a.modelo || ''}`.toLowerCase().includes(activoSearch.toLowerCase())
-    );
+    // Obtener cédula del funcionario seleccionado para filtrar activos
+    const selectedFuncionario = funcionarios.find(f => String(f.id) === String(formData.funcionarioId));
+    
+    // Filtrar activos según el funcionario seleccionado o mostrar todos
+    const activosMostrados = (mostrarTodosLosActivos || !formData.funcionarioId)
+        ? activos
+        : activos.filter(a => a.cedulaFuncionario === selectedFuncionario?.cedula);
 
     const getFileIcon = (file) => {
         if (file.type.startsWith('image/')) return '🖼️';
@@ -119,18 +139,18 @@ const TicketForm = () => {
                             <label className="block text-sm font-medium text-gray-700 mb-1">Tipo *</label>
                             <select required value={formData.tipo} onChange={e => setFormData({ ...formData, tipo: e.target.value })}
                                 className="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-blue-500">
-                                <option value="REQUERIMIENTO">Requerimiento (Solicitud nueva)</option>
                                 <option value="INCIDENTE">Incidente (Falla de algo existente)</option>
+                                <option value="REQUERIMIENTO">Requerimiento (Solicitud nueva)</option>
                             </select>
                         </div>
                         <div>
                             <label className="block text-sm font-medium text-gray-700 mb-1">Prioridad *</label>
                             <select required value={formData.prioridad} onChange={e => setFormData({ ...formData, prioridad: e.target.value })}
                                 className="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-blue-500">
-                                <option value="BAJA">Baja</option>
-                                <option value="MEDIA">Media</option>
                                 <option value="ALTA">Alta</option>
+                                <option value="BAJA">Baja</option>
                                 <option value="CRITICA">Crítica (Interrumpe operación)</option>
+                                <option value="MEDIA">Media</option>
                             </select>
                         </div>
                         <div className="md:col-span-2">
@@ -146,33 +166,59 @@ const TicketForm = () => {
                 <div>
                     <h3 className="text-sm font-semibold uppercase text-gray-500 border-b pb-2 mb-4">Asociación</h3>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1">Funcionario Solicitante *</label>
-                            <input type="text" placeholder="Buscar por nombre o cédula..."
-                                value={funcSearch} onChange={e => { setFuncSearch(e.target.value); setFormData({ ...formData, funcionarioId: '' }); }}
-                                className="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-t-lg text-sm focus:ring-2 focus:ring-blue-500" />
-                            <select required value={formData.funcionarioId} onChange={e => setFormData({ ...formData, funcionarioId: e.target.value })}
-                                size="4" className="w-full border border-t-0 border-gray-200 rounded-b-lg text-sm bg-white">
-                                <option value="">-- Seleccionar --</option>
-                                {filteredFuncionarios.slice(0, 50).map(f => (
-                                    <option key={f.id} value={f.id}>{f.nombre} ({f.cedula})</option>
-                                ))}
-                            </select>
-                        </div>
-                        <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1">Activo Relacionado (Opcional)</label>
-                            <input type="text" placeholder="Buscar por placa o modelo..."
-                                value={activoSearch} onChange={e => { setActivoSearch(e.target.value); setFormData({ ...formData, activoId: '' }); }}
-                                className="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-t-lg text-sm focus:ring-2 focus:ring-blue-500" />
-                            <select value={formData.activoId} onChange={e => setFormData({ ...formData, activoId: e.target.value })}
-                                size="4" className="w-full border border-t-0 border-gray-200 rounded-b-lg text-sm bg-white">
-                                <option value="">-- Ninguno --</option>
-                                {filteredActivos.slice(0, 50).map(a => (
-                                    <option key={a.id} value={a.id}>{a.placa} — {a.marca} {a.modelo}</option>
-                                ))}
-                            </select>
-                            <p className="mt-1 text-xs text-gray-500 flex items-center gap-1">
-                                <TagIcon className="w-3 h-3" /> Solo si el caso está asociado a un equipo específico.
+                        <SelectWithAdd
+                            label="Funcionario Solicitante"
+                            name="funcionarioId"
+                            value={formData.funcionarioId}
+                            onChange={handleFormChange}
+                            options={funcionarios.map(f => ({ id: f.id, nombre: `${f.nombre} (${f.cedula})` }))}
+                            required={true}
+                            canAdd={false}
+                            placeholder="Buscar solicitante..."
+                        />
+                        <div className="flex flex-col">
+                            <div className="flex justify-between items-end mb-1">
+                                <label className="block text-xs font-medium text-gray-600">
+                                    Activo Relacionado (Opcional)
+                                </label>
+                                {formData.funcionarioId && (
+                                    <button
+                                        type="button"
+                                        onClick={() => setMostrarTodosLosActivos(!mostrarTodosLosActivos)}
+                                        className={`text-[10px] font-bold px-2 py-0.5 rounded border transition-colors ${
+                                            mostrarTodosLosActivos 
+                                            ? 'bg-blue-600 text-white border-blue-600' 
+                                            : 'bg-white text-blue-600 border-blue-600 hover:bg-blue-50'
+                                        }`}
+                                    >
+                                        {mostrarTodosLosActivos ? 'VER ASIGNADOS' : 'BUSCAR GLOBAL'}
+                                    </button>
+                                )}
+                            </div>
+                            <SelectWithAdd
+                                label=""
+                                name="activoId"
+                                value={formData.activoId}
+                                onChange={handleFormChange}
+                                options={[
+                                    ...activosMostrados,
+                                    // Asegurar que el activo ya seleccionado siempre sea visible
+                                    ...(formData.activoId && !activosMostrados.find(a => String(a.id) === String(formData.activoId))
+                                        ? [activos.find(a => String(a.id) === String(formData.activoId))].filter(Boolean)
+                                        : [])
+                                ].map(a => ({ id: a.id, nombre: `${a.placa} — ${a.marca} ${a.modelo}` }))}
+                                canAdd={false}
+                                placeholder={
+                                    !formData.funcionarioId 
+                                    ? "Selecciona un funcionario primero..." 
+                                    : (activosMostrados.length === 0 ? "Sin equipos asignados" : "Seleccione equipo...")
+                                }
+                            />
+                            <p className="mt-1 text-[10px] text-gray-500 flex items-center gap-1 px-1">
+                                <TagIcon className="w-3 h-3 text-blue-400" /> 
+                                {mostrarTodosLosActivos 
+                                    ? "Mostrando TODOS los activos del inventario." 
+                                    : (formData.funcionarioId ? `Mostrando activos de ${selectedFuncionario?.nombre}` : "Asocia un funcionario para ver sus equipos.")}
                             </p>
                         </div>
                     </div>

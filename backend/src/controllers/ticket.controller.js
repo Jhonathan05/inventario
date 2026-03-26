@@ -22,7 +22,7 @@ const guardarAdjunto = async (file, ticketId = null, trazaTicketId = null) => {
 // ==========================================
 exports.crearTicket = async (req, res) => {
     try {
-        const { titulo, descripcion, prioridad, tipo, funcionarioId, activoId } = req.body;
+        const { titulo, descripcion, prioridad, tipo, funcionarioId, activoId, solucionTecnica, conclusiones } = req.body;
         const creadoPorId = req.user.id;
 
         const ticket = await prisma.ticket.create({
@@ -35,6 +35,8 @@ exports.crearTicket = async (req, res) => {
                 activoId: activoId ? parseInt(activoId) : null,
                 creadoPorId,
                 estado: 'CREADO',
+                solucionTecnica,
+                conclusiones,
                 trazas: {
                     create: {
                         tipoTraza: 'CREACION',
@@ -137,7 +139,7 @@ exports.obtenerTicketPorId = async (req, res) => {
 exports.actualizarEstado = async (req, res) => {
     try {
         const { id } = req.params;
-        const { nuevoEstado, comentario } = req.body;
+        const { nuevoEstado, comentario, solucionTecnica, conclusiones } = req.body;
         const usuarioId = req.user.id;
 
         const ticketActual = await prisma.ticket.findUnique({ where: { id: parseInt(id) } });
@@ -154,7 +156,9 @@ exports.actualizarEstado = async (req, res) => {
             where: { id: parseInt(id) },
             data: {
                 estado: nuevoEstado,
-                cerradoEn: nuevoEstado === 'COMPLETADO' ? new Date() : null,
+                solucionTecnica: solucionTecnica !== undefined ? solucionTecnica : undefined,
+                conclusiones: conclusiones !== undefined ? conclusiones : undefined,
+                cerradoEn: (nuevoEstado === 'COMPLETADO' || nuevoEstado === 'RESUELTO') ? new Date() : null,
                 trazas: {
                     create: {
                         tipoTraza: 'CAMBIO_ESTADO',

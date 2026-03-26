@@ -127,9 +127,9 @@ const UsuarioForm = ({ open, onClose, usuario }) => {
                             <div>
                                 <label htmlFor="rol" className="block text-sm font-medium text-gray-700">Rol *</label>
                                 <select name="rol" required className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm border p-2 bg-white" value={formData.rol} onChange={handleChange}>
-                                    <option value="TECNICO">Técnico / Analista</option>
                                     <option value="ADMIN">Administrador</option>
                                     <option value="CONSULTA">Consulta</option>
+                                    <option value="TECNICO">Técnico / Analista</option>
                                 </select>
                             </div>
 

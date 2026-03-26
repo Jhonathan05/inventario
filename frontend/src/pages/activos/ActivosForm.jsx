@@ -155,7 +155,11 @@ const ActivosForm = ({ open, onClose, activo }) => {
     const handleCatalogSuccess = (newVal) => {
         if (activeModal.isCategory) {
             setCategorias(prev => sortList([...prev, newVal]));
-            setFormData(prev => ({ ...prev, categoriaId: newVal.id }));
+            setFormData(prev => ({ 
+                ...prev, 
+                categoriaId: newVal.id,
+                tipo: newVal.nombre || newVal.valor || prev.tipo
+            }));
         } else {
             const val = newVal.valor;
             setCatalogs(prev => ({
@@ -246,7 +250,20 @@ const ActivosForm = ({ open, onClose, activo }) => {
 
     const handleChange = (e) => {
         const { name, value } = e.target;
-        setFormData(prev => ({ ...prev, [name]: value }));
+        
+        setFormData(prev => {
+            const next = { ...prev, [name]: value };
+            
+            // Sincronización Categoría -> Tipo de Equipo
+            if (name === 'categoriaId') {
+                const selectedCat = categorias.find(c => String(c.id) === String(value));
+                if (selectedCat) {
+                    next.tipo = selectedCat.nombre || selectedCat.valor || '';
+                }
+            }
+            
+            return next;
+        });
     };
 
     const handleImageChange = (e) => {
