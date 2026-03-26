@@ -15,7 +15,7 @@ const AssetIcon = ({ tipo, categoria }) => (
 
 const FuncionariosList = () => {
     const { user } = useAuth();
-    const canEdit = user?.rol === 'ADMIN' || user?.rol === 'TECNICO';
+    const canEdit = user?.rol === 'ADMIN' || user?.rol === 'ANALISTA_TIC';
 
     const [funcionarios, setFuncionarios] = useState([]);
     const [loading, setLoading] = useState(true);

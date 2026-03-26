@@ -38,7 +38,7 @@ export const ticketsService = {
         return response.data;
     },
 
-    // Asignar un ticket a un técnico
+    // Asignar un ticket a un analista
     assignTicket: async (id, asignadoAId, comentario) => {
         const response = await axios.put(
             `${API_URL}/tickets/${id}/asignar`,

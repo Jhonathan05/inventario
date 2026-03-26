@@ -27,7 +27,7 @@ const sortList = (list) => {
 
 const ActivosList = () => {
     const { user } = useAuth();
-    const canEdit = user?.rol === 'ADMIN' || user?.rol === 'TECNICO';
+    const canEdit = user?.rol === 'ADMIN' || user?.rol === 'ANALISTA_TIC';
 
     const [activos, setActivos] = useState([]);
     const [loading, setLoading] = useState(true);
@@ -150,7 +150,9 @@ const ActivosList = () => {
             TipoEquipo: a.tipo || '',
             Estado: a.estado || '',
             EstadoOperativo: a.estadoOperativo || '',
-            Ubicación: a.ubicacion || '',
+            'Ubicación y Piso': a.ubicacion || (a.asignaciones?.[0]?.funcionario?.ubicacion ? 
+                `${a.asignaciones[0].funcionario.ubicacion}${a.asignaciones[0].funcionario.piso ? ` - Piso ${a.asignaciones[0].funcionario.piso}` : ''}` 
+                : 'Sin Ubicación'),
             Funcionario_Asignado: a.asignaciones?.[0]?.funcionario?.nombre || 'Sin Asignar',
             Cédula_Funcionario: a.asignaciones?.[0]?.funcionario?.cedula || '',
         }));
@@ -172,7 +174,7 @@ const ActivosList = () => {
         doc.setFontSize(10);
         doc.text(`Total Resultados: ${activos.length}`, 14, 22);
 
-        const tableColumn = ["Placa", "Serial", "Marca/Modelo", "Categoría", "Tipo", "Estado", "Ubicación", "Asignado A"];
+        const tableColumn = ["Placa", "Serial", "Marca/Modelo", "Categoría", "Tipo", "Estado", "Ubicación y Piso", "Asignado A"];
         const tableRows = [];
 
         activos.forEach(a => {
@@ -183,7 +185,9 @@ const ActivosList = () => {
                 a.categoria?.nombre || 'N/A',
                 a.tipo || 'N/A',
                 a.estado || 'N/A',
-                a.ubicacion || 'N/A',
+                a.ubicacion || (a.asignaciones?.[0]?.funcionario?.ubicacion ? 
+                    `${a.asignaciones[0].funcionario.ubicacion}${a.asignaciones[0].funcionario.piso ? ` - Piso ${a.asignaciones[0].funcionario.piso}` : ''}` 
+                    : 'N/A'),
                 a.asignaciones?.[0]?.funcionario?.nombre || 'N/A'
             ];
             tableRows.push(ticketData);
@@ -449,7 +453,7 @@ const ActivosList = () => {
                                         <th scope="col" className="px-6 py-4 font-bold">Activo</th>
                                         <th scope="col" className="px-6 py-4 font-bold">Categoría</th>
                                         <th scope="col" className="px-6 py-4 font-bold">Estado</th>
-                                        <th scope="col" className="px-6 py-4 font-bold">Ubicación</th>
+                                        <th scope="col" className="px-6 py-4 font-bold">Ubicación y Piso</th>
                                         <th scope="col" className="px-6 py-4 font-bold">Asignado A</th>
                                         {canEdit && (
                                             <th scope="col" className="px-6 py-4 font-bold text-right">
@@ -491,7 +495,9 @@ const ActivosList = () => {
                                                 </span>
                                             </td>
                                             <td className="px-6 py-4 text-sm text-charcoal-600 font-medium whitespace-nowrap">
-                                                {activo.ubicacion || 'Sin ubicación'}
+                                                {activo.ubicacion || (activo.asignaciones?.[0]?.funcionario?.ubicacion ? 
+                                                    `${activo.asignaciones[0].funcionario.ubicacion}${activo.asignaciones[0].funcionario.piso ? ` - Piso ${activo.asignaciones[0].funcionario.piso}` : ''}` 
+                                                    : <span className="text-charcoal-400 font-medium italic">Sin ubicación</span>)}
                                             </td>
                                             <td className="px-6 py-4 text-sm text-charcoal-800 font-bold whitespace-nowrap">
                                                 {activo.asignaciones?.[0]?.funcionario?.nombre || <span className="text-charcoal-400 font-medium italic">Sin asignar</span>}

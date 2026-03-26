@@ -12,7 +12,7 @@ const ActivoDetail = () => {
     const { id } = useParams();
     const navigate = useNavigate();
     const { user } = useAuth();
-    const canEdit = user?.rol === 'ADMIN' || user?.rol === 'TECNICO';
+    const canEdit = user?.rol === 'ADMIN' || user?.rol === 'ANALISTA_TIC';
 
     const [activo, setActivo] = useState(null);
     const [loading, setLoading] = useState(true);
@@ -275,7 +275,7 @@ const ActivoDetail = () => {
                                         <th className="py-3.5 pl-4 pr-3 text-left text-sm font-semibold text-gray-900">Fecha</th>
                                         <th className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">Tipo</th>
                                         <th className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">Descripción</th>
-                                        <th className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">Técnico</th>
+                                        <th className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">Analista</th>
                                         <th className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">Costo</th>
                                         <th className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">Caso Aranda</th>
                                         <th className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">Estado</th>
@@ -330,7 +330,7 @@ const ActivoDetail = () => {
                                     </div>
                                     <p className="text-sm text-gray-600 line-clamp-2">{hv.descripcion}</p>
                                     <div className="text-xs text-gray-500 mt-2 space-y-0.5">
-                                        <div>🔧 {hv.responsable?.nombre || hv.tecnico || 'Sin técnico'}</div>
+                                        <div>🔧 {hv.responsable?.nombre || hv.tecnico || 'Sin analista'}</div>
                                         {hv.casoAranda && <div>🎫 Aranda: {hv.casoAranda}</div>}
                                         <div>💰 {formatCurrency(hv.costo)}</div>
                                     </div>

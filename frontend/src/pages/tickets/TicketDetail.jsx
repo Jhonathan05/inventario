@@ -14,7 +14,8 @@ import {
     PaperAirplaneIcon,
     UserPlusIcon,
     TrashIcon,
-    ArrowDownTrayIcon
+    ArrowDownTrayIcon,
+    PaperClipIcon
 } from '@heroicons/react/24/outline';
 import { useAuth } from '../../context/AuthContext';
 
@@ -58,7 +59,7 @@ const TicketDetail = () => {
     const [archivosComentario, setArchivosComentario] = useState([]);
 
     const { user } = useAuth();
-    const canEdit = user?.rol === 'ADMIN' || user?.rol === 'TECNICO';
+    const canEdit = user?.rol === 'ADMIN' || user?.rol === 'ANALISTA_TIC';
 
     useEffect(() => { cargarDatos(); }, [id]);
 
@@ -170,7 +171,7 @@ const TicketDetail = () => {
         if (String(tecnicoAsignado) === String(ticket.asignadoAId || '')) return;
         try {
             await api.put(`/tickets/${id}/asignar`, { asignadoAId: tecnicoAsignado || null });
-            toast.success('Técnico asignado');
+            toast.success('Analista asignado');
             cargarDatos();
         } catch {
             toast.error('Error al asignar');
@@ -217,35 +218,84 @@ const TicketDetail = () => {
             <style>
                 {`
                 @media print {
-                    @page { margin: 20mm; }
-                    body { background: white !important; font-size: 12pt; }
-                    .nav-bar, .no-print, button, form, .actions-bar { display: none !important; }
-                    .max-w-7xl { max-width: 100% !important; margin: 0 !important; }
-                    .shadow-sm, .border { border: none !important; box-shadow: none !important; }
-                    .bg-gray-50 { background: white !important; border: 1px solid #eee !important; }
-                    .ticket-header-print { display: block !important; margin-bottom: 2rem; border-bottom: 2px solid #333; padding-bottom: 1rem; }
-                    .grid { display: block !important; }
-                    .lg\\:grid-cols-3 { grid-template-columns: 1fr !important; }
-                    .space-y-6 > * + * { margin-top: 2rem !important; }
-                    .text-blue-600, .text-indigo-600 { color: black !important; font-weight: bold; }
-                    .bg-blue-100, .bg-emerald-100, .bg-amber-100 { background: transparent !important; border: 1px solid #333 !important; }
-                    textarea { border: none !important; background: transparent !important; overflow: visible !important; height: auto !important; }
+                    @page { margin: 15mm; size: letter; }
+                    body { background: white !important; font-size: 11pt; color: black !important; }
+                    .nav-bar, .no-print, button, form, .actions-bar, .no-print-essential { display: none !important; }
+                    .max-w-7xl { max-width: 100% !important; margin: 0 !important; width: 100% !important; }
+                    .shadow-sm, .border, .rounded-xl { border: 1px solid #ddd !important; box-shadow: none !important; border-radius: 4px !important; }
+                    .bg-gray-50, .bg-indigo-50, .bg-white { background: white !important; }
+                    
+                    .ticket-header-print { 
+                        display: flex !important; 
+                        justify-content: space-between; 
+                        align-items: center;
+                        margin-bottom: 25px; 
+                        border-bottom: 3px solid #1a237e; 
+                        padding-bottom: 10px; 
+                    }
+                    .print-section { 
+                        margin-bottom: 20px; 
+                        break-inside: avoid;
+                        page-break-inside: avoid;
+                    }
+                    .print-section-title {
+                        background-color: #f1f5f9 !important;
+                        -webkit-print-color-adjust: exact;
+                        padding: 4px 10px;
+                        font-weight: bold;
+                        text-transform: uppercase;
+                        font-size: 10pt;
+                        border: 1px solid #cbd5e1;
+                        margin-bottom: 8px;
+                        display: block !important;
+                    }
+                    .grid { display: grid !important; grid-template-columns: 1fr 1fr !important; gap: 15px !important; }
+                    .grid-1-col { display: block !important; }
+                    
+                    .text-blue-600, .text-indigo-600, .text-emerald-700 { color: black !important; font-weight: bold; }
+                    textarea { 
+                        border: none !important; 
+                        background: #fdfdfd !important; 
+                        overflow: visible !important; 
+                        height: auto !important; 
+                        min-height: 50px !important;
+                        width: 100% !important;
+                        padding: 5px !important;
+                        font-family: inherit !important;
+                        font-size: 11pt !important;
+                    }
+                    .signature-area {
+                        display: flex !important;
+                        justify-content: space-between;
+                        margin-top: 50px;
+                        padding-top: 20px;
+                        border-top: 1px dashed #ccc;
+                    }
+                    .signature-box {
+                        width: 45%;
+                        text-align: center;
+                    }
+                    .signature-line {
+                        border-top: 1px solid #000;
+                        margin-bottom: 5px;
+                    }
                 }
-                .ticket-header-print { display: none; }
+                .ticket-header-print, .print-only { display: none; }
                 `}
             </style>
 
             {/* Encabezado Profesional para el Reporte (Solo Impresión) */}
             <div className="ticket-header-print">
-                <div className="flex justify-between items-start">
+                <div className="flex items-center gap-4">
+                    <div className="bg-indigo-900 text-white p-2 rounded font-black text-xl italic tracking-tighter">HD</div>
                     <div>
-                        <h1 className="text-2xl font-black text-gray-900 uppercase">Bitácora de Soporte Técnico</h1>
-                        <p className="text-sm font-bold text-gray-600">SISTEMA DE INVENTARIO Y GESTIÓN TI</p>
+                        <h1 className="text-xl font-black text-gray-900 uppercase leading-none">Bitácora Técnica</h1>
+                        <p className="text-[10px] font-bold text-gray-500 uppercase tracking-widest mt-1">Gestión de Incidentes y Requerimientos TI</p>
                     </div>
-                    <div className="text-right">
-                        <p className="text-xl font-bold">CASO #{ticket.id}</p>
-                        <p className="text-xs text-gray-500 uppercase">Generado el: {new Date().toLocaleString()}</p>
-                    </div>
+                </div>
+                <div className="text-right border-l pl-4 border-gray-200">
+                    <p className="text-2xl font-black text-indigo-900 leading-none">CASO #{ticket.id}</p>
+                    <p className="text-[9px] text-gray-500 uppercase mt-1">Generado: {new Date().toLocaleString()}</p>
                 </div>
             </div>
             {/* Header */}
@@ -271,36 +321,46 @@ const TicketDetail = () => {
                 {/* Panel Izquierdo: Info */}
                 <div className="space-y-4">
                     {/* Detalles */}
-                    <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-5 space-y-4">
-                        <h3 className="text-xs font-semibold uppercase text-gray-500 tracking-wider">Detalles</h3>
-                        <div>
-                            <span className="text-xs font-medium text-gray-500 block mb-0.5">Tipo</span>
-                            <span className="text-sm font-semibold text-gray-900">{ticket.tipo}</span>
-                        </div>
-                        <div>
-                            <span className="text-xs font-medium text-gray-500 block mb-0.5">Creado</span>
-                            <div className="flex items-center text-sm text-gray-900 gap-1">
-                                <CalendarDaysIcon className="w-4 h-4 text-gray-400" />
-                                {new Date(ticket.creadoEn).toLocaleString('es-ES', { dateStyle: 'medium', timeStyle: 'short' })}
+                    <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-5 space-y-4 print-section">
+                        <h3 className="text-xs font-semibold uppercase text-gray-500 tracking-wider print-section-title">Información General</h3>
+                        <div className="grid">
+                            <div>
+                                <span className="text-xs font-medium text-gray-500 block mb-0.5">Tipo de Caso</span>
+                                <span className="text-sm font-semibold text-gray-900">{ticket.tipo}</span>
+                            </div>
+                            <div>
+                                <span className="text-xs font-medium text-gray-500 block mb-0.5">Prioridad</span>
+                                <span className="text-sm font-semibold text-gray-900">{ticket.prioridad}</span>
+                            </div>
+                            <div className="no-print-essential">
+                                <span className="text-xs font-medium text-gray-500 block mb-0.5">Estado actual</span>
+                                <span className="text-sm font-semibold text-gray-900">{ticket.estado.replace('_', ' ')}</span>
+                            </div>
+                            <div>
+                                <span className="text-xs font-medium text-gray-500 block mb-0.5">Fecha Creación</span>
+                                <div className="flex items-center text-sm text-gray-900 gap-1">
+                                    <CalendarDaysIcon className="w-4 h-4 text-gray-400 no-print" />
+                                    {new Date(ticket.creadoEn).toLocaleString('es-ES', { dateStyle: 'medium', timeStyle: 'short' })}
+                                </div>
                             </div>
                         </div>
                         {ticket.cerradoEn && (
                             <div>
-                                <span className="text-xs font-medium text-gray-500 block mb-0.5">Cerrado</span>
-                                <span className="text-sm text-green-700">{new Date(ticket.cerradoEn).toLocaleString('es-ES', { dateStyle: 'medium', timeStyle: 'short' })}</span>
+                                <span className="text-xs font-medium text-gray-500 block mb-0.5 uppercase tracking-tighter">Fecha de Cierre / Resolución</span>
+                                <span className="text-sm text-green-700 font-bold">{new Date(ticket.cerradoEn).toLocaleString('es-ES', { dateStyle: 'long', timeStyle: 'short' })}</span>
                             </div>
                         )}
-                        <div>
-                            <span className="text-xs font-medium text-gray-500 block mb-1">Descripción</span>
+                        <div className="grid-1-col">
+                            <span className="text-xs font-medium text-gray-500 block mb-1">Descripción del Requerimiento / Falla</span>
                             <p className="text-sm text-gray-700 whitespace-pre-wrap bg-gray-50 p-3 rounded-lg border leading-relaxed">{ticket.descripcion}</p>
                         </div>
                     </div>
 
                     {/* Evidencias Iniciales del Ticket */}
                     {ticket.adjuntos && ticket.adjuntos.length > 0 && (
-                        <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-5">
-                            <h3 className="text-xs font-semibold uppercase text-gray-500 tracking-wider mb-3 flex items-center gap-1.5">
-                                <PaperClipIcon className="w-3.5 h-3.5" /> Evidencias ({ticket.adjuntos.length})
+                        <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-5 print-section no-print">
+                            <h3 className="text-xs font-semibold uppercase text-gray-500 tracking-wider mb-3 flex items-center gap-1.5 print-section-title">
+                                <PaperClipIcon className="w-3.5 h-3.5" /> Evidencias Adjuntas ({ticket.adjuntos.length})
                             </h3>
                             <div className="flex flex-wrap gap-2">
                                 {ticket.adjuntos.map(doc => (
@@ -311,38 +371,40 @@ const TicketDetail = () => {
                     )}
 
                     {/* Involucrados */}
-                    <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-5 space-y-4">
-                        <h3 className="text-xs font-semibold uppercase text-gray-500 tracking-wider">Involucrados</h3>
-                        <div className="flex items-start gap-3">
-                            <div className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center shrink-0">
-                                <UserIcon className="w-4 h-4 text-blue-600" />
-                            </div>
-                            <div>
-                                <span className="text-xs text-gray-500">Solicitante</span>
-                                <p className="text-sm font-semibold text-gray-900">{ticket.funcionario?.nombre}</p>
-                                <p className="text-xs text-gray-500">{ticket.funcionario?.area || 'Sin área'}</p>
-                            </div>
-                        </div>
-                        {ticket.activo && (
+                    <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-5 space-y-4 print-section">
+                        <h3 className="text-xs font-semibold uppercase text-gray-500 tracking-wider print-section-title">Información del Solicitante y Equipo</h3>
+                        <div className="grid">
                             <div className="flex items-start gap-3">
-                                <div className="w-8 h-8 rounded-full bg-purple-100 flex items-center justify-center shrink-0">
-                                    <ComputerDesktopIcon className="w-4 h-4 text-purple-600" />
+                                <div className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center shrink-0 no-print">
+                                    <UserIcon className="w-4 h-4 text-blue-600" />
                                 </div>
                                 <div>
-                                    <span className="text-xs text-gray-500">Activo Vinculado</span>
-                                    <p className="text-sm font-semibold text-gray-900">{ticket.activo.placa}</p>
-                                    <p className="text-xs text-gray-500">{ticket.activo.marca} {ticket.activo.modelo}</p>
+                                    <span className="text-xs text-gray-500 block">Solicitante</span>
+                                    <p className="text-sm font-semibold text-gray-900">{ticket.funcionario?.nombre}</p>
+                                    <p className="text-xs text-gray-500">{ticket.funcionario?.area || 'Sin área'}</p>
                                 </div>
                             </div>
-                        )}
+                            {ticket.activo && (
+                                <div className="flex items-start gap-3">
+                                    <div className="w-8 h-8 rounded-full bg-purple-100 flex items-center justify-center shrink-0 no-print">
+                                        <ComputerDesktopIcon className="w-4 h-4 text-purple-600" />
+                                    </div>
+                                    <div>
+                                        <span className="text-xs text-gray-500 block">Activo Vinculado</span>
+                                        <p className="text-sm font-semibold text-gray-900">PLACA: {ticket.activo.placa}</p>
+                                        <p className="text-xs text-gray-500">{ticket.activo.marca} {ticket.activo.modelo}</p>
+                                    </div>
+                                </div>
+                            )}
+                        </div>
                     </div>
 
                     {/* Gestión */}
                     {canEdit && (
-                        <div className="bg-gray-50 rounded-xl shadow-sm border border-gray-100 p-5 space-y-4">
+                        <div className="bg-gray-50 rounded-xl shadow-sm border border-gray-100 p-5 space-y-4 no-print">
                             <h3 className="text-xs font-semibold uppercase text-gray-500 tracking-wider">Gestión del Caso</h3>
                             <div>
-                                <label className="text-xs font-semibold text-gray-600 block mb-1">Técnico Asignado</label>
+                                <label className="text-xs font-semibold text-gray-600 block mb-1">Analista Asignado</label>
                                 <div className="flex gap-2">
                                     <select value={tecnicoAsignado} onChange={e => setTecnicoAsignado(e.target.value)}
                                         className="flex-1 text-sm border border-gray-200 rounded-md shadow-sm bg-white focus:ring-blue-500">
@@ -377,10 +439,10 @@ const TicketDetail = () => {
                             <div className="pt-2">
                                 <button
                                     onClick={() => window.print()}
-                                    className="w-full py-2 bg-gray-900 text-white rounded-lg text-xs font-bold hover:bg-black transition-colors flex items-center justify-center gap-2"
+                                    className="w-full py-2 bg-gray-900 text-white rounded-lg text-xs font-bold hover:bg-black transition-colors flex items-center justify-center gap-2 shadow-xl"
                                 >
                                     <ArrowDownTrayIcon className="w-4 h-4" />
-                                    IMPRIMIR BITÁCORA DEL CASO
+                                    IMPRIMIR REPORTE DE CICLO DE VIDA
                                 </button>
                             </div>
                         </div>
@@ -391,32 +453,32 @@ const TicketDetail = () => {
                 <div className="lg:col-span-2 flex flex-col gap-6">
                     {/* Bitácora Técnica Personal */}
                     {canEdit && (
-                        <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
-                            <h2 className="text-base font-bold text-gray-900 mb-4 flex items-center gap-2">
-                                <ChatBubbleLeftIcon className="w-5 h-5 text-indigo-500" /> Bitácora Técnica (Personal)
+                        <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100 print-section">
+                            <h2 className="text-base font-bold text-gray-900 mb-4 flex items-center gap-2 print-section-title">
+                                <ChatBubbleLeftIcon className="w-5 h-5 text-indigo-500 no-print" /> Documentación de la Solución Técnica
                             </h2>
                             <div className="space-y-4">
-                                <div>
-                                    <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest block mb-1.5">Solución Técnica Aplicada</label>
+                                <div className="grid-1-col">
+                                    <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest block mb-1.5">Diagnóstico y Solución Técnica Aplicada</label>
                                     <textarea
-                                        rows="4"
+                                        rows="6"
                                         value={ticket.solucionTecnica || ''}
                                         onChange={e => setTicket({ ...ticket, solucionTecnica: e.target.value })}
-                                        className="w-full text-sm p-3 bg-gray-50 border border-gray-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all resize-none"
+                                        className="w-full text-sm p-3 bg-gray-50 border border-gray-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all resize-none font-mono"
                                         placeholder="Documenta aquí los pasos técnicos realizados..."
                                     />
                                 </div>
-                                <div>
-                                    <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest block mb-1.5">Conclusiones / Observaciones Finales</label>
+                                <div className="grid-1-col">
+                                    <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest block mb-1.5">Conclusiones y Recomendaciones</label>
                                     <textarea
-                                        rows="2"
+                                        rows="3"
                                         value={ticket.conclusiones || ''}
                                         onChange={e => setTicket({ ...ticket, conclusiones: e.target.value })}
                                         className="w-full text-sm p-3 bg-gray-50 border border-gray-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all resize-none"
                                         placeholder="Resumen final del cierre del caso..."
                                     />
                                 </div>
-                                <div className="flex justify-end">
+                                <div className="flex justify-end no-print">
                                     <button
                                         onClick={handleGuardarNotasTecnicas}
                                         disabled={saving}
@@ -428,39 +490,39 @@ const TicketDetail = () => {
                             </div>
                         </div>
                     )}
-                    <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100 flex-1">
-                        <h2 className="text-base font-bold text-gray-900 mb-6 flex items-center gap-2">
-                            <ClockIcon className="w-5 h-5 text-gray-400" /> Trazabilidad del Caso
+                    <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100 flex-1 print-section">
+                        <h2 className="text-base font-bold text-gray-900 mb-6 flex items-center gap-2 print-section-title">
+                            <ClockIcon className="w-5 h-5 text-gray-400 no-print" /> Historia Detallada de Eventos (Trazabilidad)
                         </h2>
 
-                        <div className="relative border-l-2 border-gray-200 ml-3 space-y-6 max-h-[500px] overflow-y-auto pr-2 pb-2">
+                        <div className="relative border-l-2 border-gray-200 ml-3 space-y-6 max-h-[500px] overflow-y-auto pr-2 pb-2 print:max-h-none print:overflow-visible">
                             {ticket.trazas?.length === 0 && (
-                                <p className="pl-6 text-sm text-gray-400 italic">Sin historial.</p>
+                                <p className="pl-6 text-sm text-gray-400 italic">Sin historial de eventos.</p>
                             )}
                             {ticket.trazas?.map((traza, i) => (
-                                <div key={i} className="relative pl-6">
-                                    <div className="absolute -left-2.5 top-0.5 bg-white border-2 border-gray-200 rounded-full w-5 h-5 flex items-center justify-center">
+                                <div key={i} className="relative pl-6 print-section">
+                                    <div className="absolute -left-2.5 top-0.5 bg-white border-2 border-gray-200 rounded-full w-5 h-5 flex items-center justify-center no-print">
                                         {getTrazaIcon(traza.tipoTraza)}
                                     </div>
                                     <div className="flex flex-col sm:flex-row sm:justify-between sm:items-baseline">
-                                        <span className="font-semibold text-sm text-gray-900">{traza.creadoPor?.nombre || 'Sistema'}</span>
-                                        <time className="text-xs text-gray-400 whitespace-nowrap">
-                                            {new Date(traza.creadoEn).toLocaleString('es-ES', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })}
+                                        <span className="font-semibold text-sm text-gray-900 uppercase text-[10px] tracking-wider">{traza.creadoPor?.nombre || 'SISTEMA'}</span>
+                                        <time className="text-[10px] text-gray-400 whitespace-nowrap">
+                                            {new Date(traza.creadoEn).toLocaleString('es-ES', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' })}
                                         </time>
                                     </div>
-                                    <div className={`mt-1.5 text-sm text-gray-700 ${traza.tipoTraza === 'COMENTARIO' ? 'bg-gray-50 p-3 rounded-lg border' : ''}`}>
+                                    <div className={`mt-1 text-sm text-gray-700 ${traza.tipoTraza === 'COMENTARIO' ? 'bg-gray-50 p-2 rounded border border-gray-100' : ''}`}>
                                         {traza.comentario}
                                     </div>
                                     {traza.tipoTraza === 'CAMBIO_ESTADO' && traza.estadoAnterior && (
-                                        <div className="mt-1 flex items-center gap-2 text-xs font-medium">
+                                        <div className="mt-1 flex items-center gap-2 text-[10px] font-bold">
                                             <span className="text-gray-400 line-through">{traza.estadoAnterior}</span>
                                             <span className="text-gray-400">→</span>
-                                            <span className="text-blue-600">{traza.estadoNuevo}</span>
+                                            <span className="text-blue-600 uppercase italic">{traza.estadoNuevo}</span>
                                         </div>
                                     )}
                                     {/* Adjuntos de la traza */}
                                     {traza.adjuntos && traza.adjuntos.length > 0 && (
-                                        <div className="mt-2 flex flex-wrap gap-1.5">
+                                        <div className="mt-2 flex flex-wrap gap-1.5 no-print">
                                             {traza.adjuntos.map(doc => (
                                                 <AdjuntoChip key={doc.id} doc={doc} onDownload={handleDownload} />
                                             ))}
@@ -471,9 +533,23 @@ const TicketDetail = () => {
                         </div>
                     </div>
 
+                    {/* Firma - Solo Impresión */}
+                    <div className="print-only signature-area">
+                        <div className="signature-box">
+                            <div className="signature-line"></div>
+                            <p className="text-[10px] font-bold">FIRMA DEL ANALISTA RESPONSABLE</p>
+                            <p className="text-[10px] text-gray-500">{ticket.asignadoA?.nombre || user?.nombre}</p>
+                        </div>
+                        <div className="signature-box">
+                            <div className="signature-line"></div>
+                            <p className="text-[10px] font-bold">RECIBIDO A SATISFACCIÓN (FUNCIONARIO)</p>
+                            <p className="text-[10px] text-gray-500">{ticket.funcionario?.nombre}</p>
+                        </div>
+                    </div>
+
                     {/* Añadir Comentario con adjuntos */}
                     {canEdit && (
-                        <form onSubmit={handleAgregarComentario} className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+                        <form onSubmit={handleAgregarComentario} className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden no-print">
                             <div className="p-4">
                                 <textarea
                                     rows="2"

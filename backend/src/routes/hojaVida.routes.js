@@ -61,7 +61,7 @@ router.get('/activo/:activoId', authMiddleware, async (req, res) => {
 
 // POST /api/hojavida
 // Create: Status CREADO, optional file
-router.post('/', authMiddleware, requireRole('ADMIN', 'TECNICO'), upload.single('file'), async (req, res) => {
+router.post('/', authMiddleware, requireRole('ADMIN', 'ANALISTA_TIC'), upload.single('file'), async (req, res) => {
     try {
         // req.body fields come as strings due to multipart/form-data
         const { activoId, tipo, descripcion, fecha } = req.body;
@@ -125,7 +125,7 @@ router.post('/', authMiddleware, requireRole('ADMIN', 'TECNICO'), upload.single(
 
 // PUT /api/hojavida/:id/procesar
 // Update: Status change, diagnose, assign, etc.
-router.put('/:id/procesar', authMiddleware, requireRole('ADMIN', 'TECNICO'), upload.single('file'), async (req, res) => {
+router.put('/:id/procesar', authMiddleware, requireRole('ADMIN', 'ANALISTA_TIC'), upload.single('file'), async (req, res) => {
     try {
         const { id } = req.params;
         console.log('--- PROCESSING PUT /hojavida/:id/procesar ---');

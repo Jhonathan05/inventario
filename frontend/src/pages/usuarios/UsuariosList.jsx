@@ -53,9 +53,7 @@ const Usuarios = () => {
             <div className="sm:flex sm:items-center">
                 <div className="sm:flex-auto">
                     <h1 className="text-base font-semibold leading-6 text-gray-900">Usuarios</h1>
-                    <p className="mt-2 text-sm text-gray-700">
-                        Lista de todos los usuarios del sistema con acceso administrativo o técnico.
-                    </p>
+                        Lista de todos los usuarios del sistema con acceso administrativo o de analista.
                 </div>
                 <div className="mt-4 sm:ml-16 sm:mt-0 sm:flex-none">
                     <button
@@ -104,7 +102,7 @@ const Usuarios = () => {
                                             <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
                                                 <span className={`inline-flex items-center rounded-md px-2 py-1 text-xs font-medium ring-1 ring-inset ${usuario.rol === 'ADMIN' ? 'bg-purple-50 text-purple-700 ring-purple-700/10' : 'bg-blue-50 text-blue-700 ring-blue-700/10'
                                                     }`}>
-                                                    {usuario.rol}
+                                                    {usuario.rol === 'ANALISTA_TIC' ? 'Analista TIC' : usuario.rol}
                                                 </span>
                                             </td>
                                             <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500">

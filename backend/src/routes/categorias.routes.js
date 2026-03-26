@@ -17,7 +17,7 @@ router.get('/', authMiddleware, async (req, res) => {
 });
 
 // POST /api/categorias
-router.post('/', authMiddleware, requireRole('ADMIN', 'TECNICO'), async (req, res) => {
+router.post('/', authMiddleware, requireRole('ADMIN', 'ANALISTA_TIC'), async (req, res) => {
     try {
         const { nombre, icono } = req.body;
         const categoria = await prisma.categoria.create({ data: { nombre, icono } });
@@ -29,7 +29,7 @@ router.post('/', authMiddleware, requireRole('ADMIN', 'TECNICO'), async (req, re
 });
 
 // PUT /api/categorias/:id
-router.put('/:id', authMiddleware, requireRole('ADMIN', 'TECNICO'), async (req, res) => {
+router.put('/:id', authMiddleware, requireRole('ADMIN', 'ANALISTA_TIC'), async (req, res) => {
     try {
         const { nombre, icono } = req.body;
         const categoria = await prisma.categoria.update({

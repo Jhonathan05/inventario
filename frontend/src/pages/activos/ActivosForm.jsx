@@ -78,7 +78,7 @@ const calcYearsOfUse = (fechaCompraStr) => {
 
 const ActivosForm = ({ open, onClose, activo }) => {
     const { user } = useAuth();
-    const canEditCatalogs = user?.rol === 'ADMIN' || user?.rol === 'TECNICO';
+    const canEditCatalogs = user?.rol === 'ADMIN' || user?.rol === 'ANALISTA_TIC';
 
     const [formData, setFormData] = useState(DEFAULT_STATE);
     const [imagen, setImagen] = useState(null);

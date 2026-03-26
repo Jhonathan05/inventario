@@ -229,7 +229,7 @@ router.get('/perfiles/:id', authMiddleware, async (req, res) => {
 });
 
 // POST /api/reportes/perfiles - Crear perfil
-router.post('/perfiles', authMiddleware, requireRole('ADMIN', 'TECNICO'), async (req, res) => {
+router.post('/perfiles', authMiddleware, requireRole('ADMIN', 'ANALISTA_TIC'), async (req, res) => {
     try {
         const { nombre, descripcion, tipoReporte, columnas } = req.body;
         const perfil = await prisma.perfilReporte.create({
@@ -246,7 +246,7 @@ router.post('/perfiles', authMiddleware, requireRole('ADMIN', 'TECNICO'), async 
 });
 
 // PUT /api/reportes/perfiles/:id - Actualizar perfil
-router.put('/perfiles/:id', authMiddleware, requireRole('ADMIN', 'TECNICO'), async (req, res) => {
+router.put('/perfiles/:id', authMiddleware, requireRole('ADMIN', 'ANALISTA_TIC'), async (req, res) => {
     try {
         const { nombre, descripcion, tipoReporte, columnas } = req.body;
         const perfil = await prisma.perfilReporte.update({
@@ -264,7 +264,7 @@ router.put('/perfiles/:id', authMiddleware, requireRole('ADMIN', 'TECNICO'), asy
 });
 
 // DELETE /api/reportes/perfiles/:id - Eliminar perfil
-router.delete('/perfiles/:id', authMiddleware, requireRole('ADMIN', 'TECNICO'), async (req, res) => {
+router.delete('/perfiles/:id', authMiddleware, requireRole('ADMIN', 'ANALISTA_TIC'), async (req, res) => {
     try {
         const perfil = await prisma.perfilReporte.findUnique({
             where: { id: parseInt(req.params.id) },
@@ -284,7 +284,7 @@ router.delete('/perfiles/:id', authMiddleware, requireRole('ADMIN', 'TECNICO'), 
 const { formatAssetForCMDB, generateCMDB_CSV } = require('../utils/cmdbExport');
 
 // GET /api/reportes/cmdb/export - Exportación completa en formato CSV para CMDB
-router.get('/cmdb/export', authMiddleware, requireRole('ADMIN', 'TECNICO'), async (req, res) => {
+router.get('/cmdb/export', authMiddleware, requireRole('ADMIN', 'ANALISTA_TIC'), async (req, res) => {
     try {
         const activos = await prisma.activo.findMany({
             include: {
@@ -311,7 +311,7 @@ router.get('/cmdb/export', authMiddleware, requireRole('ADMIN', 'TECNICO'), asyn
 });
 
 // POST /api/reportes/perfiles/seed - Crear perfiles predefinidos
-router.post('/perfiles/seed', authMiddleware, requireRole('ADMIN', 'TECNICO'), async (req, res) => {
+router.post('/perfiles/seed', authMiddleware, requireRole('ADMIN', 'ANALISTA_TIC'), async (req, res) => {
     try {
         const existing = await prisma.perfilReporte.findFirst({ where: { nombre: 'CMDB USUARIO FINAL' } });
         

@@ -103,7 +103,7 @@ router.get('/:id', authMiddleware, async (req, res) => {
 });
 
 // POST /api/activos
-router.post('/', authMiddleware, requireRole('ADMIN', 'TECNICO'), upload.single('imagen'), async (req, res) => {
+router.post('/', authMiddleware, requireRole('ADMIN', 'ANALISTA_TIC'), upload.single('imagen'), async (req, res) => {
     try {
         const data = req.body;
         // Convertir campos numéricos y de fecha (multipart/form-data los envía como string)
@@ -129,7 +129,7 @@ router.post('/', authMiddleware, requireRole('ADMIN', 'TECNICO'), upload.single(
 });
 
 // PUT /api/activos/:id
-router.put('/:id', authMiddleware, requireRole('ADMIN', 'TECNICO'), upload.single('imagen'), async (req, res) => {
+router.put('/:id', authMiddleware, requireRole('ADMIN', 'ANALISTA_TIC'), upload.single('imagen'), async (req, res) => {
     try {
         const data = req.body;
         if (data.categoriaId) data.categoriaId = parseInt(data.categoriaId);
