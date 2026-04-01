@@ -51,7 +51,7 @@ const Categorias = () => {
     const ITEMS_PER_PAGE = 9;
 
     // Query para categorías
-    const { data: categoriasData = [], isLoading: loadingCategorias } = useQuery({
+    const { data: categoriasData = [], isLoading: loadingCategorias, error: errorCategorias } = useQuery({
         queryKey: ['categorias'],
         queryFn: async () => {
             const res = await categoriasService.getAll();
@@ -61,7 +61,7 @@ const Categorias = () => {
     });
 
     // Query para catálogos por dominio
-    const { data: catalogosData = [], isLoading: loadingCatalogos } = useQuery({
+    const { data: catalogosData = [], isLoading: loadingCatalogos, error: errorCatalogos } = useQuery({
         queryKey: ['catalogos', activeDomain],
         queryFn: () => catalogosService.getByDomain(activeDomain),
         enabled: !!activeDomain && !activeSection.isCategory,
@@ -69,6 +69,7 @@ const Categorias = () => {
 
     const data = activeSection.isCategory ? categoriasData : catalogosData;
     const loading = activeSection.isCategory ? loadingCategorias : loadingCatalogos;
+    const error = activeSection.isCategory ? errorCategorias?.message : errorCatalogos?.message;
 
     const handleSectionChange = (section) => {
         setActiveSection(section);

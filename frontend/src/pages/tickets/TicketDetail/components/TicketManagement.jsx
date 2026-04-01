@@ -1,5 +1,5 @@
 import { ArrowDownTrayIcon } from '@heroicons/react/24/outline';
-import { generateTicketReport } from '../reports/TicketReport';
+import { generateTicketReport } from '../../reports/TicketReport';
 
 export const TicketManagement = ({ 
     ticket, 

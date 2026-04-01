@@ -1,8 +1,8 @@
 import { useState, useEffect } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { activosService } from '../../api/activos.service';
-import { categoriasService } from '../../api/categorias.service';
-import { catalogosService } from '../../api/catalogos.service';
+import { activosService } from '../../../api/activos.service';
+import { categoriasService } from '../../../api/categorias.service';
+import { catalogosService } from '../../../api/catalogos.service';
 
 const DEFAULT_STATE = {
     // Admin

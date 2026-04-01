@@ -36,6 +36,7 @@ services:
       JWT_SECRET: ${JWT_SECRET:-clave_secreta_desarrollo_inventario}
       PORT: 3001
       UPLOAD_DIR: /app/uploads
+      ALLOWED_ORIGINS: http://localhost:8085,http://inventario.local,http://inventario.local:8085
     volumes:
       - ./backend:/app
       - /app/node_modules
@@ -46,7 +47,7 @@ services:
       postgres:
         condition: service_healthy
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:3001/api/health"]
+      test: ["CMD", "wget", "--spider", "-q", "http://localhost:3001/api/health"]
       interval: 30s
       timeout: 10s
       retries: 3
