@@ -28,3 +28,8 @@ database/data
 # Uploads (no subir archivos de usuarios)
 uploads/
 !uploads/.gitkeep
+
+# Backups manuales y volcados BD
+backend/temp_backup/
+backend/uploads/
+*.sql
