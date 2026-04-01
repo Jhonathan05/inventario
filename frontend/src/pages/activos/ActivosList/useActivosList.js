@@ -38,7 +38,7 @@ export const useActivosList = () => {
 
     // ── Queries de catálogos ──────────────────────────────────────────
     const { data: categorias = [] } = useQuery({
-        queryKey: ['categorias'],
+        queryKey: ['categorias', 'filters'],
         queryFn: async () => sortList(await categoriasService.getAll()),
         staleTime: 5 * 60 * 1000,
     });
@@ -50,7 +50,7 @@ export const useActivosList = () => {
     });
 
     const { data: catalogs = { EMPRESA_PROPIETARIA: [], ESTADO_OPERATIVO: [], TIPO_EQUIPO: [] } } = useQuery({
-        queryKey: ['catalogos'],
+        queryKey: ['catalogos', 'filters'],
         queryFn: async () => {
             const res = await catalogosService.getAll();
             const grouped = res.reduce((acc, curr) => {

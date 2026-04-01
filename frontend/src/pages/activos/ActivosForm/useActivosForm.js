@@ -46,9 +46,10 @@ const DEFAULT_STATE = {
 };
 
 const sortList = (list) => {
+    if (!Array.isArray(list)) return [];
     return [...list].sort((a, b) => {
-        const valA = (a.nombre || a.valor || a).toString().toUpperCase();
-        const valB = (b.nombre || b.valor || b).toString().toUpperCase();
+        const valA = (a?.nombre || a?.valor || a || '').toString().toUpperCase();
+        const valB = (b?.nombre || b?.valor || b || '').toString().toUpperCase();
         return valA.localeCompare(valB);
     });
 };
@@ -88,24 +89,42 @@ export const useActivosForm = (activo, open, onClose) => {
     const queryClient = useQueryClient();
 
     const { data: categorias = [] } = useQuery({
-        queryKey: ['categorias'],
-        queryFn: async () => sortList(await categoriasService.getAll())
+        queryKey: ['categorias', 'full'],
+        queryFn: async () => {
+            try {
+                const res = await categoriasService.getAll();
+                return sortList(Array.isArray(res) ? res : []);
+            } catch (err) {
+                console.error('Error fetching categorias:', err);
+                return [];
+            }
+        }
     });
 
     const { data: catalogsObj = {} } = useQuery({
-        queryKey: ['catalogos'],
+        queryKey: ['catalogos', 'full'],
         queryFn: async () => {
-            const res = await catalogosService.getAll();
-            const grouped = res.reduce((acc, curr) => {
-                if (!acc[curr.dominio]) acc[curr.dominio] = [];
-                acc[curr.dominio].push(curr.valor);
-                return acc;
-            }, {});
-            const sortedGrouped = {};
-            Object.keys(grouped).forEach(domain => {
-                sortedGrouped[domain] = sortList(grouped[domain]);
-            });
-            return sortedGrouped;
+            try {
+                const res = await catalogosService.getAll();
+                if (!Array.isArray(res)) return {};
+
+                const grouped = res.reduce((acc, curr) => {
+                    if (curr && curr.dominio) {
+                        if (!acc[curr.dominio]) acc[curr.dominio] = [];
+                        acc[curr.dominio].push(curr.valor);
+                    }
+                    return acc;
+                }, {});
+
+                const sortedGrouped = {};
+                Object.keys(grouped).forEach(domain => {
+                    sortedGrouped[domain] = sortList(grouped[domain]);
+                });
+                return sortedGrouped;
+            } catch (err) {
+                console.error('Error fetching catalogos:', err);
+                return {};
+            }
         }
     });
 

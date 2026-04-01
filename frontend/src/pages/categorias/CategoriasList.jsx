@@ -52,7 +52,7 @@ const Categorias = () => {
 
     // Query para categorías
     const { data: categoriasData = [], isLoading: loadingCategorias, error: errorCategorias } = useQuery({
-        queryKey: ['categorias'],
+        queryKey: ['categorias', 'management'],
         queryFn: async () => {
             const res = await categoriasService.getAll();
             return res.map(c => ({ id: c.id, valor: c.nombre, count: c._count?.activos }));
@@ -150,9 +150,11 @@ const Categorias = () => {
             if (activeSection.isCategory) {
                 await categoriasService.delete(id);
                 queryClient.invalidateQueries({ queryKey: ['categorias'] });
+                queryClient.invalidateQueries({ queryKey: ['catalogos'] });
             } else {
                 await catalogosService.delete(id);
                 queryClient.invalidateQueries({ queryKey: ['catalogos'] });
+                queryClient.invalidateQueries({ queryKey: ['categorias'] });
             }
         } catch (err) {
             console.error(err);
