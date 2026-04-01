@@ -7,8 +7,19 @@ const app = express();
 const PORT = process.env.PORT || 3001;
 
 // Middleware
+const allowedOrigins = process.env.ALLOWED_ORIGINS?.split(',') || ['http://inventario.local'];
+
+// Permitir cualquier IP privada de la LAN (192.168.x.x, 10.x.x.x, etc.)
+const localIpRegex = /^(http:\/\/)(192\.168\.|10\.|172\.(1[6-9]|2[0-9]|3[0-1])\.)/;
+
 app.use(cors({
-  origin: true, // Permitir cualquier origen (necesario para acceso desde IP de LAN/móvil)
+  origin: (origin, callback) => {
+    if (!origin || allowedOrigins.includes(origin) || localIpRegex.test(origin)) {
+      callback(null, true);
+    } else {
+      callback(new Error('Origen no permitido por CORS'));
+    }
+  },
   credentials: true,
 }));
 app.use(express.json());

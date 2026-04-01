@@ -4,8 +4,19 @@ const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const prisma = require('../lib/prisma');
 
+const rateLimit = require('express-rate-limit');
+
+// Configuración del limitador: 10 intentos por cada 15 minutos
+const loginLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, 
+  max: 10,                   
+  message: { error: 'Demasiados intentos fallidos. Intenta nuevamente en 15 minutos.' },
+  standardHeaders: true, 
+  legacyHeaders: false,  
+});
+
 // POST /api/auth/login
-router.post('/login', async (req, res) => {
+router.post('/login', loginLimiter, async (req, res) => {
     try {
         const { email, password } = req.body;
         if (!email || !password) {
