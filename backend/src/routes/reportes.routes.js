@@ -1,13 +1,12 @@
 const express = require('express');
 const router = express.Router();
-const { PrismaClient } = require('@prisma/client');
-const prisma = new PrismaClient();
+const prisma = require('../lib/prisma');
 const { authMiddleware, requireRole } = require('../middleware/auth.middleware');
 
 // GET /api/reportes/inventario - Todos los activos con relaciones
 router.get('/inventario', authMiddleware, async (req, res) => {
     try {
-        const { estado, empresaPropietaria, estadoOperativo, tipo, categoriaId } = req.query;
+        const { estado, empresaPropietaria, estadoOperativo, tipo, categoriaId, page = 1, limit = 50 } = req.query;
         const where = {};
         if (estado) where.estado = estado;
         if (empresaPropietaria) where.empresaPropietaria = empresaPropietaria;
@@ -15,19 +14,31 @@ router.get('/inventario', authMiddleware, async (req, res) => {
         if (tipo) where.tipo = tipo;
         if (categoriaId) where.categoriaId = parseInt(categoriaId);
 
-        const activos = await prisma.activo.findMany({
-            where,
-            include: {
-                categoria: true,
-                asignaciones: {
-                    where: { fechaFin: null },
-                    include: { funcionario: true },
-                    take: 1,
+        const skip = (parseInt(page) - 1) * parseInt(limit);
+        const take = parseInt(limit);
+
+        const [activos, total] = await Promise.all([
+            prisma.activo.findMany({
+                where,
+                skip,
+                take,
+                include: {
+                    categoria: true,
+                    asignaciones: {
+                        where: { fechaFin: null },
+                        include: { funcionario: true },
+                        take: 1,
+                    },
                 },
-            },
-            orderBy: { id: 'asc' },
+                orderBy: { id: 'asc' },
+            }),
+            prisma.activo.count({ where })
+        ]);
+
+        res.json({
+            data: activos,
+            pagination: { page: parseInt(page), limit: take, total, pages: Math.ceil(total / take) }
         });
-        res.json(activos);
     } catch (error) {
         console.error('Error en reporte inventario:', error);
         res.status(500).json({ error: 'Error al generar reporte de inventario' });
@@ -37,8 +48,17 @@ router.get('/inventario', authMiddleware, async (req, res) => {
 // GET /api/reportes/por-funcionario - Activos agrupados por funcionario
 router.get('/por-funcionario', authMiddleware, async (req, res) => {
     try {
-        const funcionarios = await prisma.funcionario.findMany({
-            where: { activo: true },
+        const { page = 1, limit = 50 } = req.query;
+        const skip = (parseInt(page) - 1) * parseInt(limit);
+        const take = parseInt(limit);
+
+        const where = { activo: true };
+
+        const [funcionarios, total] = await Promise.all([
+            prisma.funcionario.findMany({
+                where,
+                skip,
+                take,
             include: {
                 asignaciones: {
                     where: { fechaFin: null },
@@ -50,8 +70,13 @@ router.get('/por-funcionario', authMiddleware, async (req, res) => {
                 },
             },
             orderBy: { nombre: 'asc' },
+            }),
+            prisma.funcionario.count({ where })
+        ]);
+        res.json({
+            data: funcionarios,
+            pagination: { page: parseInt(page), limit: take, total, pages: Math.ceil(total / take) }
         });
-        res.json(funcionarios);
     } catch (error) {
         console.error('Error en reporte por funcionario:', error);
         res.status(500).json({ error: 'Error al generar reporte' });
@@ -61,7 +86,7 @@ router.get('/por-funcionario', authMiddleware, async (req, res) => {
 // GET /api/reportes/asignaciones - Historial de movimientos
 router.get('/asignaciones', authMiddleware, async (req, res) => {
     try {
-        const { tipo, fechaDesde, fechaHasta } = req.query;
+        const { tipo, fechaDesde, fechaHasta, page = 1, limit = 50 } = req.query;
         const where = {};
         if (tipo) where.tipo = tipo;
         if (fechaDesde || fechaHasta) {
@@ -70,15 +95,27 @@ router.get('/asignaciones', authMiddleware, async (req, res) => {
             if (fechaHasta) where.fechaInicio.lte = new Date(fechaHasta);
         }
 
-        const asignaciones = await prisma.asignacion.findMany({
-            where,
-            include: {
-                activo: { include: { categoria: true } },
-                funcionario: true,
-            },
-            orderBy: { fechaInicio: 'desc' },
+        const skip = (parseInt(page) - 1) * parseInt(limit);
+        const take = parseInt(limit);
+
+        const [asignaciones, total] = await Promise.all([
+            prisma.asignacion.findMany({
+                where,
+                skip,
+                take,
+                include: {
+                    activo: { include: { categoria: true } },
+                    funcionario: true,
+                },
+                orderBy: { fechaInicio: 'desc' },
+            }),
+            prisma.asignacion.count({ where })
+        ]);
+
+        res.json({
+            data: asignaciones,
+            pagination: { page: parseInt(page), limit: take, total, pages: Math.ceil(total / take) }
         });
-        res.json(asignaciones);
     } catch (error) {
         console.error('Error en reporte asignaciones:', error);
         res.status(500).json({ error: 'Error al generar reporte' });
@@ -88,7 +125,7 @@ router.get('/asignaciones', authMiddleware, async (req, res) => {
 // GET /api/reportes/mantenimiento - Hoja de vida / eventos técnicos
 router.get('/mantenimiento', authMiddleware, async (req, res) => {
     try {
-        const { estado, tipoServicio, fechaDesde, fechaHasta } = req.query;
+        const { estado, tipoServicio, fechaDesde, fechaHasta, page = 1, limit = 50 } = req.query;
         const where = {};
         if (estado) where.estado = estado;
         if (tipoServicio) where.tipo = tipoServicio;
@@ -98,19 +135,31 @@ router.get('/mantenimiento', authMiddleware, async (req, res) => {
             if (fechaHasta) where.fecha.lte = new Date(fechaHasta);
         }
 
-        const eventos = await prisma.hojaVida.findMany({
-            where,
-            include: {
-                activo: { include: { categoria: true } },
-                responsable: true,
-                trazas: {
-                    include: { usuario: true },
-                    orderBy: { fecha: 'desc' },
+        const skip = (parseInt(page) - 1) * parseInt(limit);
+        const take = parseInt(limit);
+
+        const [eventos, total] = await Promise.all([
+            prisma.hojaVida.findMany({
+                where,
+                skip,
+                take,
+                include: {
+                    activo: { include: { categoria: true } },
+                    responsable: true,
+                    trazas: {
+                        include: { usuario: true },
+                        orderBy: { fecha: 'desc' },
+                    },
                 },
-            },
-            orderBy: { fecha: 'desc' },
+                orderBy: { fecha: 'desc' },
+            }),
+            prisma.hojaVida.count({ where })
+        ]);
+
+        res.json({
+            data: eventos,
+            pagination: { page: parseInt(page), limit: take, total, pages: Math.ceil(total / take) }
         });
-        res.json(eventos);
     } catch (error) {
         console.error('Error en reporte mantenimiento:', error);
         res.status(500).json({ error: 'Error al generar reporte' });
@@ -120,7 +169,7 @@ router.get('/mantenimiento', authMiddleware, async (req, res) => {
 // GET /api/reportes/garantias - Activos con info de garantía
 router.get('/garantias', authMiddleware, async (req, res) => {
     try {
-        const { filtro } = req.query; // 'vencidas', 'proximas', 'vigentes', 'todas'
+        const { filtro, page = 1, limit = 50 } = req.query; // 'vencidas', 'proximas', 'vigentes', 'todas'
         const now = new Date();
         const tresMeses = new Date();
         tresMeses.setMonth(tresMeses.getMonth() + 3);
@@ -134,12 +183,24 @@ router.get('/garantias', authMiddleware, async (req, res) => {
             where.garantiaHasta = { gt: tresMeses };
         }
 
-        const activos = await prisma.activo.findMany({
-            where,
-            include: { categoria: true },
-            orderBy: { garantiaHasta: 'asc' },
+        const skip = (parseInt(page) - 1) * parseInt(limit);
+        const take = parseInt(limit);
+
+        const [activos, total] = await Promise.all([
+            prisma.activo.findMany({
+                where,
+                skip,
+                take,
+                include: { categoria: true },
+                orderBy: { garantiaHasta: 'asc' },
+            }),
+            prisma.activo.count({ where })
+        ]);
+
+        res.json({
+            data: activos,
+            pagination: { page: parseInt(page), limit: take, total, pages: Math.ceil(total / take) }
         });
-        res.json(activos);
     } catch (error) {
         console.error('Error en reporte garantías:', error);
         res.status(500).json({ error: 'Error al generar reporte' });

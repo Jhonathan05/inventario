@@ -1,25 +1,28 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import toast from 'react-hot-toast';
 import api from '../../lib/axios';
+import { funcionariosService } from '../../api/funcionarios.service';
+import { activosService } from '../../api/activos.service';
+import { ticketsService } from '../../api/tickets.service';
 import SelectWithAdd from '../../components/SelectWithAdd';
 import { XMarkIcon, TagIcon, PaperClipIcon, TrashIcon, ExclamationCircleIcon } from '@heroicons/react/24/outline';
 
+const sortList = (list) => {
+    return [...list].sort((a, b) => {
+        const valA = (a.nombre || a.valor || a).toString().toUpperCase();
+        const valB = (b.nombre || b.valor || b).toString().toUpperCase();
+        return valA.localeCompare(valB);
+    });
+};
+
 const TicketForm = () => {
     const navigate = useNavigate();
+    const queryClient = useQueryClient();
     const [loading, setLoading] = useState(false);
-    const [funcionarios, setFuncionarios] = useState([]);
-    const [activos, setActivos] = useState([]);
     const [mostrarTodosLosActivos, setMostrarTodosLosActivos] = useState(false);
-    const [adjuntos, setAdjuntos] = useState([]); // Files to attach
-    
-    const sortList = (list) => {
-        return [...list].sort((a, b) => {
-            const valA = (a.nombre || a.valor || a).toString().toUpperCase();
-            const valB = (b.nombre || b.valor || b).toString().toUpperCase();
-            return valA.localeCompare(valB);
-        });
-    };
+    const [adjuntos, setAdjuntos] = useState([]);
 
     const [formData, setFormData] = useState({
         titulo: '',
@@ -30,21 +33,19 @@ const TicketForm = () => {
         activoId: ''
     });
 
-    useEffect(() => {
-        const fetchData = async () => {
-            try {
-                const [funcData, actData] = await Promise.all([
-                    api.get('/funcionarios'),
-                    api.get('/activos')
-                ]);
-                setFuncionarios(sortList(funcData.data));
-                setActivos(sortList(actData.data));
-            } catch {
-                toast.error('Error al cargar datos');
-            }
-        };
-        fetchData();
-    }, []);
+    const { data: funcionariosRaw = [] } = useQuery({
+        queryKey: ['funcionarios', { activo: true }],
+        queryFn: () => funcionariosService.getAll({ activo: true, limit: 500 }).then(r => r.data || r),
+    });
+    const funcionarios = sortList(funcionariosRaw);
+
+    const { data: activosRaw = [] } = useQuery({
+        queryKey: ['activos', { limit: 500 }],
+        queryFn: () => activosService.getAll({ limit: 500 }).then(r => r.data || r),
+    });
+    const activos = sortList(activosRaw);
+
+
 
     const handleFileChange = (e) => {
         const files = Array.from(e.target.files);
@@ -74,6 +75,7 @@ const TicketForm = () => {
             adjuntos.forEach(file => payload.append('adjuntos', file));
 
             const res = await api.post('/tickets', payload);
+            queryClient.invalidateQueries({ queryKey: ['tickets'] });
             toast.success('Caso creado exitosamente');
             navigate(`/tickets/${res.data.id}`);
         } catch {

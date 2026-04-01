@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useQuery } from '@tanstack/react-query';
 import api from '../lib/axios';
 import { formatCurrency } from '../lib/utils';
 import DashboardCharts from './dashboard/components/DashboardCharts';
@@ -8,27 +8,18 @@ import {
     CheckCircleIcon,
     UserGroupIcon,
     BanknotesIcon,
-    WrenchScrewdriverIcon
+    WrenchScrewdriverIcon,
+    ExclamationTriangleIcon,
+    ShieldCheckIcon,
+    ClockIcon,
 } from '@heroicons/react/24/outline';
 
 const Dashboard = () => {
-    const [data, setData] = useState(null);
-    const [loading, setLoading] = useState(true);
-
-    useEffect(() => {
-        fetchDashboardData();
-    }, []);
-
-    const fetchDashboardData = async () => {
-        try {
-            const res = await api.get('/dashboard/summary');
-            setData(res.data);
-        } catch (error) {
-            console.error('Error loading dashboard data', error);
-        } finally {
-            setLoading(false);
-        }
-    };
+    const { data, isLoading: loading } = useQuery({
+        queryKey: ['dashboard'],
+        queryFn: () => api.get('/dashboard/summary').then(r => r.data),
+        staleTime: 1000 * 60 * 2, // 2 minutos - dashboard no cambia tan frecuente
+    });
 
     if (loading) return (
         <div className="p-8 text-center">
@@ -84,14 +75,40 @@ const Dashboard = () => {
             border: 'border-amber-200',
         },
         {
-            title: 'Valor Total',
+            title: 'Tiempo Med. Resol. (MTTR)',
+            value: `${stats.itsm.mttrHours}h`,
+            Icon: ClockIcon,
+            gradient: 'from-fnc-600 to-fnc-700',
+            bg: 'bg-fnc-50',
+            text: 'text-fnc-700',
+            border: 'border-fnc-200',
+        },
+        {
+            title: 'Tickets Críticos (Sin Asignar)',
+            value: stats.itsm.ticketsCriticos.length,
+            Icon: ExclamationTriangleIcon,
+            gradient: stats.itsm.ticketsCriticos.length > 0 ? 'from-red-500 to-red-600' : 'from-emerald-500 to-emerald-600',
+            bg: stats.itsm.ticketsCriticos.length > 0 ? 'bg-red-50' : 'bg-emerald-50',
+            text: stats.itsm.ticketsCriticos.length > 0 ? 'text-red-700' : 'text-emerald-700',
+            border: stats.itsm.ticketsCriticos.length > 0 ? 'border-red-200' : 'border-emerald-200',
+        },
+        {
+            title: '% En Garantía',
+            value: `${stats.itsm.percentGarantia}%`,
+            Icon: ShieldCheckIcon,
+            gradient: 'from-blue-500 to-blue-600',
+            bg: 'bg-blue-50',
+            text: 'text-blue-700',
+            border: 'border-blue-200',
+        },
+        {
+            title: 'Valor Total de Activos',
             value: formatCurrency(stats.totalValue),
             Icon: BanknotesIcon,
             gradient: 'from-violet-600 to-violet-700',
             bg: 'bg-violet-50',
             text: 'text-violet-700',
             border: 'border-violet-200',
-            wide: true,
         },
     ];
 
@@ -104,13 +121,9 @@ const Dashboard = () => {
 
             {/* KPI Cards */}
             <div className="grid grid-cols-2 gap-4 sm:grid-cols-2 lg:grid-cols-4 mb-8">
-                {cards.slice(0, 4).map((card) => (
+                {cards.map((card) => (
                     <KpiCard key={card.title} {...card} />
                 ))}
-                {/* Valor Total - full width at bottom */}
-                <div className="col-span-2 lg:col-span-4">
-                    <KpiCard {...cards[4]} />
-                </div>
             </div>
 
             {/* Charts Section */}
@@ -118,6 +131,8 @@ const Dashboard = () => {
                 categoryData={stats.byCategory}
                 statusData={stats.byStatus}
                 costs={stats.maintenanceCost}
+                trends={stats.trends}
+                itsm={stats.itsm}
             />
 
             {/* Activity Feed */}

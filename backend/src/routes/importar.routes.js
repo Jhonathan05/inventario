@@ -2,8 +2,7 @@ const express = require('express');
 const router = express.Router();
 const multer = require('multer');
 const XLSX = require('xlsx');
-const { PrismaClient } = require('@prisma/client');
-const prisma = new PrismaClient();
+const prisma = require('../lib/prisma');
 const { authMiddleware, requireRole } = require('../middleware/auth.middleware');
 
 // Multer en memoria para no guardar el archivo en disco

@@ -1,5 +1,7 @@
-import { useState, useEffect } from 'react';
-import api from '../../lib/axios';
+import { useState } from 'react';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { categoriasService } from '../../api/categorias.service';
+import { catalogosService } from '../../api/catalogos.service';
 import { useAuth } from '../../context/AuthContext';
 
 const MANAGEMENT_SECTIONS = [
@@ -32,12 +34,10 @@ const MANAGEMENT_SECTIONS = [
 const Categorias = () => {
     const { user } = useAuth();
     const canEdit = user?.rol === 'ADMIN' || user?.rol === 'ANALISTA_TIC';
+    const queryClient = useQueryClient();
 
     const [activeSection, setActiveSection] = useState(MANAGEMENT_SECTIONS[0]);
     const [activeDomain, setActiveDomain] = useState(null);
-    const [data, setData] = useState([]);
-    const [loading, setLoading] = useState(true);
-    const [error, setError] = useState(null);
 
     // Modal state
     const [showModal, setShowModal] = useState(false);
@@ -50,48 +50,39 @@ const Categorias = () => {
     const [currentPage, setCurrentPage] = useState(1);
     const ITEMS_PER_PAGE = 9;
 
-    useEffect(() => {
-        if (activeSection.isCategory) {
-            fetchCategorias();
-        } else if (activeSection.domains) {
-            setActiveDomain(activeSection.domains[0]);
-        }
-        setCurrentPage(1); // reset page on section change
-    }, [activeSection]);
+    // Query para categorías
+    const { data: categoriasData = [], isLoading: loadingCategorias } = useQuery({
+        queryKey: ['categorias'],
+        queryFn: async () => {
+            const res = await categoriasService.getAll();
+            return res.map(c => ({ id: c.id, valor: c.nombre, count: c._count?.activos }));
+        },
+        enabled: activeSection.isCategory,
+    });
 
-    useEffect(() => {
-        if (activeDomain) {
-            fetchCatalogos(activeDomain);
-            setCurrentPage(1); // reset page on domain change
-        }
-    }, [activeDomain]);
+    // Query para catálogos por dominio
+    const { data: catalogosData = [], isLoading: loadingCatalogos } = useQuery({
+        queryKey: ['catalogos', activeDomain],
+        queryFn: () => catalogosService.getByDomain(activeDomain),
+        enabled: !!activeDomain && !activeSection.isCategory,
+    });
 
-    const fetchCategorias = async () => {
-        setLoading(true);
-        try {
-            const response = await api.get('/categorias');
-            setData(response.data.map(c => ({ id: c.id, valor: c.nombre, count: c._count?.activos })));
-            setError(null);
-        } catch (err) {
-            console.error(err);
-            setError('Error al cargar categorías');
-        } finally {
-            setLoading(false);
+    const data = activeSection.isCategory ? categoriasData : catalogosData;
+    const loading = activeSection.isCategory ? loadingCategorias : loadingCatalogos;
+
+    const handleSectionChange = (section) => {
+        setActiveSection(section);
+        setCurrentPage(1);
+        if (section.domains) {
+            setActiveDomain(section.domains[0]);
+        } else {
+            setActiveDomain(null);
         }
     };
 
-    const fetchCatalogos = async (domain) => {
-        setLoading(true);
-        try {
-            const response = await api.get(`/catalogos?dominio=${domain}`);
-            setData(response.data);
-            setError(null);
-        } catch (err) {
-            console.error(err);
-            setError('Error al cargar catálogos');
-        } finally {
-            setLoading(false);
-        }
+    const handleDomainChange = (domain) => {
+        setActiveDomain(domain);
+        setCurrentPage(1);
     };
 
     const handleOpenNew = () => {
@@ -123,11 +114,12 @@ const Categorias = () => {
         try {
             if (activeSection.isCategory) {
                 if (isEditing) {
-                    await api.put(`/categorias/${currentId}`, { nombre: formData.valor.toUpperCase() });
+                    await categoriasService.update(currentId, { nombre: formData.valor.toUpperCase() });
                 } else {
-                    await api.post('/categorias', { nombre: formData.valor.toUpperCase() });
+                    await categoriasService.create({ nombre: formData.valor.toUpperCase() });
                 }
-                fetchCategorias();
+                queryClient.invalidateQueries({ queryKey: ['categorias'] });
+                queryClient.invalidateQueries({ queryKey: ['catalogos'] }); // clear forms cache
             } else {
                 const payload = {
                     dominio: activeDomain,
@@ -136,11 +128,11 @@ const Categorias = () => {
                     activo: formData.activo
                 };
                 if (isEditing) {
-                    await api.put(`/catalogos/${currentId}`, payload);
+                    await catalogosService.update(currentId, payload);
                 } else {
-                    await api.post('/catalogos', payload);
+                    await catalogosService.create(payload);
                 }
-                fetchCatalogos(activeDomain);
+                queryClient.invalidateQueries({ queryKey: ['catalogos'] });
             }
             setShowModal(false);
         } catch (err) {
@@ -155,11 +147,11 @@ const Categorias = () => {
         if (!window.confirm(`¿Estás seguro de eliminar "${valor}"?`)) return;
         try {
             if (activeSection.isCategory) {
-                await api.delete(`/categorias/${id}`);
-                fetchCategorias();
+                await categoriasService.delete(id);
+                queryClient.invalidateQueries({ queryKey: ['categorias'] });
             } else {
-                await api.delete(`/catalogos/${id}`);
-                fetchCatalogos(activeDomain);
+                await catalogosService.delete(id);
+                queryClient.invalidateQueries({ queryKey: ['catalogos'] });
             }
         } catch (err) {
             console.error(err);
@@ -175,7 +167,7 @@ const Categorias = () => {
                 {MANAGEMENT_SECTIONS.map(section => (
                     <button
                         key={section.id}
-                        onClick={() => setActiveSection(section)}
+                        onClick={() => handleSectionChange(section)}
                         className={`w-full text-left px-3 py-2 rounded-lg text-sm font-medium transition-all ${activeSection.id === section.id
                             ? 'bg-indigo-600 text-white shadow-md'
                             : 'text-gray-600 hover:bg-gray-100'
@@ -215,7 +207,7 @@ const Categorias = () => {
                                 {activeSection.domains.map(domain => (
                                     <button
                                         key={domain}
-                                        onClick={() => setActiveDomain(domain)}
+                                        onClick={() => handleDomainChange(domain)}
                                         className={`px-3 py-1.5 rounded-full text-xs font-semibold border transition-all ${activeDomain === domain
                                             ? 'bg-indigo-50 border-indigo-200 text-indigo-700'
                                             : 'bg-white border-gray-200 text-gray-500 hover:border-indigo-200 hover:text-indigo-600'

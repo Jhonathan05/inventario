@@ -7,7 +7,7 @@ const upload = require('../middleware/upload.middleware');
 // GET /api/activos - Listar con filtros
 router.get('/', authMiddleware, async (req, res) => {
     try {
-        const { categoriaId, estado, search, empresaPropietaria, estadoOperativo, tipo, funcionarioId, activoFijo } = req.query;
+        const { categoriaId, estado, search, empresaPropietaria, estadoOperativo, tipo, funcionarioId, activoFijo, page = 1, limit = 50 } = req.query;
         const where = {};
         if (categoriaId) where.categoriaId = parseInt(categoriaId);
         if (estado) where.estado = estado;
@@ -35,19 +35,36 @@ router.get('/', authMiddleware, async (req, res) => {
             ];
         }
 
-        const activos = await prisma.activo.findMany({
-            where,
-            include: {
-                categoria: true,
-                asignaciones: {
-                    where: { fechaFin: null },
-                    include: { funcionario: true },
-                    take: 1,
+        const skip = (parseInt(page) - 1) * parseInt(limit);
+        const take = parseInt(limit);
+
+        const [activos, total] = await Promise.all([
+            prisma.activo.findMany({
+                where,
+                skip,
+                take,
+                include: {
+                    categoria: true,
+                    asignaciones: {
+                        where: { fechaFin: null },
+                        include: { funcionario: true },
+                        take: 1,
+                    },
                 },
-            },
-            orderBy: { creadoEn: 'desc' },
+                orderBy: { creadoEn: 'desc' },
+            }),
+            prisma.activo.count({ where })
+        ]);
+
+        res.json({
+            data: activos,
+            pagination: {
+                page: parseInt(page),
+                limit: take,
+                total,
+                pages: Math.ceil(total / take)
+            }
         });
-        res.json(activos);
     } catch (err) {
         res.status(500).json({ error: 'Error al obtener activos' });
     }
@@ -93,6 +110,7 @@ router.get('/:id', authMiddleware, async (req, res) => {
                     orderBy: { fecha: 'desc' },
                 },
                 documentos: true,
+                licencias: true,
             },
         });
         if (!activo) return res.status(404).json({ error: 'Activo no encontrado' });
@@ -164,35 +182,39 @@ router.post('/:id/baja', authMiddleware, requireRole('ADMIN'), async (req, res) 
         if (!activo) return res.status(404).json({ error: 'Activo no encontrado' });
         if (activo.estado === 'DADO_DE_BAJA') return res.status(400).json({ error: 'El activo ya está dado de baja' });
 
-        // 1. Cerrar asignación activa si existe
-        await prisma.asignacion.updateMany({
-            where: { activoId: id, fechaFin: null },
-            data: { 
-                fechaFin: new Date(),
-                observaciones: `Cierre automático por BAJA del activo. ${motivo || ''}`
-            },
-        });
+        const actualizado = await prisma.$transaction(async (tx) => {
+            // 1. Cerrar asignación activa si existe
+            await tx.asignacion.updateMany({
+                where: { activoId: id, fechaFin: null },
+                data: { 
+                    fechaFin: new Date(),
+                    observaciones: `Cierre automático por BAJA del activo. ${motivo || ''}`
+                },
+            });
 
-        // 2. Actualizar estado del activo
-        const actualizado = await prisma.activo.update({
-            where: { id },
-            data: { 
-                estado: 'DADO_DE_BAJA',
-                estadoOperativo: 'BAJA',
-                razonEstado: motivo || 'BAJA DEFINITIVA'
-            },
-        });
+            // 2. Actualizar estado del activo
+            const act = await tx.activo.update({
+                where: { id },
+                data: { 
+                    estado: 'DADO_DE_BAJA',
+                    estadoOperativo: 'BAJA',
+                    razonEstado: motivo || 'BAJA DEFINITIVA'
+                },
+            });
 
-        // 3. Crear registro en Hoja de Vida
-        await prisma.hojaVida.create({
-            data: {
-                activoId: id,
-                tipo: 'INSPECCION',
-                descripcion: `BAJA DEL ACTIVO: ${motivo || 'Sin observaciones'}`,
-                fecha: new Date(),
-                estado: 'FINALIZADO',
-                registradoPor: req.user.nombre
-            }
+            // 3. Crear registro en Hoja de Vida
+            await tx.hojaVida.create({
+                data: {
+                    activoId: id,
+                    tipo: 'INSPECCION',
+                    descripcion: `BAJA DEL ACTIVO: ${motivo || 'Sin observaciones'}`,
+                    fecha: new Date(),
+                    estado: 'FINALIZADO',
+                    registradoPor: req.user.nombre
+                }
+            });
+
+            return act;
         });
 
         res.json({ message: 'Activo dado de baja correctamente', activo: actualizado });

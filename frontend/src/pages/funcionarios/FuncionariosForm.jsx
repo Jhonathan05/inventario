@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
-import api from '../../lib/axios';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { funcionariosService } from '../../api/funcionarios.service';
 import SelectWithAdd from '../../components/SelectWithAdd';
 import CatalogModal from '../../components/CatalogModal';
 
@@ -41,41 +42,37 @@ const Field = ({ label, id, children, required }) => (
     </div>
 );
 
+const sortList = (list) => {
+    return [...list].sort((a, b) => {
+        const valA = (a.nombre || a.valor || a).toString().toUpperCase();
+        const valB = (b.nombre || b.valor || b).toString().toUpperCase();
+        return valA.localeCompare(valB);
+    });
+};
+
 const FuncionariosForm = ({ open, onClose, funcionario }) => {
+    const queryClient = useQueryClient();
     const [formData, setFormData] = useState(DEFAULT_STATE);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
-    const [options, setOptions] = useState({ areas: [], cargos: [], ciudades: [], seccionales: [] });
-    
+
     // Visibility states
     const [showLaboral, setShowLaboral] = useState(false);
     const [showUbicacion, setShowUbicacion] = useState(false);
 
-    useEffect(() => {
-        fetchOptions();
-    }, []);
+    // Catalog Modal State
+    const [activeModal, setActiveModal] = useState({ open: false, domain: '', title: '' });
 
-    const sortList = (list) => {
-        return [...list].sort((a, b) => {
-            const valA = (a.nombre || a.valor || a).toString().toUpperCase();
-            const valB = (b.nombre || b.valor || b).toString().toUpperCase();
-            return valA.localeCompare(valB);
-        });
-    };
+    const { data: rawOptions = { areas: [], cargos: [], ciudades: [], seccionales: [] } } = useQuery({
+        queryKey: ['funcionarios', 'options'],
+        queryFn: funcionariosService.getOptions
+    });
 
-    const fetchOptions = async () => {
-        try {
-            const response = await api.get('/funcionarios/opciones');
-            const sortedOptions = {
-                areas: sortList(response.data.areas || []),
-                cargos: sortList(response.data.cargos || []),
-                ciudades: sortList(response.data.ciudades || []),
-                seccionales: sortList(response.data.seccionales || [])
-            };
-            setOptions(sortedOptions);
-        } catch (err) {
-            console.error('Error fetching options:', err);
-        }
+    const options = {
+        areas: sortList(rawOptions.areas || []),
+        cargos: sortList(rawOptions.cargos || []),
+        ciudades: sortList(rawOptions.ciudades || []),
+        seccionales: sortList(rawOptions.seccionales || [])
     };
 
     useEffect(() => {
@@ -126,10 +123,9 @@ const FuncionariosForm = ({ open, onClose, funcionario }) => {
 
         setFormData(prev => {
             const next = { ...prev, [name]: newValue };
-            
+
             // Lógica de sincronización de Ciudad -> Municipio y Ubicación
             if (name === 'ciudad') {
-                // Solo sincronizar si el municipio/ubicacion están vacíos o eran iguales al valor anterior
                 if (!prev.municipio || prev.municipio === prev.ciudad) {
                     next.municipio = newValue;
                 }
@@ -137,14 +133,14 @@ const FuncionariosForm = ({ open, onClose, funcionario }) => {
                     next.ubicacion = newValue;
                 }
             }
-            
+
             return next;
         });
     };
 
     const handleSubmit = async (e) => {
         e.preventDefault();
-        
+
         // Validación de campos obligatorios
         const requiredFields = [
             { key: 'nombre', label: 'Nombre Completo' },
@@ -161,12 +157,10 @@ const FuncionariosForm = ({ open, onClose, funcionario }) => {
         const missing = requiredFields.filter(f => !formData[f.key]);
         if (missing.length > 0) {
             setError(`Los siguientes campos son obligatorios: ${missing.map(f => f.label).join(', ')}`);
-            
-            // Inteligencia: Expandir secciones si el error está dentro de ellas
+
             if (missing.some(f => ['cargo'].includes(f.key))) setShowLaboral(true);
             if (missing.some(f => ['departamento', 'ciudad', 'seccional', 'municipio', 'ubicacion'].includes(f.key))) setShowUbicacion(true);
 
-            // Scroll to top to see error
             const modalElement = e.target.closest('.overflow-y-auto');
             if (modalElement) modalElement.scrollTo({ top: 0, behavior: 'smooth' });
             return;
@@ -185,10 +179,12 @@ const FuncionariosForm = ({ open, onClose, funcionario }) => {
 
         try {
             if (funcionario) {
-                await api.put(`/funcionarios/${funcionario.id}`, formData);
+                await funcionariosService.update(funcionario.id, formData);
             } else {
-                await api.post('/funcionarios', formData);
+                await funcionariosService.create(formData);
             }
+            queryClient.invalidateQueries({ queryKey: ['funcionarios'] });
+            queryClient.invalidateQueries({ queryKey: ['activos'] }); // sync denormalized data
             onClose(true);
         } catch (err) {
             setError(err.response?.data?.error || 'Error al guardar funcionario');
@@ -197,15 +193,12 @@ const FuncionariosForm = ({ open, onClose, funcionario }) => {
         }
     };
 
-    // Catalog Modal State
-    const [activeModal, setActiveModal] = useState({ open: false, domain: '', title: '' });
-
     const handleOpenCatalogModal = (domain, title) => {
         setActiveModal({ open: true, domain, title });
     };
 
     const handleCatalogSuccess = () => {
-        fetchOptions();
+        queryClient.invalidateQueries({ queryKey: ['funcionarios', 'options'] });
     };
 
     if (!open) return null;

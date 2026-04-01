@@ -22,6 +22,8 @@ app.use(cors({
   },
   credentials: true,
 }));
+const cookieParser = require('cookie-parser');
+app.use(cookieParser());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
@@ -51,7 +53,8 @@ app.use('/api/importar', require('./routes/importar.routes'));
 app.use('/api/catalogos', require('./routes/catalogos.routes'));
 app.use('/api/respaldo', require('./routes/respaldo.routes'));
 app.use('/api/tickets', require('./routes/ticket.routes'));
-
+app.use('/api/alertas', require('./routes/alertas.routes'));
+app.use('/api/licencias', require('./routes/licencias.routes'));
 
 
 // Health check
@@ -70,5 +73,9 @@ app.use((err, req, res, next) => {
 app.listen(PORT, () => {
   console.log(`🚀 Servidor corriendo en http://localhost:${PORT}`);
 });
+
+// Inicializar tareas programadas
+const { startCronJobs } = require('./cron/jobs');
+startCronJobs();
 
 module.exports = app;

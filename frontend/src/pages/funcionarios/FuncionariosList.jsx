@@ -1,8 +1,13 @@
-import { useState, useEffect } from 'react';
-import api from '../../lib/axios';
+import { useState } from 'react';
+import { useQuery } from '@tanstack/react-query';
+import { funcionariosService } from '../../api/funcionarios.service';
+import { activosService } from '../../api/activos.service';
 import { useAuth } from '../../context/AuthContext';
 import FuncionariosForm from './FuncionariosForm';
 import { getImageUrl, getAssetIconPath } from '../../lib/utils';
+import jsPDF from 'jspdf';
+import autoTable from 'jspdf-autotable';
+import * as XLSX from 'xlsx';
 
 // Ícono SVG dinámico para activos sin imagen
 const AssetIcon = ({ tipo, categoria }) => (
@@ -13,21 +18,26 @@ const AssetIcon = ({ tipo, categoria }) => (
     </svg>
 );
 
+const sortList = (list) => {
+    return [...list].sort((a, b) => {
+        const valA = (a.nombre || a.valor || a).toString().toUpperCase();
+        const valB = (b.nombre || b.valor || b).toString().toUpperCase();
+        return valA.localeCompare(valB);
+    });
+};
+
 const FuncionariosList = () => {
     const { user } = useAuth();
     const canEdit = user?.rol === 'ADMIN' || user?.rol === 'ANALISTA_TIC';
 
-    const [funcionarios, setFuncionarios] = useState([]);
-    const [loading, setLoading] = useState(true);
     const [search, setSearch] = useState('');
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [selectedFuncionario, setSelectedFuncionario] = useState(null);
     const [showFilters, setShowFilters] = useState(false);
-    const [options, setOptions] = useState({ areas: [], cargos: [] });
 
     // Paginación
     const [currentPage, setCurrentPage] = useState(1);
-    const itemsPerPage = 9;
+    const [itemsPerPage] = useState(10);
 
     // Filtros avanzados
     const [filterArea, setFilterArea] = useState('');
@@ -35,48 +45,41 @@ const FuncionariosList = () => {
     const [filterVinculacion, setFilterVinculacion] = useState('');
     const [filterActivo, setFilterActivo] = useState('');
 
-    useEffect(() => {
-        fetchOptions();
-    }, []);
-
-    useEffect(() => {
-        fetchFuncionarios();
-    }, [search, filterArea, filterCargo, filterVinculacion, filterActivo]);
-
-    const fetchOptions = async () => {
-        try {
-            const res = await api.get('/funcionarios/opciones');
-            setOptions(res.data);
-        } catch (error) {
-            console.error('Error fetching filter options', error);
-        }
+    const queryParams = {
+        page: currentPage,
+        limit: itemsPerPage,
+        ...(search && { search }),
+        ...(filterArea && { area: filterArea }),
+        ...(filterCargo && { cargo: filterCargo }),
+        ...(filterVinculacion && { vinculacion: filterVinculacion }),
+        ...(filterActivo !== '' && { activo: filterActivo }),
     };
 
-    const fetchFuncionarios = async () => {
-        try {
-            setLoading(true);
-            const params = {};
-            if (search) params.search = search;
-            if (filterArea) params.area = filterArea;
-            if (filterCargo) params.cargo = filterCargo;
-            if (filterVinculacion) params.vinculacion = filterVinculacion;
-            if (filterActivo !== '') params.activo = filterActivo;
-
-            const response = await api.get('/funcionarios', { params });
-            setFuncionarios(response.data);
-            setCurrentPage(1); // Reset page on new fetch
-        } catch (error) {
-            console.error('Error fetching funcionarios', error);
-        } finally {
-            setLoading(false);
+    const { data: options = { areas: [], cargos: [] } } = useQuery({
+        queryKey: ['funcionarios', 'options'],
+        queryFn: async () => {
+             const res = await funcionariosService.getOptions();
+             return {
+                 areas: sortList(res.areas),
+                 cargos: sortList(res.cargos)
+             };
         }
-    };
+    });
+
+    const { data: responseData, isLoading: loading, refetch: fetchFuncionarios } = useQuery({
+        queryKey: ['funcionarios', queryParams],
+        queryFn: () => funcionariosService.getAll(queryParams)
+    });
+
+    const funcionarios = responseData?.data || [];
+    const pagination = responseData?.pagination || { page: 1, totalPages: 1, total: funcionarios.length };
 
     const clearFilters = () => {
         setFilterArea('');
         setFilterCargo('');
         setFilterVinculacion('');
         setFilterActivo('');
+        setCurrentPage(1);
     };
 
     const activeFilterCount = [filterArea, filterCargo, filterVinculacion, filterActivo].filter(Boolean).length;
@@ -100,8 +103,8 @@ const FuncionariosList = () => {
         setShowEquiposModal(true);
         try {
             // Reutilizamos el endpoint de activos filtrando por funcionarioId
-            const res = await api.get('/activos', { params: { funcionarioId: f.id } });
-            setEquiposFuncionario(res.data.filter(a => a.estado === 'ASIGNADO'));
+            const res = await activosService.getAll({ funcionarioId: f.id, limit: 100 });
+            setEquiposFuncionario(Array.isArray(res) ? res.filter(a => a.estado === 'ASIGNADO') : (res.data || []).filter(a => a.estado === 'ASIGNADO'));
         } catch (err) {
             console.error('Error obteniendo equipos del funcionario', err);
         } finally {
@@ -110,14 +113,15 @@ const FuncionariosList = () => {
     };
 
     // Logic for pagination
-    const indexOfLastItem = currentPage * itemsPerPage;
-    const indexOfFirstItem = indexOfLastItem - itemsPerPage;
-    const currentItems = funcionarios.slice(indexOfFirstItem, indexOfLastItem);
-    const totalPages = Math.ceil(funcionarios.length / itemsPerPage);
+    const totalPages = pagination.pages || 1;
+    const totalItems = pagination.total || funcionarios.length;
+    const indexOfFirstItem = (currentPage - 1) * itemsPerPage;
+    const indexOfLastItem = Math.min(indexOfFirstItem + funcionarios.length, totalItems);
 
     const changePage = (pageNumber) => {
         if (pageNumber >= 1 && pageNumber <= totalPages) {
             setCurrentPage(pageNumber);
+            window.scrollTo({ top: 0, behavior: 'smooth' });
         }
     };
 
@@ -263,7 +267,7 @@ const FuncionariosList = () => {
                                     </tr>
                                 </thead>
                                 <tbody className="divide-y divide-charcoal-100 bg-transparent">
-                                    {currentItems.map((f) => (
+                                    {funcionarios.map((f) => (
                                         <tr key={f.id} className="hover:bg-fnc-50/50 transition-colors">
                                             <td className="px-6 py-4">
                                                 <div className="font-bold text-charcoal-800">{f.nombre}</div>
@@ -328,7 +332,7 @@ const FuncionariosList = () => {
                             No se encontraron funcionarios.
                         </div>
                     )}
-                    {currentItems.map((f) => (
+                    {funcionarios.map((f) => (
                         <div key={f.id} className="glass p-4 rounded-2xl border border-charcoal-100 shadow-sm hover:border-fnc-200 transition-all group">
                             <div className="flex items-start justify-between">
                                 <div className="flex items-center gap-4">
@@ -401,7 +405,7 @@ const FuncionariosList = () => {
                     <div className="hidden sm:flex sm:flex-1 sm:items-center sm:justify-between">
                         <div>
                             <p className="text-sm text-gray-700">
-                                Mostrando <span className="font-medium">{indexOfFirstItem + 1}</span> a <span className="font-medium">{Math.min(indexOfLastItem, funcionarios.length)}</span> de <span className="font-medium">{funcionarios.length}</span> resultados
+                                Mostrando <span className="font-medium">{indexOfFirstItem + 1}</span> a <span className="font-medium">{indexOfLastItem}</span> de <span className="font-medium">{totalItems}</span> resultados
                             </p>
                         </div>
                         <div>

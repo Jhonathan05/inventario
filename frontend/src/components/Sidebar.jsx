@@ -10,7 +10,8 @@ import {
     ClipboardDocumentCheckIcon,
     ArrowDownTrayIcon,
     UsersIcon,
-    CircleStackIcon
+    CircleStackIcon,
+    KeyIcon
 } from '@heroicons/react/24/outline';
 import { useAuth } from '../context/AuthContext';
 
@@ -24,6 +25,7 @@ const Sidebar = () => {
         { name: 'HelpDesk', href: '/tickets', icon: TicketIcon, roles: ['ADMIN', 'ANALISTA_TIC', 'CONSULTA'] },
         { name: 'Mantenimientos', href: '/mantenimientos', icon: WrenchScrewdriverIcon, roles: ['ADMIN', 'ANALISTA_TIC', 'CONSULTA'] },
         { name: 'Categorías', href: '/categorias', icon: TagIcon, roles: ['ADMIN', 'ANALISTA_TIC'] },
+        { name: 'Licencias', href: '/licencias', icon: KeyIcon, roles: ['ADMIN', 'ANALISTA_TIC'] },
         { name: 'Reportes', href: '/reportes', icon: DocumentTextIcon, roles: ['ADMIN', 'ANALISTA_TIC', 'CONSULTA'] },
         { name: 'Actas', href: '/actas', icon: ClipboardDocumentCheckIcon, roles: ['ADMIN', 'ANALISTA_TIC', 'CONSULTA'] },
         { name: 'Importar', href: '/importar', icon: ArrowDownTrayIcon, roles: ['ADMIN', 'ANALISTA_TIC'] },

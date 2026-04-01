@@ -1,8 +1,17 @@
 import { useState, useEffect } from 'react';
+import { useQuery } from '@tanstack/react-query';
+import { funcionariosService } from '../../api/funcionarios.service';
 import api from '../../lib/axios';
 
+const sortList = (list) => {
+    return [...list].sort((a, b) => {
+        const valA = (a.nombre || a.valor || a).toString().toUpperCase();
+        const valB = (b.nombre || b.valor || b).toString().toUpperCase();
+        return valA.localeCompare(valB);
+    });
+};
+
 const AsignarActivoModal = ({ open, onClose, activo }) => {
-    const [funcionarios, setFuncionarios] = useState([]);
     const [selectedFuncionarioId, setSelectedFuncionarioId] = useState('');
     const [tipo, setTipo] = useState('ASIGNACION');
     const [observaciones, setObservaciones] = useState('');
@@ -11,31 +20,19 @@ const AsignarActivoModal = ({ open, onClose, activo }) => {
 
     useEffect(() => {
         if (open) {
-            fetchFuncionarios();
-            if (activo?.estado === 'ASIGNADO') {
-                setTipo('TRASLADO');
-            } else {
-                setTipo('ASIGNACION');
-            }
+            setTipo(activo?.estado === 'ASIGNADO' ? 'TRASLADO' : 'ASIGNACION');
         }
     }, [open, activo]);
 
-    const sortList = (list) => {
-        return [...list].sort((a, b) => {
-            const valA = (a.nombre || a.valor || a).toString().toUpperCase();
-            const valB = (b.nombre || b.valor || b).toString().toUpperCase();
-            return valA.localeCompare(valB);
-        });
-    };
+    const { data: funcionariosRaw = [] } = useQuery({
+        queryKey: ['funcionarios', 'activos'],
+        queryFn: () => funcionariosService.getAll({ activo: true, limit: 500 }).then(r => r.data || r),
+        enabled: !!open,
+        staleTime: 1000 * 60 * 2,
+    });
+    const funcionarios = sortList(funcionariosRaw);
 
-    const fetchFuncionarios = async () => {
-        try {
-            const res = await api.get('/funcionarios?activo=true');
-            setFuncionarios(sortList(res.data));
-        } catch (err) {
-            console.error(err);
-        }
-    };
+
 
     const handleSubmit = async (e) => {
         e.preventDefault();

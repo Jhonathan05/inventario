@@ -3,6 +3,7 @@ const router = express.Router();
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const prisma = require('../lib/prisma');
+const logger = require('../lib/logger');
 
 const rateLimit = require('express-rate-limit');
 
@@ -36,16 +37,69 @@ router.post('/login', loginLimiter, async (req, res) => {
         const token = jwt.sign(
             { id: usuario.id, email: usuario.email, rol: usuario.rol, nombre: usuario.nombre },
             process.env.JWT_SECRET,
-            { expiresIn: '8h' }
+            { expiresIn: '1h' }
         );
 
+        const refreshToken = jwt.sign(
+            { id: usuario.id },
+            process.env.JWT_SECRET,
+            { expiresIn: '7d' }
+        );
+
+        res.cookie('refreshToken', refreshToken, {
+            httpOnly: true,
+            secure: process.env.NODE_ENV === 'production',
+            sameSite: 'strict',
+            maxAge: 7 * 24 * 60 * 60 * 1000 // 7 days
+        });
+
+        logger.info(`Usuario logueado exitosamente: ${email}`);
         res.json({
             token,
             usuario: { id: usuario.id, nombre: usuario.nombre, email: usuario.email, rol: usuario.rol },
         });
     } catch (err) {
+        logger.error(`Error interno al iniciar sesión para ${req.body.email}: ${err.message}`);
         res.status(500).json({ error: 'Error interno al iniciar sesión' });
     }
+});
+
+// POST /api/auth/refresh
+router.post('/refresh', async (req, res) => {
+    try {
+        const refreshToken = req.cookies?.refreshToken;
+        if (!refreshToken) {
+            return res.status(401).json({ error: 'No refresh token provided' });
+        }
+
+        const decoded = jwt.verify(refreshToken, process.env.JWT_SECRET);
+        const usuario = await prisma.usuario.findUnique({ where: { id: decoded.id } });
+        
+        if (!usuario || !usuario.activo) {
+            return res.status(401).json({ error: 'Usuario inactivo o no encontrado' });
+        }
+
+        const newToken = jwt.sign(
+            { id: usuario.id, email: usuario.email, rol: usuario.rol, nombre: usuario.nombre },
+            process.env.JWT_SECRET,
+            { expiresIn: '1h' }
+        );
+
+        res.json({ token: newToken });
+    } catch (err) {
+        logger.error(`Error en refresh: ${err.message}`);
+        res.status(401).json({ error: 'Refresh token inválido o expirado' });
+    }
+});
+
+// POST /api/auth/logout
+router.post('/logout', (req, res) => {
+    res.clearCookie('refreshToken', {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: 'strict'
+    });
+    res.json({ message: 'Sesión terminada exitosamente' });
 });
 
 // POST /api/auth/cambiar-password
@@ -62,6 +116,27 @@ router.post('/cambiar-password', authMiddleware, async (req, res) => {
         res.json({ message: 'Contraseña actualizada correctamente' });
     } catch (err) {
         res.status(500).json({ error: 'Error al cambiar contraseña' });
+    }
+});
+
+// GET /api/auth/me
+router.get('/me', authMiddleware, async (req, res) => {
+    try {
+        const usuario = await prisma.usuario.findUnique({
+            where: { id: req.user.id },
+            select: { id: true, nombre: true, email: true, rol: true, activo: true }
+        });
+        if (!usuario || !usuario.activo) {
+            return res.status(401).json({ error: 'Sesión inválida o usuario inactivo' });
+        }
+        res.json({
+            id: usuario.id,
+            nombre: usuario.nombre,
+            email: usuario.email,
+            rol: usuario.rol
+        });
+    } catch (err) {
+        res.status(500).json({ error: 'Error al obtener usuario' });
     }
 });
 

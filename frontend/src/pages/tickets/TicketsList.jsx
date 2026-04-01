@@ -1,7 +1,8 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useQuery } from '@tanstack/react-query';
 import toast from 'react-hot-toast';
-import api from '../../lib/axios';
+import { ticketsService } from '../../api/tickets.service';
 import {
     MagnifyingGlassIcon,
     FunnelIcon,
@@ -14,31 +15,16 @@ import {
 import { useAuth } from '../../context/AuthContext';
 
 const TicketsList = () => {
-    const [tickets, setTickets] = useState([]);
-    const [loading, setLoading] = useState(true);
     const [searchTerm, setSearchTerm] = useState('');
     const [estadoFiltro, setEstadoFiltro] = useState('');
     const navigate = useNavigate();
     const { user } = useAuth();
     const canEdit = user?.rol === 'ADMIN' || user?.rol === 'ANALISTA_TIC';
 
-    useEffect(() => {
-        cargarTickets();
-    }, [estadoFiltro]);
-
-    const cargarTickets = async () => {
-        try {
-            setLoading(true);
-            const params = estadoFiltro ? { estado: estadoFiltro } : {};
-            const res = await api.get('/tickets', { params });
-            setTickets(res.data);
-        } catch (error) {
-            console.error('Error cargando tickets:', error);
-            toast.error('Error al cargar la lista de casos');
-        } finally {
-            setLoading(false);
-        }
-    };
+    const { data: tickets = [], isLoading: loading } = useQuery({
+        queryKey: ['tickets', { estado: estadoFiltro }],
+        queryFn: () => ticketsService.getAll(estadoFiltro ? { estado: estadoFiltro } : {}),
+    });
 
     const getEstadoBadge = (estado) => {
         const config = {

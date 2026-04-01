@@ -66,54 +66,56 @@ router.post('/', authMiddleware, requireRole('ADMIN', 'ANALISTA_TIC'), upload.si
         // req.body fields come as strings due to multipart/form-data
         const { activoId, tipo, descripcion, fecha } = req.body;
 
-        const registro = await prisma.hojaVida.create({
-            data: {
-                activoId: parseInt(activoId),
-                tipo,
-                descripcion,
-                fecha: new Date(fecha),
-                estado: 'CREADO',
-                registradoPor: req.user.nombre
-            }
-        });
-
-        // ACTUALIZACIÓN DE ESTADO DEL ACTIVO
-        // Si el tipo es mantenimiento o reparación, bloqueamos el activo
-        if (['MANTENIMIENTO', 'REPARACION', 'SUMINISTRO'].includes(tipo)) {
-            await prisma.activo.update({
-                where: { id: parseInt(activoId) },
-                data: { estado: 'EN_MANTENIMIENTO' }
-            });
-        }
-
-        // Handle file upload if present
-        if (req.file) {
-            await prisma.documento.create({
+        const result = await prisma.$transaction(async (tx) => {
+            const registro = await tx.hojaVida.create({
                 data: {
-                    nombre: req.file.originalname,
-                    nombreArchivo: req.file.filename,
-                    ruta: `uploads/${req.file.filename}`,
-                    tipo: req.file.mimetype,
-                    tamano: req.file.size,
                     activoId: parseInt(activoId),
-                    hojaVidaId: registro.id
+                    tipo,
+                    descripcion,
+                    fecha: new Date(fecha),
+                    estado: 'CREADO',
+                    registradoPor: req.user.nombre
                 }
             });
-        }
 
-        // Crear traza inicial
-        await prisma.trazaHojaVida.create({
-            data: {
-                hojaVidaId: registro.id,
-                estadoNuevo: 'CREADO',
-                observacion: 'Creación del evento',
-                usuarioId: req.user.id
+            // ACTUALIZACIÓN DE ESTADO DEL ACTIVO
+            // Si el tipo es mantenimiento o reparación, bloqueamos el activo
+            if (['MANTENIMIENTO', 'REPARACION', 'SUMINISTRO'].includes(tipo)) {
+                await tx.activo.update({
+                    where: { id: parseInt(activoId) },
+                    data: { estado: 'EN_MANTENIMIENTO' }
+                });
             }
-        });
 
-        const result = await prisma.hojaVida.findUnique({
-            where: { id: registro.id },
-            include: { documentos: true }
+            // Handle file upload if present
+            if (req.file) {
+                await tx.documento.create({
+                    data: {
+                        nombre: req.file.originalname,
+                        nombreArchivo: req.file.filename,
+                        ruta: `uploads/${req.file.filename}`,
+                        tipo: req.file.mimetype,
+                        tamano: req.file.size,
+                        activoId: parseInt(activoId),
+                        hojaVidaId: registro.id
+                    }
+                });
+            }
+
+            // Crear traza inicial
+            await tx.trazaHojaVida.create({
+                data: {
+                    hojaVidaId: registro.id,
+                    estadoNuevo: 'CREADO',
+                    observacion: 'Creación del evento',
+                    usuarioId: req.user.id
+                }
+            });
+
+            return await tx.hojaVida.findUnique({
+                where: { id: registro.id },
+                include: { documentos: true }
+            });
         });
 
         res.status(201).json(result);
@@ -148,80 +150,84 @@ router.put('/:id/procesar', authMiddleware, requireRole('ADMIN', 'ANALISTA_TIC')
 
         console.log('Data to Update:', dataToUpdate);
 
-        const actualizado = await prisma.hojaVida.update({
-            where: { id: parseInt(id) },
-            data: dataToUpdate
+        const result = await prisma.$transaction(async (tx) => {
+            const actualizado = await tx.hojaVida.update({
+                where: { id: parseInt(id) },
+                data: dataToUpdate
+            });
+
+            // ACTUALIZACIÓN DE ESTADO DEL ACTIVO SEGÚN ESTADO DEL EVENTO
+            if (estado === 'FINALIZADO' || estado === 'CERRADO') {
+                // Buscamos si el activo tiene una asignación vigente
+                const asignacionActiva = await tx.asignacion.findFirst({
+                    where: { activoId: hv.activoId, fechaFin: null }
+                });
+
+                // Si tiene asignación, vuelve a ASIGNADO, sino a DISPONIBLE
+                await tx.activo.update({
+                    where: { id: hv.activoId },
+                    data: { estado: asignacionActiva ? 'ASIGNADO' : 'DISPONIBLE' }
+                });
+            } else if (['CREADO', 'EN_PROCESO', 'ESPERA_SUMINISTRO', 'PROCESO_GARANTIA'].includes(estado)) {
+                // Asegurar que esté en mantenimiento si aún no termina
+                await tx.activo.update({
+                    where: { id: hv.activoId },
+                    data: { estado: 'EN_MANTENIMIENTO' }
+                });
+            }
+
+            // Handle file upload if present
+            if (req.file) {
+                await tx.documento.create({
+                    data: {
+                        nombre: req.file.originalname,
+                        nombreArchivo: req.file.filename,
+                        ruta: `uploads/${req.file.filename}`,
+                        tipo: req.file.mimetype,
+                        tamano: req.file.size,
+                        activoId: hv.activoId,
+                        hojaVidaId: parseInt(id)
+                    }
+                });
+            }
+
+            // Crear traza si hubo cambio de estado O si se envió una nueva nota de bitácora
+            // O si se subió un archivo nuevo
+            const huboCambioEstado = estado && estado !== hv.estado;
+            const contenidoNota = nuevaNota || (diagnostico !== hv.diagnostico ? diagnostico : '');
+
+            let observacionFinal = contenidoNota;
+
+            // Si hay archivo, agregamos la nota de que se subió un archivo
+            if (req.file) {
+                const fileNote = `[Archivo Adjunto: ${req.file.originalname}]`;
+                observacionFinal = observacionFinal ? `${fileNote} - ${observacionFinal}` : fileNote;
+            }
+
+            console.log('Hubo cambio estado:', huboCambioEstado);
+            console.log('Nueva Nota Raw:', nuevaNota);
+            console.log('Contenido Nota Final:', observacionFinal);
+
+            if (huboCambioEstado || observacionFinal) {
+                console.log('Creating Traza...');
+                const traza = await tx.trazaHojaVida.create({
+                    data: {
+                        hojaVidaId: parseInt(id),
+                        estadoAnterior: hv.estado,
+                        estadoNuevo: estado || hv.estado,
+                        observacion: observacionFinal || `Cambio de estado a ${estado}`,
+                        usuarioId: req.user.id
+                    }
+                });
+                console.log('Traza created:', traza);
+            } else {
+                console.log('No condition met for Traza creation.');
+            }
+
+            return actualizado;
         });
 
-        // ACTUALIZACIÓN DE ESTADO DEL ACTIVO SEGÚN ESTADO DEL EVENTO
-        if (estado === 'FINALIZADO' || estado === 'CERRADO') {
-            // Buscamos si el activo tiene una asignación vigente
-            const asignacionActiva = await prisma.asignacion.findFirst({
-                where: { activoId: hv.activoId, fechaFin: null }
-            });
-
-            // Si tiene asignación, vuelve a ASIGNADO, sino a DISPONIBLE
-            await prisma.activo.update({
-                where: { id: hv.activoId },
-                data: { estado: asignacionActiva ? 'ASIGNADO' : 'DISPONIBLE' }
-            });
-        } else if (['CREADO', 'EN_PROCESO', 'ESPERA_SUMINISTRO', 'PROCESO_GARANTIA'].includes(estado)) {
-            // Asegurar que esté en mantenimiento si aún no termina
-            await prisma.activo.update({
-                where: { id: hv.activoId },
-                data: { estado: 'EN_MANTENIMIENTO' }
-            });
-        }
-
-        // Handle file upload if present
-        if (req.file) {
-            await prisma.documento.create({
-                data: {
-                    nombre: req.file.originalname,
-                    nombreArchivo: req.file.filename,
-                    ruta: `uploads/${req.file.filename}`,
-                    tipo: req.file.mimetype,
-                    tamano: req.file.size,
-                    activoId: hv.activoId,
-                    hojaVidaId: parseInt(id)
-                }
-            });
-        }
-
-        // Crear traza si hubo cambio de estado O si se envió una nueva nota de bitácora
-        // O si se subió un archivo nuevo
-        const huboCambioEstado = estado && estado !== hv.estado;
-        const contenidoNota = nuevaNota || (diagnostico !== hv.diagnostico ? diagnostico : '');
-
-        let observacionFinal = contenidoNota;
-
-        // Si hay archivo, agregamos la nota de que se subió un archivo
-        if (req.file) {
-            const fileNote = `[Archivo Adjunto: ${req.file.originalname}]`;
-            observacionFinal = observacionFinal ? `${fileNote} - ${observacionFinal}` : fileNote;
-        }
-
-        console.log('Hubo cambio estado:', huboCambioEstado);
-        console.log('Nueva Nota Raw:', nuevaNota);
-        console.log('Contenido Nota Final:', observacionFinal);
-
-        if (huboCambioEstado || observacionFinal) {
-            console.log('Creating Traza...');
-            const traza = await prisma.trazaHojaVida.create({
-                data: {
-                    hojaVidaId: parseInt(id),
-                    estadoAnterior: hv.estado,
-                    estadoNuevo: estado || hv.estado,
-                    observacion: observacionFinal || `Cambio de estado a ${estado}`,
-                    usuarioId: req.user.id
-                }
-            });
-            console.log('Traza created:', traza);
-        } else {
-            console.log('No condition met for Traza creation.');
-        }
-
-        res.json(actualizado);
+        res.json(result);
     } catch (err) {
         console.error('Error in PUT /procesar:', err);
         res.status(500).json({ error: 'Error al procesar registro' });

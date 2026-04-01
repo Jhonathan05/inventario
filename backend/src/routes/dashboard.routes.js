@@ -103,6 +103,85 @@ router.get('/summary', authMiddleware, async (req, res) => {
             }))
         ].sort((a, b) => new Date(b.date) - new Date(a.date)).slice(0, 10);
 
+        // 6. MTTR (Mean Time to Repair en horas)
+        const closedTickets = await prisma.ticket.findMany({
+            where: { estado: { in: ['COMPLETADO', 'RESUELTO'] }, cerradoEn: { not: null } },
+            select: { creadoEn: true, cerradoEn: true }
+        });
+
+        let mttrHours = 0;
+        if (closedTickets.length > 0) {
+            const totalHours = closedTickets.reduce((acc, t) => {
+                const diff = (new Date(t.cerradoEn) - new Date(t.creadoEn)) / (1000 * 60 * 60);
+                return acc + diff;
+            }, 0);
+            mttrHours = totalHours / closedTickets.length;
+        }
+
+        // 7. % Activos en Garantía
+        const hoy = new Date();
+        const activosEnGarantia = await prisma.activo.count({
+            where: {
+                garantiaHasta: { gte: hoy },
+                estado: { not: 'DADO_DE_BAJA' }
+            }
+        });
+        const totalActivosOperativos = await prisma.activo.count({
+            where: { estado: { not: 'DADO_DE_BAJA' } }
+        });
+        const percentGarantia = totalActivosOperativos > 0 ? Math.round((activosEnGarantia / totalActivosOperativos) * 100) : 0;
+
+        // 8. Tickets CRÍTICOS sin asignar
+        const ticketsCriticos = await prisma.ticket.findMany({
+            where: { estado: 'CREADO', prioridad: 'ALTA', asignadoAId: null },
+            select: { id: true, titulo: true, creadoEn: true }
+        });
+
+        // 9. Tendencia: Tickets por mes (últimos 6 meses)
+        const seisMesesAtras = new Date();
+        seisMesesAtras.setMonth(seisMesesAtras.getMonth() - 5);
+        seisMesesAtras.setDate(1);
+
+        const ticketsRecientesHist = await prisma.ticket.findMany({
+            where: { creadoEn: { gte: seisMesesAtras } },
+            select: { creadoEn: true }
+        });
+
+        const mesesRecientesMap = {};
+        for (let i = 0; i < 6; i++) {
+            const d = new Date();
+            d.setMonth(d.getMonth() - i);
+            const key = d.toISOString().slice(0, 7); // YYYY-MM
+            mesesRecientesMap[key] = { tickets: 0, costo: 0 };
+        }
+
+        ticketsRecientesHist.forEach(t => {
+            const key = t.creadoEn.toISOString().slice(0, 7);
+            if (mesesRecientesMap[key]) {
+                mesesRecientesMap[key].tickets++;
+            }
+        });
+
+        // 10. Tendencia: Costos por Mes
+        const mantenimientosRecientes = await prisma.hojaVida.findMany({
+            where: { fecha: { gte: seisMesesAtras } },
+            select: { fecha: true, costo: true }
+        });
+
+        mantenimientosRecientes.forEach(m => {
+            if (!m.costo) return;
+            const key = m.fecha.toISOString().slice(0, 7);
+            if (mesesRecientesMap[key]) {
+                mesesRecientesMap[key].costo += m.costo;
+            }
+        });
+
+        const tendenciasMes = Object.keys(mesesRecientesMap).sort().map(mes => ({
+            mes,
+            tickets: mesesRecientesMap[mes].tickets,
+            costo: mesesRecientesMap[mes].costo
+        }));
+
         res.json({
             stats: {
                 totalAssets: await prisma.activo.count(),
@@ -112,7 +191,13 @@ router.get('/summary', authMiddleware, async (req, res) => {
                 maintenanceCost: {
                     total: totalMaintenanceCost._sum.costo || 0,
                     last30Days: recentMaintenanceCost._sum.costo || 0
-                }
+                },
+                itsm: {
+                    mttrHours: Math.round(mttrHours * 10) / 10,
+                    percentGarantia,
+                    ticketsCriticos
+                },
+                trends: tendenciasMes
             },
             activity: activityFeed
         });

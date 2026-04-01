@@ -1,4 +1,5 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect } from 'react';
+import { useQuery } from '@tanstack/react-query';
 import { Link } from 'react-router-dom';
 import api from '../../lib/axios';
 
@@ -28,9 +29,6 @@ const tipoBadge = (tipo) => {
 };
 
 const MantenimientosList = () => {
-    const [registros, setRegistros] = useState([]);
-    const [allRegistros, setAllRegistros] = useState([]); // siempre sin filtros, para los contadores
-    const [loading, setLoading] = useState(true);
     const [search, setSearch] = useState('');
     const [filterEstado, setFilterEstado] = useState('');
     const [filterTipo, setFilterTipo] = useState('');
@@ -42,30 +40,24 @@ const MantenimientosList = () => {
         return () => clearTimeout(t);
     }, [search]);
 
-    const fetchRegistros = useCallback(async () => {
-        try {
-            setLoading(true);
-            const params = {};
-            if (debouncedSearch) params.search = debouncedSearch;
-            if (filterEstado) params.estado = filterEstado;
-            if (filterTipo) params.tipo = filterTipo;
-            const res = await api.get('/hojavida', { params });
-            setRegistros(res.data);
-        } catch (err) {
-            console.error('Error cargando mantenimientos', err);
-        } finally {
-            setLoading(false);
-        }
-    }, [debouncedSearch, filterEstado, filterTipo]);
+    const queryParams = {
+        ...(debouncedSearch && { search: debouncedSearch }),
+        ...(filterEstado && { estado: filterEstado }),
+        ...(filterTipo && { tipo: filterTipo }),
+    };
 
-    // Carga UNA sola vez sin filtros para los contadores de las tarjetas
-    useEffect(() => {
-        api.get('/hojavida').then(res => setAllRegistros(res.data)).catch(() => { });
-    }, []);
+    // Query principal (filtrada)
+    const { data: registros = [], isLoading: loading } = useQuery({
+        queryKey: ['mantenimientos', queryParams],
+        queryFn: () => api.get('/hojavida', { params: queryParams }).then(r => r.data),
+    });
 
-    useEffect(() => {
-        fetchRegistros();
-    }, [fetchRegistros]);
+    // Query de contadores: carga todo sin filtros (staleTime alto para no re-fetching constante)
+    const { data: allRegistros = [] } = useQuery({
+        queryKey: ['mantenimientos', 'all'],
+        queryFn: () => api.get('/hojavida').then(r => r.data),
+        staleTime: 1000 * 60 * 5, // 5 minutos
+    });
 
     // Counters siempre sobre el total completo (no filtrado)
     const counts = ESTADOS.reduce((acc, e) => {

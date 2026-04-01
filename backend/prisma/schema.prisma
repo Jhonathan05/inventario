@@ -38,6 +38,32 @@ model Categoria {
 }
 
 // ==========================================
+// LICENCIAS DE SOFTWARE (F6)
+// ==========================================
+model Licencia {
+  id             Int       @id @default(autoincrement())
+  software       String
+  version        String?
+  llaveLicencia  String?   // Product Key o Cuenta asociada
+  tipoLicencia   String    // PERPETUA, SUSCRIPCION, OEM, OPEN
+  cantidad       Int       @default(1)
+  costo          Decimal?
+  fechaCompra    DateTime?
+  vencimiento    DateTime? 
+  
+  activoId       Int?
+  activo         Activo?   @relation(fields: [activoId], references: [id])
+  
+  observaciones  String?
+  creadoEn       DateTime  @default(now())
+  actualizadoEn  DateTime  @updatedAt
+
+  @@index([activoId])
+  @@map("licencias")
+}
+
+
+// ==========================================
 // ACTIVOS TECNOLÓGICOS
 // ==========================================
 model Activo {
@@ -103,6 +129,7 @@ model Activo {
   hojaVida      HojaVida[]
   documentos    Documento[]
   tickets       Ticket[]
+  licencias     Licencia[]
   creadoEn      DateTime     @default(now())
   actualizadoEn DateTime     @updatedAt
 
@@ -114,6 +141,12 @@ model Activo {
   checklist        String?   // Responsable TI (Checklist)
   ordenRemision    String?   // Número de orden de remisión
 
+  @@index([estado])
+  @@index([categoriaId])
+  @@index([estadoOperativo])
+  @@index([tipo])
+  @@index([empresaPropietaria])
+  @@index([cedulaFuncionario])
   @@map("activos")
 }
 
@@ -157,6 +190,8 @@ model Funcionario {
   tickets      Ticket[]
   creadoEn     DateTime     @default(now())
 
+  @@index([activo])
+  @@index([area])
   @@map("funcionarios")
 }
 
@@ -176,6 +211,8 @@ model Asignacion {
   realizadoPor  String?        // Usuario del sistema que registró el movimiento
   documentos    Documento[]
 
+  @@index([activoId, fechaFin])
+  @@index([funcionarioId])
   @@map("asignaciones")
 }
 
@@ -209,6 +246,9 @@ model HojaVida {
   responsableId Int?
   responsable   Usuario?    @relation("ResponsableTicket", fields: [responsableId], references: [id])
 
+  @@index([activoId, estado])
+  @@index([fecha])
+  @@index([responsableId])
   @@map("hoja_vida")
 }
 
@@ -242,6 +282,7 @@ model TrazaHojaVida {
   usuarioId       Int?
   usuario         Usuario?            @relation(fields: [usuarioId], references: [id])
 
+  @@index([hojaVidaId])
   @@map("trazas_hoja_vida")
 }
 
@@ -269,6 +310,9 @@ model Documento {
   trazaTicket  TrazaTicket? @relation(fields: [trazaTicketId], references: [id])
   creadoEn     DateTime    @default(now())
 
+  @@index([ticketId])
+  @@index([activoId])
+  @@index([trazaTicketId])
   @@map("documentos")
 }
 
@@ -292,6 +336,7 @@ model Usuario {
   ticketsAsignados Ticket[] @relation("TicketsAsignados")
   ticketsCreados   Ticket[] @relation("TicketsCreados")
   trazasTicket     TrazaTicket[]
+  alertas          Alerta[] // Alertas dirigidas a este usuario
 
   @@map("usuarios")
 }
@@ -400,6 +445,10 @@ model Ticket {
   actualizadoEn   DateTime         @updatedAt
   cerradoEn       DateTime?
 
+  @@index([estado, prioridad])
+  @@index([asignadoAId])
+  @@index([funcionarioId])
+  @@index([creadoEn])
   @@map("tickets")
 }
 
@@ -420,5 +469,35 @@ model TrazaTicket {
   
   creadoEn        DateTime         @default(now())
 
+  @@index([ticketId])
+  @@index([creadoEn])
   @@map("trazas_ticket")
+}
+
+// ==========================================
+// NOTIFICACIONES Y ALERTAS (F1)
+// ==========================================
+model Alerta {
+  id           Int        @id @default(autoincrement())
+  tipo         TipoAlerta
+  titulo       String
+  mensaje      String     @db.Text
+  referenciaId Int?       // ID del activo, ticket o mantenimiento
+  leida        Boolean    @default(false)
+  usuarioId    Int?       // Null implica alerta general (Analistas/Admins)
+  usuario      Usuario?   @relation(fields: [usuarioId], references: [id])
+  creadoEn     DateTime   @default(now())
+
+  @@index([leida])
+  @@index([usuarioId])
+  @@index([tipo])
+  @@map("alertas")
+}
+
+enum TipoAlerta {
+  GARANTIA_VENCIMIENTO
+  MANTENIMIENTO_PREVENTIVO
+  SLA_TICKET_RESPUESTA
+  MANTENIMIENTO_PROLONGADO
+  SISTEMA
 }

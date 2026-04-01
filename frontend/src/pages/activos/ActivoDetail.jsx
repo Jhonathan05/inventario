@@ -7,6 +7,7 @@ import ActivosForm from './ActivosForm';
 import HojaVidaForm from './components/HojaVidaForm';
 import EstadoHojaVidaForm from './components/EstadoHojaVidaForm';
 import DocumentosList from './components/DocumentosList';
+import ActivoLicenciasList from './components/ActivoLicenciasList';
 
 const ActivoDetail = () => {
     const { id } = useParams();
@@ -67,6 +68,7 @@ const ActivoDetail = () => {
         { key: 'asignaciones', label: 'Asignaciones' },
         { key: 'hojadevida', label: 'Hoja de Vida' },
         { key: 'documentos', label: 'Documentos' },
+        { key: 'software', label: 'Software' },
     ];
 
     const InfoItem = ({ label, value }) => (
@@ -352,6 +354,14 @@ const ActivoDetail = () => {
                     <DocumentosList
                         activoId={activo.id}
                         documentos={activo.documentos}
+                        onUpdate={fetchActivo}
+                    />
+                )}
+
+                {activeTab === 'software' && (
+                    <ActivoLicenciasList
+                        activoId={activo.id}
+                        licencias={activo.licencias}
                         onUpdate={fetchActivo}
                     />
                 )}

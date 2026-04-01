@@ -41,7 +41,7 @@ npx prisma generate
 echo "📐 Sincronizando esquema de base de datos..."
 # Usamos db push en dev para rapidez, pero en prod debería ser prisma migrate deploy
 if [ "$NODE_ENV" = "development" ]; then
-  npx prisma db push --accept-data-loss
+  npx prisma migrate dev --name init
 else
   echo "🚀 [PROD] Ejecutando migraciones..."
   npx prisma migrate deploy

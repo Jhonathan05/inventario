@@ -1,6 +1,7 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider } from './context/AuthContext';
 import ProtectedRoute from './components/ProtectedRoute';
+import ErrorBoundary from './components/ErrorBoundary';
 import MainLayout from './layouts/MainLayout';
 import Login from './pages/Login';
 import Dashboard from './pages/Dashboard';
@@ -18,49 +19,66 @@ import BackupSoporte from './pages/backup/BackupSoporte';
 import TicketsList from './pages/tickets/TicketsList';
 import TicketForm from './pages/tickets/TicketForm';
 import TicketDetail from './pages/tickets/TicketDetail';
+import LicenciasList from './pages/licencias/LicenciasList';
 
+
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+
+const queryClient = new QueryClient({
+    defaultOptions: {
+        queries: {
+            refetchOnWindowFocus: false,
+            retry: 1,
+            staleTime: 5 * 60 * 1000,
+        },
+    },
+});
 
 function App() {
     return (
-        <BrowserRouter>
-            <AuthProvider>
-                <Routes>
-                    <Route path="/login" element={<Login />} />
+        <QueryClientProvider client={queryClient}>
+            <BrowserRouter>
+                <AuthProvider>
+                    <ErrorBoundary>
+                        <Routes>
+                            <Route path="/login" element={<Login />} />
 
-                    <Route element={<MainLayout />}>
-                        <Route element={<ProtectedRoute />}>
-                            <Route path="/" element={<Dashboard />} />
-                            <Route path="/activos" element={<Activos />} />
-                            <Route path="/activos/:id" element={<ActivoDetail />} />
-                            <Route path="/funcionarios" element={<Funcionarios />} />
-                            <Route path="/reportes" element={<Reportes />} />
-                            <Route path="/actas" element={<ActasList />} />
-                            <Route path="/mantenimientos" element={<MantenimientosList />} />
-                            <Route path="/tickets" element={<TicketsList />} />
-                            <Route path="/tickets/:id" element={<TicketDetail />} />
-                        </Route>
+                        <Route element={<MainLayout />}>
+                            <Route element={<ProtectedRoute />}>
+                                <Route path="/" element={<Dashboard />} />
+                                <Route path="/activos" element={<Activos />} />
+                                <Route path="/activos/:id" element={<ActivoDetail />} />
+                                <Route path="/funcionarios" element={<Funcionarios />} />
+                                <Route path="/reportes" element={<Reportes />} />
+                                <Route path="/actas" element={<ActasList />} />
+                                <Route path="/mantenimientos" element={<MantenimientosList />} />
+                                <Route path="/tickets" element={<TicketsList />} />
+                                <Route path="/tickets/:id" element={<TicketDetail />} />
+                                <Route path="/licencias" element={<LicenciasList />} />
+                            </Route>
 
-                        {/* ADMIN y ANALISTA TIC */}
-                        <Route element={<ProtectedRoute allowedRoles={['ADMIN', 'ANALISTA_TIC']} />}>
-                            <Route path="/categorias" element={<Categorias />} />
-                            <Route path="/actas/generar" element={<GenerarActa />} />
-                            <Route path="/importar" element={<ImportarDatos />} />
+                            {/* ADMIN y ANALISTA TIC */}
+                            <Route element={<ProtectedRoute allowedRoles={['ADMIN', 'ANALISTA_TIC']} />}>
+                                <Route path="/categorias" element={<Categorias />} />
+                                <Route path="/actas/generar" element={<GenerarActa />} />
+                                <Route path="/importar" element={<ImportarDatos />} />
 
-                            {/* Mesa de Ayuda (Creación) */}
-                            <Route path="/tickets/nuevo" element={<TicketForm />} />
-                        </Route>
+                                {/* Mesa de Ayuda (Creación) */}
+                                <Route path="/tickets/nuevo" element={<TicketForm />} />
+                            </Route>
 
-                        {/* Solo ADMIN */}
-                        <Route element={<ProtectedRoute allowedRoles={['ADMIN']} />}>
-                            <Route path="/usuarios" element={<Usuarios />} />
-                            <Route path="/soporte" element={<BackupSoporte />} />
-                        </Route>
+                            {/* Solo ADMIN */}
+                            <Route element={<ProtectedRoute allowedRoles={['ADMIN']} />}>
+                                <Route path="/usuarios" element={<Usuarios />} />
+                                <Route path="/soporte" element={<BackupSoporte />} />
+                            </Route>
 
-                        <Route path="*" element={<Navigate to="/" replace />} />
-                    </Route>
-                </Routes>
-            </AuthProvider>
-        </BrowserRouter>
+                            <Route path="*" element={<Navigate to="/" replace />} />
+                        </Routes>
+                    </ErrorBoundary>
+                </AuthProvider>
+            </BrowserRouter>
+        </QueryClientProvider>
     );
 }
 

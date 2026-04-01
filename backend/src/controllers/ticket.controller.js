@@ -1,5 +1,4 @@
-const { PrismaClient } = require('@prisma/client');
-const prisma = new PrismaClient();
+const prisma = require('../lib/prisma');
 const path = require('path');
 
 // Helper para guardar un documento adjunto
@@ -37,15 +36,23 @@ exports.crearTicket = async (req, res) => {
             });
 
             if (analistas.length > 0) {
-                // 2. Contar casos activos por cada analista (excluyendo RESUELTO y COMPLETADO)
-                const analistasConCarga = await Promise.all(analistas.map(async (a) => {
-                    const count = await prisma.ticket.count({
-                        where: {
-                            asignadoAId: a.id,
-                            NOT: { estado: { in: ['RESUELTO', 'COMPLETADO'] } }
-                        }
-                    });
-                    return { ...a, count };
+                // 2. Contar casos activos por cada analista (excluyendo RESUELTO y COMPLETADO) mediante groupBy
+                const cargaPorAnalista = await prisma.ticket.groupBy({
+                    by: ['asignadoAId'],
+                    where: {
+                        NOT: { estado: { in: ['RESUELTO', 'COMPLETADO'] } },
+                        asignadoAId: { not: null }
+                    },
+                    _count: { id: true }
+                });
+
+                const mapaCargas = Object.fromEntries(
+                    cargaPorAnalista.map(c => [c.asignadoAId, c._count.id])
+                );
+
+                const analistasConCarga = analistas.map(a => ({
+                    ...a,
+                    count: mapaCargas[a.id] || 0
                 }));
 
                 // 3. Seleccionar al que tiene menos casos

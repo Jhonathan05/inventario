@@ -1,5 +1,10 @@
 import { useState, useEffect } from 'react';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import api from '../../lib/axios';
+import { authService } from '../../api/auth.service';
+import { activosService } from '../../api/activos.service';
+import { categoriasService } from '../../api/categorias.service';
+import { catalogosService } from '../../api/catalogos.service';
 import { useAuth } from '../../context/AuthContext';
 import SelectWithAdd from '../../components/SelectWithAdd';
 import CatalogModal from '../../components/CatalogModal';
@@ -76,6 +81,14 @@ const calcYearsOfUse = (fechaCompraStr) => {
     return `${years} años`;
 };
 
+const sortList = (list) => {
+    return [...list].sort((a, b) => {
+        const valA = (a.nombre || a.valor || a).toString().toUpperCase();
+        const valB = (b.nombre || b.valor || b).toString().toUpperCase();
+        return valA.localeCompare(valB);
+    });
+};
+
 const ActivosForm = ({ open, onClose, activo }) => {
     const { user } = useAuth();
     const canEditCatalogs = user?.rol === 'ADMIN' || user?.rol === 'ANALISTA_TIC';
@@ -83,12 +96,32 @@ const ActivosForm = ({ open, onClose, activo }) => {
     const [formData, setFormData] = useState(DEFAULT_STATE);
     const [imagen, setImagen] = useState(null);
     const [preview, setPreview] = useState(null);
-    const [categorias, setCategorias] = useState([]);
-    const [loading, setLoading] = useState(false);
-    const [error, setError] = useState('');
+    const queryClient = useQueryClient();
 
-    // Catalog states
-    const [catalogs, setCatalogs] = useState({
+    const { data: categorias = [] } = useQuery({
+        queryKey: ['categorias'],
+        queryFn: async () => sortList(await categoriasService.getAll())
+    });
+
+    const { data: catalogsObj = {} } = useQuery({
+        queryKey: ['catalogos'],
+        queryFn: async () => {
+            const res = await catalogosService.getAll();
+            const grouped = res.reduce((acc, curr) => {
+                if (!acc[curr.dominio]) acc[curr.dominio] = [];
+                acc[curr.dominio].push(curr.valor);
+                return acc;
+            }, {});
+            const sortedGrouped = {};
+            Object.keys(grouped).forEach(domain => {
+                sortedGrouped[domain] = sortList(grouped[domain]);
+            });
+            return sortedGrouped;
+        }
+    });
+
+    // We extend default subsets for safety just in case to match legacy map
+    const catalogs = {
         EMPRESA_PROPIETARIA: [],
         FUENTE_RECURSO: [],
         TIPO_RECURSO: [],
@@ -105,47 +138,7 @@ const ActivosForm = ({ open, onClose, activo }) => {
         MEMORIA_RAM: [],
         DISCO_DURO: [],
         SISTEMA_OPERATIVO: [],
-    });
-
-    // Modal state for adding new options
-    const [activeModal, setActiveModal] = useState({ open: false, domain: '', title: '', isCategory: false });
-
-    // Visibility states
-    const [showFuncionario, setShowFuncionario] = useState(false);
-    const [showCompraGarantia, setShowCompraGarantia] = useState(false);
-
-    useEffect(() => {
-        fetchCategorias();
-        fetchAllCatalogs();
-    }, []);
-
-    const sortList = (list) => {
-        return [...list].sort((a, b) => {
-            const valA = (a.nombre || a.valor || a).toString().toUpperCase();
-            const valB = (b.nombre || b.valor || b).toString().toUpperCase();
-            return valA.localeCompare(valB);
-        });
-    };
-
-    const fetchAllCatalogs = async () => {
-        try {
-            const res = await api.get('/catalogos');
-            const grouped = res.data.reduce((acc, item) => {
-                if (!acc[item.dominio]) acc[item.dominio] = [];
-                acc[item.dominio].push(item.valor);
-                return acc;
-            }, {});
-
-            // Sort all catalog lists
-            const sortedGrouped = {};
-            Object.keys(grouped).forEach(domain => {
-                sortedGrouped[domain] = sortList(grouped[domain]);
-            });
-
-            setCatalogs(prev => ({ ...prev, ...sortedGrouped }));
-        } catch (err) {
-            console.error('Error fetching catalogs:', err);
-        }
+        ...catalogsObj
     };
 
     const handleOpenCatalogModal = (domain, title, isCategory = false) => {
@@ -154,18 +147,15 @@ const ActivosForm = ({ open, onClose, activo }) => {
 
     const handleCatalogSuccess = (newVal) => {
         if (activeModal.isCategory) {
-            setCategorias(prev => sortList([...prev, newVal]));
+            queryClient.invalidateQueries({ queryKey: ['categorias'] });
             setFormData(prev => ({ 
                 ...prev, 
                 categoriaId: newVal.id,
                 tipo: newVal.nombre || newVal.valor || prev.tipo
             }));
         } else {
+            queryClient.invalidateQueries({ queryKey: ['catalogos'] });
             const val = newVal.valor;
-            setCatalogs(prev => ({
-                ...prev,
-                [activeModal.domain]: sortList([...prev[activeModal.domain], val])
-            }));
             const fieldName = getFieldNameByDomain(activeModal.domain);
             if (fieldName) {
                 setFormData(prev => ({ ...prev, [fieldName]: val }));
@@ -305,10 +295,12 @@ const ActivosForm = ({ open, onClose, activo }) => {
             if (imagen) data.append('imagen', imagen);
 
             if (activo) {
-                await api.put(`/activos/${activo.id}`, data);
+                await activosService.update(activo.id, data);
             } else {
-                await api.post('/activos', data);
+                await activosService.create(data);
             }
+            queryClient.invalidateQueries({ queryKey: ['activos'] });
+            queryClient.invalidateQueries({ queryKey: ['dashboard'] });
             onClose(true);
         } catch (err) {
             console.error(err);

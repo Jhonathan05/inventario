@@ -1,7 +1,10 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import toast from 'react-hot-toast';
 import api from '../../lib/axios';
+import { ticketsService } from '../../api/tickets.service';
+import { usuariosService } from '../../api/usuarios.service';
 import {
     ArrowLeftIcon,
     ClockIcon,
@@ -49,39 +52,43 @@ const AdjuntoChip = ({ doc, onDownload }) => {
 const TicketDetail = () => {
     const { id } = useParams();
     const navigate = useNavigate();
+    const queryClient = useQueryClient();
     const fileInputRef = useRef(null);
-    const [ticket, setTicket] = useState(null);
-    const [loading, setLoading] = useState(true);
-    const [tecnicos, setTecnicos] = useState([]);
     const [nuevoComentario, setNuevoComentario] = useState('');
     const [nuevoEstado, setNuevoEstado] = useState('');
     const [tecnicoAsignado, setTecnicoAsignado] = useState('');
     const [saving, setSaving] = useState(false);
     const [archivosComentario, setArchivosComentario] = useState([]);
+    const [localTicket, setLocalTicket] = useState(null); // for optimistic textarea updates
 
     const { user } = useAuth();
     const canEdit = user?.rol === 'ADMIN' || user?.rol === 'ANALISTA_TIC';
 
-    useEffect(() => { cargarDatos(); }, [id]);
-
-    const cargarDatos = async () => {
-        try {
-            setLoading(true);
-            const [ticketRes, tecnicosRes] = await Promise.all([
-                api.get(`/tickets/${id}`),
-                api.get('/usuarios')
-            ]);
-            setTicket(ticketRes.data);
-            setNuevoEstado(ticketRes.data.estado);
-            setTecnicoAsignado(ticketRes.data.asignadoAId || '');
-            setTecnicos(tecnicosRes.data.filter(u => u.rol !== 'CONSULTA' && u.activo));
-        } catch {
+    const { data: ticketData, isLoading: loading } = useQuery({
+        queryKey: ['ticket', id],
+        queryFn: () => ticketsService.getById(id),
+        onSuccess: (data) => {
+            setNuevoEstado(data.estado);
+            setTecnicoAsignado(data.asignadoAId || '');
+            setLocalTicket(data);
+        },
+        onError: () => {
             toast.error('Error al cargar el caso');
             navigate('/tickets');
-        } finally {
-            setLoading(false);
         }
-    };
+    });
+
+    const ticket = localTicket || ticketData;
+
+    const { data: usuariosData = [] } = useQuery({
+        queryKey: ['usuarios'],
+        queryFn: usuariosService.getAll,
+    });
+    const tecnicos = usuariosData.filter(u => u.rol !== 'CONSULTA' && u.activo);
+
+    const refetchTicket = () => queryClient.invalidateQueries({ queryKey: ['ticket', id] });
+
+
 
     const handleDownload = (doc) => {
         let apiUrl = import.meta.env.VITE_API_URL || '';
@@ -121,12 +128,11 @@ const TicketDetail = () => {
             archivosComentario.forEach(f => payload.append('adjuntos', f));
 
             await api.post(`/tickets/${id}/comentarios`, payload);
-            console.log('Nota guardada con éxito');
 
             setNuevoComentario('');
             setArchivosComentario([]);
             toast.success('Nota añadida');
-            cargarDatos();
+            refetchTicket();
         } catch (error) {
             console.error('Error al guardar nota:', error);
             toast.error('Error al guardar nota');
@@ -144,7 +150,7 @@ const TicketDetail = () => {
                 conclusiones: ticket.conclusiones
             });
             toast.success('Estado actualizado');
-            cargarDatos();
+            refetchTicket();
         } catch {
             toast.error('Error al cambiar estado');
             setNuevoEstado(ticket.estado);
@@ -160,7 +166,7 @@ const TicketDetail = () => {
                 conclusiones: ticket.conclusiones
             });
             toast.success('Notas técnicas guardadas');
-            cargarDatos();
+            refetchTicket();
         } catch {
             toast.error('Error al guardar notas');
         } finally {
@@ -173,7 +179,7 @@ const TicketDetail = () => {
         try {
             await api.put(`/tickets/${id}/asignar`, { asignadoAId: tecnicoAsignado || null });
             toast.success('Analista asignado');
-            cargarDatos();
+            refetchTicket();
         } catch {
             toast.error('Error al asignar');
             setTecnicoAsignado(ticket.asignadoAId || '');
@@ -463,8 +469,8 @@ const TicketDetail = () => {
                                     <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest block mb-1.5">Diagnóstico y Solución Técnica Aplicada</label>
                                     <textarea
                                         rows="6"
-                                        value={ticket.solucionTecnica || ''}
-                                        onChange={e => setTicket({ ...ticket, solucionTecnica: e.target.value })}
+                                        value={localTicket?.solucionTecnica ?? ticket?.solucionTecnica ?? ''}
+                                        onChange={e => setLocalTicket(prev => ({ ...(prev || ticket), solucionTecnica: e.target.value }))}
                                         className="w-full text-sm p-3 bg-gray-50 border border-gray-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all resize-none font-mono"
                                         placeholder="Documenta aquí los pasos técnicos realizados..."
                                     />
@@ -473,8 +479,8 @@ const TicketDetail = () => {
                                     <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest block mb-1.5">Conclusiones y Recomendaciones</label>
                                     <textarea
                                         rows="3"
-                                        value={ticket.conclusiones || ''}
-                                        onChange={e => setTicket({ ...ticket, conclusiones: e.target.value })}
+                                        value={localTicket?.conclusiones ?? ticket?.conclusiones ?? ''}
+                                        onChange={e => setLocalTicket(prev => ({ ...(prev || ticket), conclusiones: e.target.value }))}
                                         className="w-full text-sm p-3 bg-gray-50 border border-gray-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all resize-none"
                                         placeholder="Resumen final del cierre del caso..."
                                     />

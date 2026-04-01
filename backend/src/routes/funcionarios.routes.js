@@ -6,7 +6,7 @@ const { authMiddleware, requireRole } = require('../middleware/auth.middleware')
 // GET /api/funcionarios
 router.get('/', authMiddleware, async (req, res) => {
     try {
-        const { search, activo, area, cargo, vinculacion } = req.query;
+        const { search, activo, area, cargo, vinculacion, page = 1, limit = 50 } = req.query;
         const where = {};
 
         if (activo !== undefined) where.activo = activo === 'true';
@@ -24,14 +24,31 @@ router.get('/', authMiddleware, async (req, res) => {
             ];
         }
 
-        const funcionarios = await prisma.funcionario.findMany({
-            where,
-            include: {
-                _count: { select: { asignaciones: { where: { fechaFin: null } } } },
-            },
-            orderBy: { nombre: 'asc' },
+        const skip = (parseInt(page) - 1) * parseInt(limit);
+        const take = parseInt(limit);
+
+        const [funcionarios, total] = await Promise.all([
+            prisma.funcionario.findMany({
+                where,
+                skip,
+                take,
+                include: {
+                    _count: { select: { asignaciones: { where: { fechaFin: null } } } },
+                },
+                orderBy: { nombre: 'asc' },
+            }),
+            prisma.funcionario.count({ where })
+        ]);
+
+        res.json({
+            data: funcionarios,
+            pagination: {
+                page: parseInt(page),
+                limit: take,
+                total,
+                pages: Math.ceil(total / take)
+            }
         });
-        res.json(funcionarios);
     } catch (err) {
         res.status(500).json({ error: 'Error al obtener funcionarios' });
     }
@@ -125,6 +142,27 @@ router.put('/:id', authMiddleware, requireRole('ADMIN', 'ANALISTA_TIC'), async (
             where: { id: parseInt(req.params.id) },
             data,
         });
+
+        // Sincronizar datos cacheados en los activos que el funcionario tiene asignados actualmente
+        await prisma.activo.updateMany({
+            where: {
+                asignaciones: {
+                    some: { funcionarioId: funcionario.id, fechaFin: null }
+                }
+            },
+            data: {
+                cedulaFuncionario: funcionario.cedula,
+                nombreFuncionario: funcionario.nombre,
+                cargo: funcionario.cargo,
+                area: funcionario.area,
+                shortname: funcionario.shortname,
+                departamento: funcionario.departamento,
+                ciudad: funcionario.ciudad,
+                empresaFuncionario: funcionario.empresaFuncionario,
+                tipoPersonal: funcionario.vinculacion
+            }
+        });
+
         res.json(funcionario);
     } catch (err) {
         if (err.code === 'P2002') {

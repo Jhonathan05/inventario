@@ -1,32 +1,17 @@
-import { useState, useEffect } from 'react';
-import api from '../../lib/axios';
+import { useState } from 'react';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { usuariosService } from '../../api/usuarios.service';
 import UsuarioForm from './components/UsuarioForm';
 
 const Usuarios = () => {
-    const [usuarios, setUsuarios] = useState([]);
-    const [loading, setLoading] = useState(true);
-    const [error, setError] = useState(null);
+    const queryClient = useQueryClient();
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [selectedUsuario, setSelectedUsuario] = useState(null);
 
-    useEffect(() => {
-        fetchUsuarios();
-    }, []);
-
-    const fetchUsuarios = async () => {
-        try {
-            setLoading(true);
-            const response = await api.get('/usuarios');
-            setUsuarios(response.data);
-            setError(null);
-        } catch (err) {
-            console.error(err);
-            const msg = err.response?.data?.error || err.message || 'Error desconocido';
-            setError(`Error al cargar usuarios: ${msg}`);
-        } finally {
-            setLoading(false);
-        }
-    };
+    const { data: usuarios = [], isLoading: loading, error } = useQuery({
+        queryKey: ['usuarios'],
+        queryFn: usuariosService.getAll,
+    });
 
     const handleCreate = () => {
         setSelectedUsuario(null);
@@ -42,11 +27,12 @@ const Usuarios = () => {
         setIsModalOpen(false);
         setSelectedUsuario(null);
         if (shouldRefresh) {
-            fetchUsuarios();
+            queryClient.invalidateQueries({ queryKey: ['usuarios'] });
         }
     };
 
     if (loading && usuarios.length === 0) return <div className="p-4">Cargando usuarios...</div>;
+
 
     return (
         <div>

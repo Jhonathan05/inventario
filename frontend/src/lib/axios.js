@@ -14,10 +14,10 @@ const getApiUrl = () => {
 };
 
 const API_URL = getApiUrl();
-console.log('API_URL:', API_URL);
 
 const api = axios.create({
     baseURL: API_URL,
+    withCredentials: true // Importante para enviar la HttpOnly Cookie
 });
 
 api.interceptors.request.use((config) => {
@@ -28,19 +28,72 @@ api.interceptors.request.use((config) => {
     return config;
 });
 
-// Interceptar respuestas para manejar expiración de token
+let isRefreshing = false;
+let failedQueue = [];
+
+const processQueue = (error, token = null) => {
+    failedQueue.forEach(prom => {
+        if (error) {
+            prom.reject(error);
+        } else {
+            prom.resolve(token);
+        }
+    });
+
+    failedQueue = [];
+};
+
+// Interceptar respuestas para manejar expiración de token y refresh
 api.interceptors.response.use(
     (response) => response,
-    (error) => {
-        if (error.response && error.response.status === 401) {
-            // Token inválido o expirado (401 Unauthorized)
-            localStorage.removeItem('token');
-            localStorage.removeItem('user');
-            // Redirigir al inicio de sesión si no estamos ya allí
-            if (window.location.pathname !== '/login') {
-                window.location.href = '/login';
+    async (error) => {
+        const originalRequest = error.config;
+
+        // Evitar bucles infinitos en llamados de auth o si el original_request ya se reintentó
+        if (error.response && error.response.status === 401 && !originalRequest._retry && !originalRequest.url.includes('/auth/login') && !originalRequest.url.includes('/auth/refresh')) {
+            if (isRefreshing) {
+                return new Promise(function(resolve, reject) {
+                    failedQueue.push({ resolve, reject });
+                }).then(token => {
+                    originalRequest.headers['Authorization'] = 'Bearer ' + token;
+                    return api(originalRequest);
+                }).catch(err => {
+                    return Promise.reject(err);
+                });
+            }
+
+            originalRequest._retry = true;
+            isRefreshing = true;
+
+            try {
+                // Enviar la cookie refreshToken para obtener un nuevo access token corto
+                const { data } = await axios.post(`${API_URL}/auth/refresh`, {}, { withCredentials: true });
+                
+                const newToken = data.token;
+                localStorage.setItem('token', newToken);
+                
+                api.defaults.headers.common['Authorization'] = 'Bearer ' + newToken;
+                originalRequest.headers['Authorization'] = 'Bearer ' + newToken;
+                
+                processQueue(null, newToken);
+                
+                return api(originalRequest);
+            } catch (err) {
+                processQueue(err, null);
+                
+                // Si el refresh token también falló (expirado a los 7 días, o inexistente)
+                localStorage.removeItem('token');
+                localStorage.removeItem('user');
+                if (window.location.pathname !== '/login') {
+                    window.location.href = '/login';
+                }
+                
+                return Promise.reject(err);
+            } finally {
+                isRefreshing = false;
             }
         }
+        
         return Promise.reject(error);
     }
 );

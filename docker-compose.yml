@@ -61,7 +61,7 @@ services:
       target: builder
     container_name: inventario-web-dev
     restart: unless-stopped
-    command: sh -c "npm install && npm run dev -- --host"
+    command: sh -c "npm run dev -- --host"
     labels:
       dev.orbstack.domains: "inventario.local"
     volumes:

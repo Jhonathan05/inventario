@@ -1,12 +1,17 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { Link } from 'react-router-dom';
-import api from '../../lib/axios';
+import { useQuery } from '@tanstack/react-query';
+import { activosService } from '../../api/activos.service';
+import { categoriasService } from '../../api/categorias.service';
+import { funcionariosService } from '../../api/funcionarios.service';
+import { catalogosService } from '../../api/catalogos.service';
 import { useAuth } from '../../context/AuthContext';
 import { getImageUrl, getAssetIconPath } from '../../lib/utils';
 import ActivosForm from './ActivosForm';
 import { exportToExcel } from '../../lib/exportUtils';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
+import api from '../../lib/axios';
 
 // Ícono SVG dinámico por tipo de activo (fallback cuando no hay imagen)
 const AssetIcon = ({ tipo, categoria, className = 'h-full w-full p-2.5 text-charcoal-400' }) => (
@@ -29,14 +34,12 @@ const ActivosList = () => {
     const { user } = useAuth();
     const canEdit = user?.rol === 'ADMIN' || user?.rol === 'ANALISTA_TIC';
 
-    const [activos, setActivos] = useState([]);
-    const [loading, setLoading] = useState(true);
     const [search, setSearch] = useState('');
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [selectedActivo, setSelectedActivo] = useState(null);
     const [showFilters, setShowFilters] = useState(false);
     const [currentPage, setCurrentPage] = useState(1);
-    const itemsPerPage = 9;
+    const [itemsPerPage] = useState(10); // Matches standard limit if we wanted to change
 
     // Filtros avanzados
     const [filterEstado, setFilterEstado] = useState('');
@@ -44,9 +47,6 @@ const ActivosList = () => {
     const [filterEstadoOp, setFilterEstadoOp] = useState('');
     const [filterTipo, setFilterTipo] = useState('');
     const [filterFuncionario, setFilterFuncionario] = useState('');
-    const [categorias, setCategorias] = useState([]);
-    const [funcionarios, setFuncionarios] = useState([]);
-    const [catalogs, setCatalogs] = useState({ EMPRESA_PROPIETARIA: [], ESTADO_OPERATIVO: [], TIPO_EQUIPO: [] });
     const [searchFuncionarioText, setSearchFuncionarioText] = useState('');
     const [showFuncionarioDropdown, setShowFuncionarioDropdown] = useState(false);
 
@@ -55,47 +55,53 @@ const ActivosList = () => {
     const [historialData, setHistorialData] = useState([]);
     const [historialLoading, setHistorialLoading] = useState(false);
 
-    useEffect(() => {
-        api.get('/categorias').then(res => setCategorias(sortList(res.data))).catch(() => { });
-        api.get('/funcionarios').then(res => setFuncionarios(sortList(res.data))).catch(() => { });
-        api.get('/catalogos').then(res => {
-            const grouped = res.data.reduce((acc, curr) => {
+    // Queries de catálogos y referencias
+    const { data: categorias = [] } = useQuery({
+        queryKey: ['categorias'],
+        queryFn: async () => sortList(await categoriasService.getAll())
+    });
+
+    const { data: funcionarios = [] } = useQuery({
+        queryKey: ['funcionarios'],
+        queryFn: async () => sortList(await funcionariosService.getAll())
+    });
+
+    const { data: catalogs = { EMPRESA_PROPIETARIA: [], ESTADO_OPERATIVO: [], TIPO_EQUIPO: [] } } = useQuery({
+        queryKey: ['catalogos'],
+        queryFn: async () => {
+            const res = await catalogosService.getAll();
+            const grouped = res.reduce((acc, curr) => {
                 if (!acc[curr.dominio]) acc[curr.dominio] = [];
                 acc[curr.dominio].push(curr.valor);
                 return acc;
             }, {});
-            setCatalogs({
+            return {
                 EMPRESA_PROPIETARIA: sortList(grouped['EMPRESA_PROPIETARIA'] || []),
                 ESTADO_OPERATIVO: sortList(grouped['ESTADO_OPERATIVO'] || []),
                 TIPO_EQUIPO: sortList(grouped['TIPO_EQUIPO'] || [])
-            });
-        }).catch(() => { });
-    }, []);
-
-    useEffect(() => {
-        fetchActivos();
-    }, [search, filterEstado, filterEmpresa, filterEstadoOp, filterTipo, filterFuncionario]);
-
-    const fetchActivos = async () => {
-        try {
-            setLoading(true);
-            const params = {};
-            if (search) params.search = search;
-            if (filterEstado) params.estado = filterEstado;
-            if (filterEmpresa) params.empresaPropietaria = filterEmpresa;
-            if (filterEstadoOp) params.estadoOperativo = filterEstadoOp;
-            if (filterTipo) params.tipo = filterTipo;
-            if (filterFuncionario) params.funcionarioId = filterFuncionario;
-
-            const response = await api.get('/activos', { params });
-            setActivos(response.data);
-            setCurrentPage(1); // Reset page on new fetch
-        } catch (error) {
-            console.error('Error fetching activos', error);
-        } finally {
-            setLoading(false);
+            };
         }
+    });
+
+    // Query principal de activos
+    const queryParams = {
+        page: currentPage,
+        limit: itemsPerPage,
+        ...(search && { search }),
+        ...(filterEstado && { estado: filterEstado }),
+        ...(filterEmpresa && { empresaPropietaria: filterEmpresa }),
+        ...(filterEstadoOp && { estadoOperativo: filterEstadoOp }),
+        ...(filterTipo && { tipo: filterTipo }),
+        ...(filterFuncionario && { funcionarioId: filterFuncionario })
     };
+
+    const { data: responseData, isLoading: loading, refetch: fetchActivos } = useQuery({
+        queryKey: ['activos', { ...queryParams }],
+        queryFn: () => activosService.getAll(queryParams),
+    });
+
+    const activos = responseData?.data || (Array.isArray(responseData) ? responseData : []);
+    const pagination = responseData?.pagination || { page: 1, totalPages: 1, total: activos.length };
 
     const handleCreate = () => {
         setSelectedActivo(null);
@@ -107,9 +113,6 @@ const ActivosList = () => {
         setIsModalOpen(true);
     };
 
-
-
-
     const clearFilters = () => {
         setFilterEstado('');
         setFilterEmpresa('');
@@ -117,6 +120,7 @@ const ActivosList = () => {
         setFilterTipo('');
         setFilterFuncionario('');
         setSearchFuncionarioText('');
+        setCurrentPage(1);
     };
 
     const activeFilterCount = [filterEstado, filterEmpresa, filterEstadoOp, filterTipo, filterFuncionario].filter(Boolean).length;
@@ -209,8 +213,8 @@ const ActivosList = () => {
         setHistorialLoading(true);
         setShowHistorial(true);
         try {
-            const res = await api.get(`/activos/historial/${filterFuncionario}`);
-            setHistorialData(res.data);
+            const data = await activosService.getHistorialByFuncionario(filterFuncionario);
+            setHistorialData(data);
         } catch (err) {
             console.error("Error obteniendo historial", err);
         } finally {
@@ -273,10 +277,10 @@ const ActivosList = () => {
     };
 
     // Logic for pagination
-    const indexOfLastItem = currentPage * itemsPerPage;
-    const indexOfFirstItem = indexOfLastItem - itemsPerPage;
-    const currentItems = activos.slice(indexOfFirstItem, indexOfLastItem);
-    const totalPages = Math.ceil(activos.length / itemsPerPage);
+    const totalPages = pagination.pages || 1;
+    const totalItems = pagination.total || activos.length;
+    const indexOfFirstItem = (currentPage - 1) * itemsPerPage;
+    const indexOfLastItem = Math.min(indexOfFirstItem + activos.length, totalItems);
 
     const changePage = (newPage) => {
         if (newPage >= 1 && newPage <= totalPages) {
@@ -292,7 +296,7 @@ const ActivosList = () => {
                 <div>
                     <h1 className="text-xl font-semibold text-gray-900">Activos Tecnológicos</h1>
                     <p className="mt-1 text-sm text-gray-700">
-                        Inventario completo de equipos ({activos.length} resultados)
+                        Inventario completo de equipos ({totalItems} resultados)
                     </p>
                 </div>
                 <div className="flex flex-wrap gap-2">
@@ -463,7 +467,7 @@ const ActivosList = () => {
                                     </tr>
                                 </thead>
                                 <tbody className="divide-y divide-charcoal-100 bg-transparent">
-                                    {currentItems.map((activo) => (
+                                    {activos.map((activo) => (
                                         <tr key={activo.id} className="hover:bg-fnc-50/50 transition-colors">
                                             <td className="px-6 py-4">
                                                 <div className="flex items-center gap-4">
@@ -536,7 +540,7 @@ const ActivosList = () => {
                             No se encontraron activos.
                         </div>
                     )}
-                    {currentItems.map((activo) => (
+                    {activos.map((activo) => (
                         <div key={activo.id} className="glass p-4 rounded-2xl border border-charcoal-100 shadow-sm hover:border-fnc-200 transition-all group">
                             <div className="flex items-start gap-3">
                                 <div className="h-14 w-14 flex-shrink-0 rounded-xl overflow-hidden bg-charcoal-50 border border-charcoal-100 shadow-sm group-hover:shadow-md transition-shadow">
@@ -588,7 +592,7 @@ const ActivosList = () => {
                     <div className="hidden sm:flex sm:flex-1 sm:items-center sm:justify-between">
                         <div>
                             <p className="text-sm text-gray-700">
-                                Mostrando <span className="font-medium">{indexOfFirstItem + 1}</span> a <span className="font-medium">{Math.min(indexOfLastItem, activos.length)}</span> de <span className="font-medium">{activos.length}</span> resultados
+                                Mostrando <span className="font-medium">{indexOfFirstItem + 1}</span> a <span className="font-medium">{indexOfLastItem}</span> de <span className="font-medium">{totalItems}</span> resultados
                             </p>
                         </div>
                         <div>

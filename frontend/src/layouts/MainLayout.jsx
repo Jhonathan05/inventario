@@ -2,7 +2,7 @@ import { useState, useRef, useEffect } from 'react';
 import { Outlet, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import Sidebar from '../components/Sidebar';
-import { BellIcon, TicketIcon, ClockIcon } from '@heroicons/react/24/outline';
+import { BellIcon, TicketIcon, ClockIcon, InformationCircleIcon, ExclamationTriangleIcon } from '@heroicons/react/24/outline';
 import api from '../lib/axios';
 import { formatDistanceToNow } from 'date-fns';
 import { es } from 'date-fns/locale';
@@ -23,11 +23,37 @@ const MainLayout = () => {
 
     const fetchAlertas = async () => {
         try {
-            const res = await api.get('/tickets/resumen-alertas');
+            const res = await api.get('/alertas');
             setAlertas(res.data);
         } catch (error) {
             console.error('Error fetching alerts:', error);
         }
+    };
+
+    const handleAlertaClick = async (alerta) => {
+        try {
+            if (!alerta.leida) {
+                await api.patch(`/alertas/${alerta.id}/leida`);
+                fetchAlertas();
+            }
+        } catch (e) {
+            console.error('Error marking alert read:', e);
+        }
+
+        setAlertsOpen(false);
+
+        if (alerta.tipo === 'SLA_TICKET_RESPUESTA' && alerta.referenciaId) {
+            navigate(`/tickets/${alerta.referenciaId}`);
+        } else if (['GARANTIA_VENCIMIENTO', 'MANTENIMIENTO_PROLONGADO'].includes(alerta.tipo) && alerta.referenciaId) {
+            navigate(`/activos/${alerta.referenciaId}`);
+        }
+    };
+
+    const getAlertaIcon = (tipo) => {
+        if (tipo === 'SLA_TICKET_RESPUESTA') return <ClockIcon className="w-5 h-5 text-red-500" />;
+        if (tipo === 'GARANTIA_VENCIMIENTO') return <ExclamationTriangleIcon className="w-5 h-5 text-yellow-500" />;
+        if (tipo === 'MANTENIMIENTO_PROLONGADO') return <ExclamationTriangleIcon className="w-5 h-5 text-orange-500" />;
+        return <InformationCircleIcon className="w-5 h-5 text-blue-500" />;
     };
 
     // Cerrar dropdowns al hacer clic fuera
@@ -90,35 +116,35 @@ const MainLayout = () => {
                                     <div className="absolute right-0 mt-3 w-80 rounded-2xl shadow-2xl bg-white ring-1 ring-black ring-opacity-5 z-[9999] overflow-hidden animate-slide-up origin-top-right border border-gray-100">
                                         <div className="bg-fnc-700 p-4 text-white">
                                             <h3 className="text-sm font-bold flex items-center justify-between">
-                                                Casos Pendientes
-                                                <span className="bg-fnc-500 px-2 py-0.5 rounded-full text-[10px] uppercase tracking-wider">Bitácora</span>
+                                                Alertas y Notificaciones
+                                                <span className="bg-fnc-500 px-2 py-0.5 rounded-full text-[10px] uppercase tracking-wider">Sistema</span>
                                             </h3>
-                                            <p className="text-[10px] text-fnc-100 mt-1">Tienes {alertas.pendientes} casos por solucionar o cerrar.</p>
+                                            <p className="text-[10px] text-fnc-100 mt-1">Tienes {alertas.pendientes} notificaciones sin leer.</p>
                                         </div>
 
                                         <div className="max-h-96 overflow-y-auto divide-y divide-gray-100">
                                             {alertas.listaRecientes.length > 0 ? (
-                                                alertas.listaRecientes.map((ticket) => (
+                                                alertas.listaRecientes.map((alerta) => (
                                                     <button
-                                                        key={ticket.id}
-                                                        onClick={() => {
-                                                            navigate(`/tickets/${ticket.id}`);
-                                                            setAlertsOpen(false);
-                                                        }}
-                                                        className={`w-full text-left p-4 hover:bg-fnc-50 transition-colors flex items-start gap-3 group ${!ticket.leido ? 'bg-blue-50/50' : ''}`}
+                                                        key={alerta.id}
+                                                        onClick={() => handleAlertaClick(alerta)}
+                                                        className={`w-full text-left p-4 hover:bg-fnc-50 transition-colors flex items-start gap-3 group ${!alerta.leida ? 'bg-blue-50/50' : ''}`}
                                                     >
-                                                        <div className={`mt-1 h-2 w-2 rounded-full shrink-0 ${!ticket.leido ? 'bg-blue-500 animate-pulse' : 'bg-gray-300'}`} />
+                                                        <div className={`mt-1 h-2 w-2 rounded-full shrink-0 ${!alerta.leida ? 'bg-blue-500 animate-pulse' : 'bg-gray-300'}`} />
                                                         <div className="flex-1 min-w-0">
-                                                            <p className={`text-xs font-semibold truncate ${!ticket.leido ? 'text-blue-900' : 'text-gray-900'}`}>
-                                                                {ticket.titulo}
+                                                            <div className="flex items-center gap-2 mb-1">
+                                                                {getAlertaIcon(alerta.tipo)}
+                                                                <p className={`text-xs font-semibold truncate ${!alerta.leida ? 'text-blue-900' : 'text-gray-900'}`}>
+                                                                    {alerta.titulo}
+                                                                </p>
+                                                            </div>
+                                                            <p className="text-[10px] text-gray-600 line-clamp-2 leading-tight">
+                                                                {alerta.mensaje}
                                                             </p>
-                                                            <div className="flex items-center gap-2 mt-1">
-                                                                <span className="text-[9px] font-bold uppercase py-0.5 px-1.5 rounded bg-gray-100 text-gray-600 border border-gray-200">
-                                                                    {ticket.estado.replace('_', ' ')}
-                                                                </span>
+                                                            <div className="flex items-center gap-2 mt-2">
                                                                 <span className="text-[9px] text-gray-400 flex items-center gap-0.5">
                                                                     <ClockIcon className="w-3 h-3" />
-                                                                    {formatDistanceToNow(new Date(ticket.creadoEn), { addSuffix: true, locale: es })}
+                                                                    {formatDistanceToNow(new Date(alerta.creadoEn), { addSuffix: true, locale: es })}
                                                                 </span>
                                                             </div>
                                                         </div>
@@ -126,21 +152,25 @@ const MainLayout = () => {
                                                 ))
                                             ) : (
                                                 <div className="p-8 text-center bg-gray-50">
-                                                    <TicketIcon className="h-10 w-10 text-gray-300 mx-auto mb-2" />
-                                                    <p className="text-xs text-gray-500">No tienes casos pendientes asignados.</p>
+                                                    <BellIcon className="h-10 w-10 text-gray-300 mx-auto mb-2" />
+                                                    <p className="text-xs text-gray-500">No tienes alertas pendientes.</p>
                                                 </div>
                                             )}
                                         </div>
 
                                         <div className="p-3 bg-gray-50 border-t border-gray-100">
                                             <button
-                                                onClick={() => {
-                                                    navigate('/tickets');
-                                                    setAlertsOpen(false);
+                                                onClick={async () => {
+                                                    try {
+                                                        await api.delete('/alertas/limpiar');
+                                                        fetchAlertas();
+                                                    } catch (e) {
+                                                        console.error(e);
+                                                    }
                                                 }}
                                                 className="w-full py-2 bg-white border border-gray-200 rounded-lg text-xs font-bold text-fnc-700 hover:bg-fnc-50 hover:border-fnc-200 transition-all shadow-sm"
                                             >
-                                                Ver Todos Mis Casos
+                                                Limpiar alertas leídas
                                             </button>
                                         </div>
                                     </div>
