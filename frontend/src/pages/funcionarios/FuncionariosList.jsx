@@ -461,7 +461,7 @@ const FuncionariosList = () => {
 
             {/* Modal Equipos Activos del Funcionario */}
             {showEquiposModal && (
-                <div className="fixed inset-0 z-50 overflow-y-auto" role="dialog" aria-modal="true">
+                <div className="fixed inset-0 z-[10001] overflow-y-auto" role="dialog" aria-modal="true">
                     <div className="flex items-center justify-center min-h-screen px-4 pb-20 pt-4 text-center sm:p-0">
                         <div className="fixed inset-0 bg-charcoal-900/50 backdrop-blur-sm" onClick={() => setShowEquiposModal(false)} />
                         <div className="relative glass border border-charcoal-100 rounded-2xl px-6 pt-6 pb-6 text-left shadow-2xl sm:my-8 sm:w-full sm:max-w-2xl z-10">

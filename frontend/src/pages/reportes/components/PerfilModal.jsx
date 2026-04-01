@@ -11,7 +11,7 @@ export const PerfilModal = ({
     if (!show) return null;
 
     return (
-        <div className="fixed inset-0 bg-gray-900/50 z-50 flex items-center justify-center p-4" onClick={onClose}>
+        <div className="fixed inset-0 bg-gray-900/50 z-[10001] flex items-center justify-center p-4" onClick={onClose}>
             <div className="bg-white rounded-xl shadow-xl w-full max-w-md" onClick={e => e.stopPropagation()}>
                 <div className="px-6 py-4 border-b border-gray-200">
                     <h3 className="text-lg font-semibold text-gray-900">
