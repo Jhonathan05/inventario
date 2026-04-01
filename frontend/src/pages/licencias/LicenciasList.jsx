@@ -226,7 +226,7 @@ const LicenciasList = () => {
 
             {/* Modal de Crear/Editar */}
             {showModal && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 p-4">
+                <div className="fixed inset-0 z-[10001] flex items-center justify-center bg-black bg-opacity-50 p-4">
                     <div className="bg-white rounded-xl shadow-xl w-full max-w-lg overflow-hidden">
                         <div className="px-6 py-4 border-b border-gray-200 flex justify-between items-center">
                             <h3 className="text-lg font-bold text-gray-900">{isEditing ? 'Editar Licencia' : 'Registrar Software'}</h3>

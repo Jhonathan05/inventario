@@ -23,11 +23,11 @@ const SelectWithAdd = ({ label, name, value, onChange, options, onAdd, required,
         menu: (base) => ({
             ...base,
             fontSize: '0.875rem',
-            zIndex: 9999
+            zIndex: 10010
         }),
         menuPortal: (base) => ({
             ...base,
-            zIndex: 9999
+            zIndex: 10010
         })
     };
 

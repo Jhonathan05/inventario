@@ -38,18 +38,18 @@ echo "✅ Base de datos conectada con éxito."
 echo "💎 Generando cliente Prisma..."
 npx prisma generate
 
-echo "📐 Sincronizando esquema de base de datos..."
-# Usamos db push en dev para rapidez, pero en prod debería ser prisma migrate deploy
+# Sincronizamos el esquema de forma no interactiva tras la restauración
 if [ "$NODE_ENV" = "development" ]; then
-  npx prisma migrate dev --name init
+  echo "📐 Sincronizando esquema (db push)..."
+  npx prisma db push --accept-data-loss
 else
   echo "🚀 [PROD] Ejecutando migraciones..."
   npx prisma migrate deploy
 fi
 
-echo "🌱 Ejecutando carga de datos (Seeds)..."
-node prisma/seed.js || echo "⚠️ Seed base omitido o con advertencias."
-node prisma/seed_catalogos.js || echo "⚠️ Seed de catálogos omitido o con advertencias."
+# echo "🌱 Ejecutando carga de datos (Seeds)..."
+# node prisma/seed.js || echo "⚠️ Seed base omitido o con advertencias."
+# node prisma/seed_catalogos.js || echo "⚠️ Seed de catálogos omitido o con advertencias."
 
 if [ "$NODE_ENV" = "development" ]; then
   echo "🛠️ Iniciando servidor en modo DESARROLLO (nodemon)..."
