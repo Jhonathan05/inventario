@@ -12,7 +12,6 @@ export const exportActivosExcel = (activos) => {
         Marca: a.marca || '',
         Modelo: a.modelo || '',
         Categoría: a.categoria?.nombre || '',
-        TipoEquipo: a.tipo || '',
         Estado: a.estado || '',
         EstadoOperativo: a.estadoOperativo || '',
         'Ubicación y Piso': a.ubicacion || (a.asignaciones?.[0]?.funcionario?.ubicacion
@@ -39,13 +38,12 @@ export const exportActivosPDF = (activos, funcionarios, filterFuncionario) => {
     doc.setFontSize(10);
     doc.text(`Total Resultados: ${activos.length}`, 14, 22);
 
-    const tableColumn = ['Placa', 'Serial', 'Marca/Modelo', 'Categoría', 'Tipo', 'Estado', 'Ubicación y Piso', 'Asignado A'];
+    const tableColumn = ['Placa', 'Serial', 'Marca/Modelo', 'Categoría', 'Estado', 'Ubicación y Piso', 'Asignado A'];
     const tableRows = activos.map(a => [
         a.placa || 'N/A',
         a.serial || 'N/A',
         `${a.marca || ''} ${a.modelo || ''}`.trim(),
         a.categoria?.nombre || 'N/A',
-        a.tipo || 'N/A',
         a.estado || 'N/A',
         a.ubicacion || (a.asignaciones?.[0]?.funcionario?.ubicacion
             ? `${a.asignaciones[0].funcionario.ubicacion}${a.asignaciones[0].funcionario.piso ? ` - Piso ${a.asignaciones[0].funcionario.piso}` : ''}`

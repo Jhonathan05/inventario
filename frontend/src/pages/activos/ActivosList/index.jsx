@@ -18,15 +18,15 @@ const ActivosList = () => {
     const canEdit = user?.rol === 'ADMIN' || user?.rol === 'ANALISTA_TIC';
 
     const {
-        activos, pagination, loading, funcionarios, catalogs,
+        activos, pagination, loading, categorias, funcionarios, catalogs,
         search, setSearch,
         isModalOpen, selectedActivo,
         showFilters, setShowFilters,
         currentPage, itemsPerPage,
+        filterCategoria, setFilterCategoria,
         filterEstado, setFilterEstado,
         filterEmpresa, setFilterEmpresa,
         filterEstadoOp, setFilterEstadoOp,
-        filterTipo, setFilterTipo,
         filterFuncionario, setFilterFuncionario,
         searchFuncionarioText, setSearchFuncionarioText,
         showFuncionarioDropdown, setShowFuncionarioDropdown,
@@ -36,6 +36,8 @@ const ActivosList = () => {
         handleCreate, handleEdit, handleCloseModal,
         clearFilters, changePage,
         handleViewHistorial,
+        isExporting, getExportData,
+        sortBy, sortOrder, handleSort,
     } = useActivosList();
 
     const totalPages = pagination.pages || 1;
@@ -52,11 +54,25 @@ const ActivosList = () => {
                 <div className="flex flex-wrap gap-2">
                     {activos.length > 0 && (
                         <>
-                            <button onClick={() => exportActivosExcel(activos)} className="rounded-md bg-green-600 px-3 py-2 text-sm font-semibold text-white hover:bg-green-500 shadow-sm">
-                                📊 Excel
+                            <button
+                                onClick={async () => {
+                                    const allData = await getExportData();
+                                    exportActivosExcel(allData);
+                                }}
+                                disabled={isExporting}
+                                className="rounded-md bg-green-600 px-3 py-2 text-sm font-semibold text-white hover:bg-green-500 shadow-sm disabled:opacity-50"
+                            >
+                                {isExporting ? '⏳...' : '📊 Excel'}
                             </button>
-                            <button onClick={() => exportActivosPDF(activos, funcionarios, filterFuncionario)} className="rounded-md bg-red-600 px-3 py-2 text-sm font-semibold text-white hover:bg-red-500 shadow-sm">
-                                📄 PDF
+                            <button
+                                onClick={async () => {
+                                    const allData = await getExportData();
+                                    exportActivosPDF(allData, funcionarios, filterFuncionario);
+                                }}
+                                disabled={isExporting}
+                                className="rounded-md bg-red-600 px-3 py-2 text-sm font-semibold text-white hover:bg-red-500 shadow-sm disabled:opacity-50"
+                            >
+                                {isExporting ? '⏳...' : '📄 PDF'}
                             </button>
                         </>
                     )}
@@ -72,14 +88,14 @@ const ActivosList = () => {
                 search={search} setSearch={setSearch}
                 showFilters={showFilters} setShowFilters={setShowFilters}
                 activeFilterCount={activeFilterCount}
+                filterCategoria={filterCategoria} setFilterCategoria={setFilterCategoria}
                 filterEstado={filterEstado} setFilterEstado={setFilterEstado}
                 filterEmpresa={filterEmpresa} setFilterEmpresa={setFilterEmpresa}
                 filterEstadoOp={filterEstadoOp} setFilterEstadoOp={setFilterEstadoOp}
-                filterTipo={filterTipo} setFilterTipo={setFilterTipo}
                 filterFuncionario={filterFuncionario} setFilterFuncionario={setFilterFuncionario}
                 searchFuncionarioText={searchFuncionarioText} setSearchFuncionarioText={setSearchFuncionarioText}
                 showFuncionarioDropdown={showFuncionarioDropdown} setShowFuncionarioDropdown={setShowFuncionarioDropdown}
-                catalogs={catalogs} funcionarios={funcionarios}
+                catalogs={catalogs} funcionarios={funcionarios} categorias={categorias}
                 clearFilters={clearFilters}
                 onViewHistorial={handleViewHistorial}
             />
@@ -88,7 +104,14 @@ const ActivosList = () => {
 
             {!loading && (
                 <>
-                    <ActivosTable activos={activos} canEdit={canEdit} onEdit={handleEdit} />
+                    <ActivosTable 
+                        activos={activos} 
+                        canEdit={canEdit} 
+                        onEdit={handleEdit} 
+                        sortBy={sortBy}
+                        sortOrder={sortOrder}
+                        onSort={handleSort}
+                    />
                     <ActivosCards activos={activos} canEdit={canEdit} onEdit={handleEdit} />
                 </>
             )}

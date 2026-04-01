@@ -7,7 +7,13 @@ const upload = require('../middleware/upload.middleware');
 // GET /api/activos - Listar con filtros
 router.get('/', authMiddleware, async (req, res) => {
     try {
-        const { categoriaId, estado, search, empresaPropietaria, estadoOperativo, tipo, funcionarioId, activoFijo, page = 1, limit = 50 } = req.query;
+        const { 
+            categoriaId, estado, search, empresaPropietaria, estadoOperativo, 
+            tipo, funcionarioId, activoFijo, 
+            page = 1, limit = 50,
+            sortBy = 'creadoEn', order = 'desc'
+        } = req.query;
+
         const where = {};
         if (categoriaId) where.categoriaId = parseInt(categoriaId);
         if (estado) where.estado = estado;
@@ -38,6 +44,15 @@ router.get('/', authMiddleware, async (req, res) => {
         const skip = (parseInt(page) - 1) * parseInt(limit);
         const take = parseInt(limit);
 
+        // Mapeo dinámico de ordenamiento
+        let orderBy = { creadoEn: order };
+        if (sortBy === 'activo') orderBy = { marca: order };
+        if (sortBy === 'categoria') orderBy = { categoria: { nombre: order } };
+        if (sortBy === 'estado') orderBy = { estado: order };
+        if (sortBy === 'placa') orderBy = { placa: order };
+        if (sortBy === 'ubicacion') orderBy = { ubicacion: order };
+        if (sortBy === 'funcionario') orderBy = { nombreFuncionario: order };
+
         const [activos, total] = await Promise.all([
             prisma.activo.findMany({
                 where,
@@ -51,7 +66,7 @@ router.get('/', authMiddleware, async (req, res) => {
                         take: 1,
                     },
                 },
-                orderBy: { creadoEn: 'desc' },
+                orderBy,
             }),
             prisma.activo.count({ where })
         ]);

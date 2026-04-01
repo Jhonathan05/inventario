@@ -5,14 +5,15 @@ const ActivosFilters = ({
     search, setSearch,
     showFilters, setShowFilters,
     activeFilterCount,
+    filterCategoria, setFilterCategoria,
     filterEstado, setFilterEstado,
     filterEmpresa, setFilterEmpresa,
     filterEstadoOp, setFilterEstadoOp,
-    filterTipo, setFilterTipo,
     filterFuncionario, setFilterFuncionario,
     searchFuncionarioText, setSearchFuncionarioText,
     showFuncionarioDropdown, setShowFuncionarioDropdown,
     catalogs,
+    categorias,
     funcionarios,
     clearFilters,
     onViewHistorial,
@@ -61,10 +62,11 @@ const ActivosFilters = ({
                             onFocus={() => setShowFuncionarioDropdown(true)}
                             onBlur={() => setTimeout(() => setShowFuncionarioDropdown(false), 200)}
                         />
-                        {showFuncionarioDropdown && searchFuncionarioText && (() => {
+                        {showFuncionarioDropdown && (() => {
+                            const searchTerm = searchFuncionarioText.toLowerCase();
                             const filtered = funcionarios.filter(f =>
-                                f.nombre.toLowerCase().includes(searchFuncionarioText.toLowerCase()) ||
-                                f.cedula?.includes(searchFuncionarioText)
+                                f.nombre.toLowerCase().includes(searchTerm) ||
+                                f.cedula?.includes(searchTerm)
                             );
                             return (
                                 <ul className="absolute z-10 mt-1 max-h-48 w-full overflow-auto rounded-md bg-white py-1 text-sm shadow-lg ring-1 ring-black ring-opacity-5">
@@ -88,6 +90,16 @@ const ActivosFilters = ({
                                 </ul>
                             );
                         })()}
+                    </div>
+
+                    {/* Categoría */}
+                    <div>
+                        <label className="block text-xs font-medium text-gray-600 mb-1">Categoría</label>
+                        <select value={filterCategoria} onChange={e => setFilterCategoria(e.target.value)}
+                            className="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-indigo-600 text-sm px-2">
+                            <option value="">Todas</option>
+                            {categorias.map(c => <option key={c.id} value={c.id}>{c.nombre}</option>)}
+                        </select>
                     </div>
 
                     {/* Estado */}
@@ -123,15 +135,6 @@ const ActivosFilters = ({
                         </select>
                     </div>
 
-                    {/* Tipo */}
-                    <div>
-                        <label className="block text-xs font-medium text-gray-600 mb-1">Tipo de Equipo</label>
-                        <select value={filterTipo} onChange={e => setFilterTipo(e.target.value)}
-                            className="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-indigo-600 text-sm px-2">
-                            <option value="">Todos</option>
-                            {catalogs.TIPO_EQUIPO.map(e => <option key={e} value={e}>{e}</option>)}
-                        </select>
-                    </div>
                 </div>
 
                 {filterFuncionario && (

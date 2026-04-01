@@ -22,22 +22,60 @@ const getStatusBadge = (estado) => {
 /**
  * ActivosTable — Tabla para vistas escritorio (hidden en móvil).
  */
-const ActivosTable = ({ activos, canEdit, onEdit }) => (
-    <div className="mt-6 hidden md:block">
-        <div className="glass overflow-hidden">
-            <div className="overflow-x-auto">
-                <table className="w-full text-left border-collapse min-w-[800px]">
-                    <thead className="bg-charcoal-50 border-b border-charcoal-100 text-sm uppercase tracking-wider text-charcoal-500">
-                        <tr>
-                            <th scope="col" className="px-6 py-4 font-bold">Activo</th>
-                            <th scope="col" className="px-6 py-4 font-bold">Categoría</th>
-                            <th scope="col" className="px-6 py-4 font-bold">Estado</th>
-                            <th scope="col" className="px-6 py-4 font-bold">Ubicación y Piso</th>
-                            <th scope="col" className="px-6 py-4 font-bold">Asignado A</th>
-                            {canEdit && <th scope="col" className="px-6 py-4 font-bold text-right">Acciones</th>}
-                        </tr>
-                    </thead>
-                    <tbody className="divide-y divide-charcoal-100 bg-transparent">
+const ActivosTable = ({ activos, canEdit, onEdit, sortBy, sortOrder, onSort }) => {
+    const renderSortIcon = (field) => {
+        if (sortBy !== field) return (
+            <svg className="h-3 w-3 ml-1 text-charcoal-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4" />
+            </svg>
+        );
+        return sortOrder === 'asc' ? (
+            <svg className="h-4 w-4 ml-1 text-fnc-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 15l7-7 7 7" />
+            </svg>
+        ) : (
+            <svg className="h-4 w-4 ml-1 text-fnc-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M19 9l-7 7-7-7" />
+            </svg>
+        );
+    };
+
+    return (
+        <div className="mt-6 hidden md:block">
+            <div className="glass overflow-hidden">
+                <div className="overflow-x-auto">
+                    <table className="w-full text-left border-collapse min-w-[800px]">
+                        <thead className="bg-charcoal-50 border-b border-charcoal-100 text-[10px] uppercase tracking-widest text-charcoal-500">
+                            <tr>
+                                <th scope="col" className="px-6 py-4">
+                                    <button onClick={() => onSort('activo')} className="flex items-center font-black hover:text-fnc-600 transition-colors uppercase">
+                                        Activo {renderSortIcon('activo')}
+                                    </button>
+                                </th>
+                                <th scope="col" className="px-6 py-4">
+                                    <button onClick={() => onSort('categoria')} className="flex items-center font-black hover:text-fnc-600 transition-colors uppercase">
+                                        Categoría {renderSortIcon('categoria')}
+                                    </button>
+                                </th>
+                                <th scope="col" className="px-6 py-4">
+                                    <button onClick={() => onSort('estado')} className="flex items-center font-black hover:text-fnc-600 transition-colors uppercase">
+                                        Estado {renderSortIcon('estado')}
+                                    </button>
+                                </th>
+                                <th scope="col" className="px-6 py-4">
+                                    <button onClick={() => onSort('ubicacion')} className="flex items-center font-black hover:text-fnc-600 transition-colors uppercase">
+                                        Ubicación {renderSortIcon('ubicacion')}
+                                    </button>
+                                </th>
+                                <th scope="col" className="px-6 py-4">
+                                    <button onClick={() => onSort('funcionario')} className="flex items-center font-black hover:text-fnc-600 transition-colors uppercase">
+                                        Asignado A {renderSortIcon('funcionario')}
+                                    </button>
+                                </th>
+                                {canEdit && <th scope="col" className="px-6 py-4 font-black text-right">Acciones</th>}
+                            </tr>
+                        </thead>
+                        <tbody className="divide-y divide-charcoal-100 bg-transparent">
                         {activos.map((activo) => (
                             <tr key={activo.id} className="hover:bg-fnc-50/50 transition-colors">
                                 <td className="px-6 py-4">
@@ -100,6 +138,7 @@ const ActivosTable = ({ activos, canEdit, onEdit }) => (
             </div>
         </div>
     </div>
-);
+  );
+};
 
 export default ActivosTable;

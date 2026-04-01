@@ -6,7 +6,7 @@ import { funcionariosService } from '../../../api/funcionarios.service';
 import { catalogosService } from '../../../api/catalogos.service';
 
 const sortList = (list) =>
-    [...list].sort((a, b) =>
+    [...(list?.data || list)].sort((a, b) =>
         (a.nombre || a.valor || a).toString().toUpperCase()
             .localeCompare((b.nombre || b.valor || b).toString().toUpperCase())
     );
@@ -20,13 +20,16 @@ export const useActivosList = () => {
     const [selectedActivo, setSelectedActivo] = useState(null);
     const [showFilters, setShowFilters] = useState(false);
     const [currentPage, setCurrentPage] = useState(1);
+    const [isExporting, setIsExporting] = useState(false);
+    const [sortBy, setSortBy] = useState('creadoEn');
+    const [sortOrder, setSortOrder] = useState('desc');
     const itemsPerPage = 10;
 
     // Advanced filters
+    const [filterCategoria, setFilterCategoria] = useState('');
     const [filterEstado, setFilterEstado] = useState('');
     const [filterEmpresa, setFilterEmpresa] = useState('');
     const [filterEstadoOp, setFilterEstadoOp] = useState('');
-    const [filterTipo, setFilterTipo] = useState('');
     const [filterFuncionario, setFilterFuncionario] = useState('');
     const [searchFuncionarioText, setSearchFuncionarioText] = useState('');
     const [showFuncionarioDropdown, setShowFuncionarioDropdown] = useState(false);
@@ -45,7 +48,10 @@ export const useActivosList = () => {
 
     const { data: funcionarios = [] } = useQuery({
         queryKey: ['funcionarios', 'all'],
-        queryFn: async () => sortList(await funcionariosService.getAll()),
+        queryFn: async () => {
+            const res = await funcionariosService.getAll({ limit: 1000 });
+            return sortList(res?.data || (Array.isArray(res) ? res : []));
+        },
         staleTime: 5 * 60 * 1000,
     });
 
@@ -53,7 +59,7 @@ export const useActivosList = () => {
         queryKey: ['catalogos', 'filters'],
         queryFn: async () => {
             const res = await catalogosService.getAll();
-            const grouped = res.reduce((acc, curr) => {
+            const grouped = (res?.data || res).reduce((acc, curr) => {
                 if (!acc[curr.dominio]) acc[curr.dominio] = [];
                 acc[curr.dominio].push(curr.valor);
                 return acc;
@@ -72,11 +78,13 @@ export const useActivosList = () => {
         page: currentPage,
         limit: itemsPerPage,
         ...(search && { search }),
+        ...(filterCategoria && { categoriaId: filterCategoria }),
         ...(filterEstado && { estado: filterEstado }),
         ...(filterEmpresa && { empresaPropietaria: filterEmpresa }),
         ...(filterEstadoOp && { estadoOperativo: filterEstadoOp }),
-        ...(filterTipo && { tipo: filterTipo }),
         ...(filterFuncionario && { funcionarioId: filterFuncionario }),
+        sortBy,
+        order: sortOrder,
     };
 
     const { data: responseData, isLoading: loading } = useQuery({
@@ -97,10 +105,11 @@ export const useActivosList = () => {
     };
 
     const clearFilters = () => {
+        setSearch('');
+        setFilterCategoria('');
         setFilterEstado('');
         setFilterEmpresa('');
         setFilterEstadoOp('');
-        setFilterTipo('');
         setFilterFuncionario('');
         setSearchFuncionarioText('');
         setCurrentPage(1);
@@ -127,8 +136,38 @@ export const useActivosList = () => {
         }
     };
 
-    const activeFilterCount = [filterEstado, filterEmpresa, filterEstadoOp, filterTipo, filterFuncionario]
+    const activeFilterCount = [filterCategoria, filterEstado, filterEmpresa, filterEstadoOp, filterFuncionario]
         .filter(Boolean).length;
+    
+    // ── Exportación total ─────────────────────────────────────────────
+    const getExportData = async () => {
+        setIsExporting(true);
+        try {
+            // Clonar parámetros actuales pero con límite alto
+            const exportParams = {
+                ...queryParams,
+                page: 1,
+                limit: 5000 // Suficiente para evitar paginación en la mayoría de casos
+            };
+            const response = await activosService.getAll(exportParams);
+            return response?.data || (Array.isArray(response) ? response : []);
+        } catch (err) {
+            console.error('Error fetching export data', err);
+            return [];
+        } finally {
+            setIsExporting(false);
+        }
+    };
+
+    const handleSort = (field) => {
+        if (sortBy === field) {
+            setSortOrder(prev => (prev === 'asc' ? 'desc' : 'asc'));
+        } else {
+            setSortBy(field);
+            setSortOrder('asc');
+        }
+        setCurrentPage(1);
+    };
 
     return {
         // Data
@@ -139,10 +178,10 @@ export const useActivosList = () => {
         showFilters, setShowFilters,
         currentPage, itemsPerPage,
         // Filters
+        filterCategoria, setFilterCategoria,
         filterEstado, setFilterEstado,
         filterEmpresa, setFilterEmpresa,
         filterEstadoOp, setFilterEstadoOp,
-        filterTipo, setFilterTipo,
         filterFuncionario, setFilterFuncionario,
         searchFuncionarioText, setSearchFuncionarioText,
         showFuncionarioDropdown, setShowFuncionarioDropdown,
@@ -154,5 +193,9 @@ export const useActivosList = () => {
         handleCreate, handleEdit, handleCloseModal,
         clearFilters, changePage,
         handleViewHistorial,
+        // Export
+        isExporting, getExportData,
+        // Sort
+        sortBy, sortOrder, handleSort,
     };
 };
