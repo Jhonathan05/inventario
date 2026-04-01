@@ -30,6 +30,7 @@ export const useActivosList = () => {
     const [filterEstado, setFilterEstado] = useState('');
     const [filterEmpresa, setFilterEmpresa] = useState('');
     const [filterEstadoOp, setFilterEstadoOp] = useState('');
+    const [filterCiudad, setFilterCiudad] = useState('');
     const [filterFuncionario, setFilterFuncionario] = useState('');
     const [searchFuncionarioText, setSearchFuncionarioText] = useState('');
     const [showFuncionarioDropdown, setShowFuncionarioDropdown] = useState(false);
@@ -82,6 +83,7 @@ export const useActivosList = () => {
         ...(filterEstado && { estado: filterEstado }),
         ...(filterEmpresa && { empresaPropietaria: filterEmpresa }),
         ...(filterEstadoOp && { estadoOperativo: filterEstadoOp }),
+        ...(filterCiudad && { ciudad: filterCiudad }),
         ...(filterFuncionario && { funcionarioId: filterFuncionario }),
         sortBy,
         order: sortOrder,
@@ -110,6 +112,7 @@ export const useActivosList = () => {
         setFilterEstado('');
         setFilterEmpresa('');
         setFilterEstadoOp('');
+        setFilterCiudad('');
         setFilterFuncionario('');
         setSearchFuncionarioText('');
         setCurrentPage(1);
@@ -136,7 +139,7 @@ export const useActivosList = () => {
         }
     };
 
-    const activeFilterCount = [filterCategoria, filterEstado, filterEmpresa, filterEstadoOp, filterFuncionario]
+    const activeFilterCount = [filterCategoria, filterEstado, filterEmpresa, filterEstadoOp, filterCiudad, filterFuncionario]
         .filter(Boolean).length;
     
     // ── Exportación total ─────────────────────────────────────────────
@@ -182,6 +185,7 @@ export const useActivosList = () => {
         filterEstado, setFilterEstado,
         filterEmpresa, setFilterEmpresa,
         filterEstadoOp, setFilterEstadoOp,
+        filterCiudad, setFilterCiudad,
         filterFuncionario, setFilterFuncionario,
         searchFuncionarioText, setSearchFuncionarioText,
         showFuncionarioDropdown, setShowFuncionarioDropdown,

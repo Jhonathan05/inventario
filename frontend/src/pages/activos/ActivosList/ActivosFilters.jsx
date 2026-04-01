@@ -1,3 +1,5 @@
+import { MUNICIPIOS_TOLIMA } from '../../../lib/constants';
+
 /**
  * ActivosFilters — Panel de búsqueda y filtros avanzados para la lista de activos.
  */
@@ -9,6 +11,7 @@ const ActivosFilters = ({
     filterEstado, setFilterEstado,
     filterEmpresa, setFilterEmpresa,
     filterEstadoOp, setFilterEstadoOp,
+    filterCiudad, setFilterCiudad,
     filterFuncionario, setFilterFuncionario,
     searchFuncionarioText, setSearchFuncionarioText,
     showFuncionarioDropdown, setShowFuncionarioDropdown,
@@ -132,6 +135,16 @@ const ActivosFilters = ({
                             className="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-indigo-600 text-sm px-2">
                             <option value="">Todos</option>
                             {catalogs.ESTADO_OPERATIVO.map(e => <option key={e} value={e}>{e}</option>)}
+                        </select>
+                    </div>
+
+                    {/* Ciudad / Municipio */}
+                    <div>
+                        <label className="block text-xs font-medium text-gray-600 mb-1">Ciudad / Municipio</label>
+                        <select value={filterCiudad} onChange={e => setFilterCiudad(e.target.value)}
+                            className="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-indigo-600 text-sm px-2">
+                            <option value="">Cualquier municipio</option>
+                            {MUNICIPIOS_TOLIMA.map(m => <option key={m} value={m}>{m}</option>)}
                         </select>
                     </div>
 

@@ -27,6 +27,7 @@ const ActivosList = () => {
         filterEstado, setFilterEstado,
         filterEmpresa, setFilterEmpresa,
         filterEstadoOp, setFilterEstadoOp,
+        filterCiudad, setFilterCiudad,
         filterFuncionario, setFilterFuncionario,
         searchFuncionarioText, setSearchFuncionarioText,
         showFuncionarioDropdown, setShowFuncionarioDropdown,
@@ -92,6 +93,7 @@ const ActivosList = () => {
                 filterEstado={filterEstado} setFilterEstado={setFilterEstado}
                 filterEmpresa={filterEmpresa} setFilterEmpresa={setFilterEmpresa}
                 filterEstadoOp={filterEstadoOp} setFilterEstadoOp={setFilterEstadoOp}
+                filterCiudad={filterCiudad} setFilterCiudad={setFilterCiudad}
                 filterFuncionario={filterFuncionario} setFilterFuncionario={setFilterFuncionario}
                 searchFuncionarioText={searchFuncionarioText} setSearchFuncionarioText={setSearchFuncionarioText}
                 showFuncionarioDropdown={showFuncionarioDropdown} setShowFuncionarioDropdown={setShowFuncionarioDropdown}

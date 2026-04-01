@@ -1,3 +1,5 @@
+import { MUNICIPIOS_TOLIMA } from '../../../lib/constants';
+
 export const FilterSelect = ({ label, value, onChange, options }) => (
     <div>
         <label className="block text-xs font-medium text-gray-600 mb-1">{label}</label>
@@ -32,6 +34,8 @@ export const ReportFilters = ({ selectedReport, filters, setFilters, catalogs })
                         options={catalogs.ESTADO_OPERATIVO.map(e => ({ value: e, label: e }))} />
                     <FilterSelect label="Tipo Equipo" value={filters.tipo} onChange={v => setFilters(p => ({ ...p, tipo: v }))}
                         options={catalogs.TIPO_EQUIPO.map(e => ({ value: e, label: e }))} />
+                    <FilterSelect label="Ciudad / Municipio" value={filters.ciudad} onChange={v => setFilters(p => ({ ...p, ciudad: v }))}
+                        options={MUNICIPIOS_TOLIMA.map(m => ({ value: m, label: m }))} />
                 </div>
             );
         case 'asignaciones':
@@ -59,6 +63,13 @@ export const ReportFilters = ({ selectedReport, filters, setFilters, catalogs })
                 <div className="grid grid-cols-1 gap-3">
                     <FilterSelect label="Filtrar por" value={filters.filtro} onChange={v => setFilters(p => ({ ...p, filtro: v }))}
                         options={[{ value: 'vencidas', label: '⛔ Vencidas' }, { value: 'proximas', label: '⚠️ Próximas (3 meses)' }, { value: 'vigentes', label: '✅ Vigentes' }]} />
+                </div>
+            );
+        case 'por-funcionario':
+            return (
+                <div className="grid grid-cols-1 gap-3">
+                    <FilterSelect label="Ciudad / Municipio" value={filters.ciudad} onChange={v => setFilters(p => ({ ...p, ciudad: v }))}
+                        options={MUNICIPIOS_TOLIMA.map(m => ({ value: m, label: m }))} />
                 </div>
             );
         default: return null;

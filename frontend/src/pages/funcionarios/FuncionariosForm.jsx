@@ -3,6 +3,7 @@ import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { funcionariosService } from '../../api/funcionarios.service';
 import SelectWithAdd from '../../components/SelectWithAdd';
 import CatalogModal from '../../components/CatalogModal';
+import { MUNICIPIOS_TOLIMA } from '../../lib/constants';
 
 const DEFAULT_STATE = {
     nombre: '',
@@ -71,7 +72,7 @@ const FuncionariosForm = ({ open, onClose, funcionario }) => {
     const options = {
         areas: sortList(rawOptions.areas || []),
         cargos: sortList(rawOptions.cargos || []),
-        ciudades: sortList(rawOptions.ciudades || []),
+        ciudades: sortList([...new Set([...(rawOptions.ciudades || []), ...MUNICIPIOS_TOLIMA])]),
         seccionales: sortList(rawOptions.seccionales || [])
     };
 
@@ -126,9 +127,7 @@ const FuncionariosForm = ({ open, onClose, funcionario }) => {
 
             // Lógica de sincronización de Ciudad -> Municipio y Ubicación
             if (name === 'ciudad') {
-                if (!prev.municipio || prev.municipio === prev.ciudad) {
-                    next.municipio = newValue;
-                }
+                next.municipio = newValue; // Sync always to municipio
                 if (!prev.ubicacion || prev.ubicacion === prev.ciudad) {
                     next.ubicacion = newValue;
                 }
@@ -334,7 +333,7 @@ const FuncionariosForm = ({ open, onClose, funcionario }) => {
                                         <input type="text" id="departamento" name="departamento" value={formData.departamento} onChange={handleChange} className={inputCls} autoComplete="address-level1" />
                                     </Field>
                                     <SelectWithAdd
-                                        label="Ciudad / Municipio"
+                                        label="Municipio / Ciudad"
                                         name="ciudad"
                                         required
                                         value={formData.ciudad}
@@ -353,14 +352,11 @@ const FuncionariosForm = ({ open, onClose, funcionario }) => {
                                         canAdd
                                         onAdd={() => handleOpenCatalogModal('SECCIONAL', 'Nueva Seccional')}
                                     />
-                                    <Field label="Municipio Específico" id="municipio" required>
-                                        <input type="text" id="municipio" name="municipio" value={formData.municipio} onChange={handleChange} className={inputCls} autoComplete="address-level2" />
-                                    </Field>
                                     <Field label="Ubicación / Sede Fija" id="ubicacion" required>
-                                        <input type="text" id="ubicacion" name="ubicacion" value={formData.ubicacion} onChange={handleChange} className={inputCls} autoComplete="street-address" />
+                                        <input type="text" id="ubicacion" name="ubicacion" value={formData.ubicacion} onChange={handleChange} className={inputCls} autoComplete="street-address" placeholder="EJ. PRIMER PISO, SEDE MURILLO" />
                                     </Field>
                                     <Field label="Piso / Oficina / Puesto" id="piso">
-                                        <input type="text" id="piso" name="piso" value={formData.piso} onChange={handleChange} className={inputCls} autoComplete="off" />
+                                        <input type="text" id="piso" name="piso" value={formData.piso} onChange={handleChange} className={inputCls} autoComplete="off" placeholder="EJ. OFICINA 201" />
                                     </Field>
                                 </div>
                             )}

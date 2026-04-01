@@ -9,7 +9,7 @@ router.get('/', authMiddleware, async (req, res) => {
     try {
         const { 
             categoriaId, estado, search, empresaPropietaria, estadoOperativo, 
-            tipo, funcionarioId, activoFijo, 
+            tipo, funcionarioId, activoFijo, ciudad,
             page = 1, limit = 50,
             sortBy = 'creadoEn', order = 'desc'
         } = req.query;
@@ -21,6 +21,7 @@ router.get('/', authMiddleware, async (req, res) => {
         if (estadoOperativo) where.estadoOperativo = estadoOperativo;
         if (tipo) where.tipo = tipo;
         if (activoFijo) where.activoFijo = { contains: activoFijo, mode: 'insensitive' };
+        if (ciudad) where.ciudad = ciudad;
         if (funcionarioId) {
             where.asignaciones = {
                 some: {

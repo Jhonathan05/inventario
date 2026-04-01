@@ -6,13 +6,14 @@ const { authMiddleware, requireRole } = require('../middleware/auth.middleware')
 // GET /api/reportes/inventario - Todos los activos con relaciones
 router.get('/inventario', authMiddleware, async (req, res) => {
     try {
-        const { estado, empresaPropietaria, estadoOperativo, tipo, categoriaId, page = 1, limit = 50 } = req.query;
+        const { estado, empresaPropietaria, estadoOperativo, tipo, categoriaId, ciudad, page = 1, limit = 50 } = req.query;
         const where = {};
         if (estado) where.estado = estado;
         if (empresaPropietaria) where.empresaPropietaria = empresaPropietaria;
         if (estadoOperativo) where.estadoOperativo = estadoOperativo;
         if (tipo) where.tipo = tipo;
         if (categoriaId) where.categoriaId = parseInt(categoriaId);
+        if (ciudad) where.ciudad = ciudad;
 
         const skip = (parseInt(page) - 1) * parseInt(limit);
         const take = parseInt(limit);
@@ -46,13 +47,14 @@ router.get('/inventario', authMiddleware, async (req, res) => {
 });
 
 // GET /api/reportes/por-funcionario - Activos agrupados por funcionario
-router.get('/por-funcionario', authMiddleware, async (req, res) => {
+    router.get('/por-funcionario', authMiddleware, async (req, res) => {
     try {
-        const { page = 1, limit = 50 } = req.query;
+        const { ciudad, page = 1, limit = 50 } = req.query;
         const skip = (parseInt(page) - 1) * parseInt(limit);
         const take = parseInt(limit);
 
         const where = { activo: true };
+        if (ciudad) where.ciudad = ciudad;
 
         const [funcionarios, total] = await Promise.all([
             prisma.funcionario.findMany({
