@@ -1,60 +1,69 @@
 import { NavLink } from 'react-router-dom';
-import {
-    HomeIcon,
-    ComputerDesktopIcon,
-    UserGroupIcon,
-    WrenchScrewdriverIcon,
-    TagIcon,
-    TicketIcon,
-    DocumentTextIcon,
-    ClipboardDocumentCheckIcon,
-    ArrowDownTrayIcon,
-    UsersIcon,
-    CircleStackIcon,
-    KeyIcon
-} from '@heroicons/react/24/outline';
 import { useAuth } from '../context/AuthContext';
 
 const Sidebar = () => {
     const { user } = useAuth();
 
     const navigation = [
-        { name: 'Inicio', href: '/', icon: HomeIcon, roles: ['ADMIN', 'ANALISTA_TIC', 'CONSULTA'] },
-        { name: 'Activos', href: '/activos', icon: ComputerDesktopIcon, roles: ['ADMIN', 'ANALISTA_TIC', 'CONSULTA'] },
-        { name: 'Funcionarios', href: '/funcionarios', icon: UserGroupIcon, roles: ['ADMIN', 'ANALISTA_TIC', 'CONSULTA'] },
-        { name: 'HelpDesk', href: '/tickets', icon: TicketIcon, roles: ['ADMIN', 'ANALISTA_TIC', 'CONSULTA'] },
-        { name: 'Mantenimientos', href: '/mantenimientos', icon: WrenchScrewdriverIcon, roles: ['ADMIN', 'ANALISTA_TIC', 'CONSULTA'] },
-        { name: 'Categorías', href: '/categorias', icon: TagIcon, roles: ['ADMIN', 'ANALISTA_TIC'] },
-        { name: 'Licencias', href: '/licencias', icon: KeyIcon, roles: ['ADMIN', 'ANALISTA_TIC'] },
-        { name: 'Reportes', href: '/reportes', icon: DocumentTextIcon, roles: ['ADMIN', 'ANALISTA_TIC', 'CONSULTA'] },
-        { name: 'Actas', href: '/actas', icon: ClipboardDocumentCheckIcon, roles: ['ADMIN', 'ANALISTA_TIC', 'CONSULTA'] },
-        { name: 'Importar', href: '/importar', icon: ArrowDownTrayIcon, roles: ['ADMIN', 'ANALISTA_TIC'] },
-        { name: 'Usuarios', href: '/usuarios', icon: UsersIcon, roles: ['ADMIN'] },
-        { name: 'Backups', href: '/soporte', icon: CircleStackIcon, roles: ['ADMIN'] },
+        { name: 'Inicio', href: '/', icon: '#', roles: ['ADMIN', 'ANALISTA_TIC', 'CONSULTA'] },
+        { name: 'Activos', href: '/activos', icon: '*', roles: ['ADMIN', 'ANALISTA_TIC', 'CONSULTA'] },
+        { name: 'Funcionarios', href: '/funcionarios', icon: '@', roles: ['ADMIN', 'ANALISTA_TIC', 'CONSULTA'] },
+        { name: 'HelpDesk', href: '/tickets', icon: '$', roles: ['ADMIN', 'ANALISTA_TIC', 'CONSULTA'] },
+        { name: 'Mantenimientos', href: '/mantenimientos', icon: '!', roles: ['ADMIN', 'ANALISTA_TIC', 'CONSULTA'] },
+        { name: 'Categorías', href: '/categorias', icon: '/', roles: ['ADMIN', 'ANALISTA_TIC'] },
+        { name: 'Licencias', href: '/licencias', icon: '&', roles: ['ADMIN', 'ANALISTA_TIC'] },
+        { name: 'Reportes', href: '/reportes', icon: '>', roles: ['ADMIN', 'ANALISTA_TIC', 'CONSULTA'] },
+        { name: 'Actas', href: '/actas', icon: '=', roles: ['ADMIN', 'ANALISTA_TIC', 'CONSULTA'] },
+        { name: 'Importar', href: '/importar', icon: '+', roles: ['ADMIN', 'ANALISTA_TIC'] },
+        { name: 'Usuarios', href: '/usuarios', icon: '%', roles: ['ADMIN'] },
+        { name: 'Backups', href: '/soporte', icon: '^', roles: ['ADMIN'] },
     ];
 
     return (
-        <nav className="nav-bar overflow-x-auto justify-start md:justify-start gap-2 md:gap-1 px-2">
-            <div className="hidden md:block mb-8 text-center w-full">
-                <h1 className="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-fnc-700 to-fnc-500 leading-tight">
-                    Inventario TIC
-                </h1>
-                <p className="text-xs text-charcoal-400 font-medium mt-1">FNC Tolima</p>
+        <nav className="nav-bar overflow-x-auto justify-start md:justify-start gap-2 px-4 py-8 bg-bg-surface border-r-4 border-r-border-default h-full shadow-2xl relative">
+            <div className="absolute top-0 right-0 p-4 opacity-5 pointer-events-none text-[8px] font-black uppercase tracking-widest vertical-rl h-full">ROOT_SHELL_NAV_0x00</div>
+            
+            <div className="hidden md:block mb-10 px-4 border-b-2 border-border-default pb-8">
+                <div className="flex items-center gap-4 mb-3">
+                    <div className="w-3 h-3 bg-text-accent animate-pulse shadow-[0_0_10px_rgba(var(--text-accent),0.5)]"></div>
+                    <div className="text-text-primary font-black text-xl tracking-[0.3em] uppercase">
+                        / core_it
+                    </div>
+                </div>
+                <div className="text-[10px] text-text-muted mt-2 uppercase tracking-[0.4em] font-black opacity-60">FNC_TOLIMA [v1.5.1]</div>
             </div>
 
-            {navigation.filter(item => item.roles.includes(user?.rol)).map((item) => (
-                <NavLink
-                    key={item.name}
-                    to={item.href}
-                    className={({ isActive }) => `nav-item flex-shrink-0 ${isActive ? 'active' : ''}`}
-                    end={item.href === '/'}
-                >
-                    <item.icon className="h-6 w-6 md:h-5 md:w-5 mb-1 md:mb-0 mix-blend-multiply flex-shrink-0" />
-                    <span className="md:inline text-[10px] md:text-sm text-center md:text-left mt-0.5 md:mt-0 font-medium whitespace-nowrap md:whitespace-normal">{item.name}</span>
-                </NavLink>
-            ))}
+            <div className="flex flex-row md:flex-col gap-2 w-full">
+                {navigation.filter(item => item.roles.includes(user?.rol)).map((item) => (
+                    <NavLink
+                        key={item.name}
+                        to={item.href}
+                        className={({ isActive }) => 
+                            `flex items-center gap-5 px-6 py-4 transition-all border-2 group/nav
+                            ${isActive 
+                                ? 'bg-bg-elevated border-text-accent text-text-accent shadow-[0_0_20px_rgba(var(--text-accent),0.1)]' 
+                                : 'bg-transparent border-transparent text-text-muted hover:border-border-default hover:text-text-primary hover:bg-bg-base/30'
+                            }`
+                        }
+                        end={item.href === '/'}
+                    >
+                        <span className="w-6 h-6 flex items-center justify-center font-black text-[14px] opacity-40 group-hover/nav:opacity-100 transition-opacity">
+                            {item.icon}
+                        </span>
+                        <span className="md:inline text-[11px] font-black uppercase tracking-[0.3em] whitespace-nowrap group-hover/nav:translate-x-1 transition-transform">
+                            {item.name.replace(/ /g, '_')}
+                        </span>
+                        <div className={`ml-auto w-1 h-1 bg-text-accent hidden md:block transition-all ${isActive ? 'opacity-100' : 'opacity-0group-hover/nav:opacity-20'}`}></div>
+                    </NavLink>
+                ))}
+            </div>
 
-            <div className="hidden md:block mt-auto w-full"></div>
+            <div className="mt-auto hidden md:block px-4 pt-10 opacity-30">
+                <div className="text-[9px] font-black uppercase tracking-widest text-text-muted border-t border-border-default pt-6">
+                    [ SYSTEM_UPTIME_OK ] <br/>
+                    [ IO_LINK_STABLE ]
+                </div>
+            </div>
         </nav>
     );
 };

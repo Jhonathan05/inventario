@@ -13,9 +13,8 @@ const DocumentosList = ({ activoId, documentos, onUpdate }) => {
         const file = e.target.files[0];
         if (!file) return;
 
-        // Validar tamaño (ej. max 5MB)
         if (file.size > 5 * 1024 * 1024) {
-            setError('El archivo es demasiado grande (Máx 5MB)');
+            setError('!! FILE_OVERFLOW :: MAX_5MB_SYSTEM_LIMIT');
             return;
         }
 
@@ -32,35 +31,47 @@ const DocumentosList = ({ activoId, documentos, onUpdate }) => {
                     'Content-Type': 'multipart/form-data',
                 },
             });
-            onUpdate(); // Recargar datos
+            onUpdate();
         } catch (err) {
             console.error(err);
-            setError('Error al subir el archivo');
+            setError('!! UPLOAD_FAULT :: DATA_STREAM_INTERRUPTED_0xDOC');
         } finally {
             setUploading(false);
-            e.target.value = null; // Reset input
+            if (e.target) e.target.value = null;
         }
     };
 
     const handleDelete = async (id) => {
-        if (!window.confirm('¿Estás seguro de eliminar este documento?')) return;
+        if (!window.confirm('¿CONFIRMAR_ELIMINACION_DE_DOCUMENTO? (PREVENT_DATA_LOSS_PROTOCOL)')) return;
         try {
             await api.delete(`/documentos/${id}`);
             onUpdate();
         } catch (err) {
             console.error(err);
-            alert('Error al eliminar');
+            alert('!! DELETE_FAULT :: REPOSITORY_REJECTED_TX');
         }
     };
 
     return (
-        <div>
-            <div className="flex justify-between items-center mb-4">
-                <h3 className="text-lg font-medium leading-6 text-gray-900">Documentos Adjuntos</h3>
+        <div className="font-mono animate-fadeIn mb-16">
+            <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-10 mb-12 px-6">
+                <div className="flex items-center gap-6">
+                    <div className="w-3 h-3 bg-text-accent animate-pulse"></div>
+                    <h3 className="text-[16px] font-black text-text-primary uppercase tracking-[0.6em]">/ attached_document_repository</h3>
+                </div>
                 {canEdit && (
-                    <div>
-                        <label htmlFor="file-upload" className={`cursor-pointer inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 ${uploading ? 'opacity-50 cursor-not-allowed' : ''}`}>
-                            {uploading ? 'Subiendo...' : '+ Subir Documento'}
+                    <div className="group/upload relative">
+                        <label 
+                            htmlFor="file-upload" 
+                            className={`cursor-pointer inline-flex items-center px-12 py-4 border-2 border-border-strong text-[12px] font-black uppercase tracking-[0.5em] transition-all bg-bg-elevated text-text-accent hover:text-text-primary shadow-3xl relative overflow-hidden group/label active:scale-95 ${uploading ? 'opacity-30 cursor-not-allowed' : ''}`}
+                        >
+                            {uploading ? (
+                                <span className="flex items-center gap-4">
+                                     <div className="w-4 h-4 border-2 border-t-text-accent border-border-default animate-spin"></div>
+                                     INITIALIZING_SYNC...
+                                </span>
+                            ) : '[ + ] ADD_DOCUMENT_ASSET_IO'}
+                            <div className="absolute inset-0 bg-text-accent/5 opacity-0 group-hover/label:opacity-100 transition-opacity"></div>
                         </label>
                         <input
                             id="file-upload"
@@ -75,42 +86,72 @@ const DocumentosList = ({ activoId, documentos, onUpdate }) => {
                 )}
             </div>
 
-            {error && <div className="text-red-600 text-sm mb-2">{error}</div>}
+            {error && (
+                <div className="mb-10 mx-6 p-6 border-2 border-text-accent bg-text-accent/5 text-text-accent font-black text-[11px] uppercase tracking-[0.4em] animate-pulse flex items-center gap-6 shadow-xl">
+                    <span className="text-2xl">!!</span>
+                    <div>
+                        <div>FAULT_DETECTED: {error}</div>
+                        <div className="text-[8px] opacity-60 mt-1">CHECK_IO_INTEGRITY // CLEAR_BUFFER_RETRY</div>
+                    </div>
+                </div>
+            )}
 
-            <div className="overflow-hidden shadow ring-1 ring-black ring-opacity-5 sm:rounded-lg">
-                <table className="min-w-full divide-y divide-gray-300">
-                    <thead className="bg-gray-50">
-                        <tr>
-                            <th className="py-3.5 pl-4 pr-3 text-left text-sm font-semibold text-gray-900">Nombre</th>
-                            <th className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">Tipo</th>
-                            <th className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">Fecha</th>
-                            {canEdit && <th className="px-3 py-3.5 text-right text-sm font-semibold text-gray-900">Acciones</th>}
-                        </tr>
-                    </thead>
-                    <tbody className="divide-y divide-gray-200 bg-white">
-                        {documentos?.map((doc) => (
-                            <tr key={doc.id}>
-                                <td className="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-medium text-gray-900 text-indigo-600 hover:text-indigo-900">
-                                    <a href={doc.ruta.startsWith('/') ? doc.ruta : `/${doc.ruta}`} target="_blank" rel="noopener noreferrer">
-                                        {doc.nombre}
-                                    </a>
-                                </td>
-                                <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500">{doc.tipo.split('/')[1]}</td>
-                                <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500">{new Date(doc.creadoEn).toLocaleDateString()}</td>
-                                {canEdit && (
-                                    <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500 text-right">
-                                        <button onClick={() => handleDelete(doc.id)} className="text-red-600 hover:text-red-900 ml-4">
-                                            Eliminar
-                                        </button>
-                                    </td>
-                                )}
+            <div className="bg-bg-surface border-2 border-border-default shadow-3xl overflow-hidden group/docs hover:border-border-strong transition-all relative">
+                <div className="absolute top-0 right-0 p-8 opacity-10 pointer-events-none text-xs font-black uppercase tracking-[1em] group-hover/docs:text-text-accent transition-colors">DOC_VOL_STREAM_RX</div>
+                <div className="overflow-x-auto custom-scrollbar">
+                    <table className="w-full text-left border-collapse border-spacing-0 min-w-[800px]">
+                        <thead>
+                            <tr className="bg-bg-base border-b-2 border-border-default">
+                                <th className="px-10 py-8 text-[11px] font-black uppercase tracking-[0.4em] text-text-muted border-r border-border-default/20">:: FILENAME_NODE</th>
+                                <th className="px-10 py-8 text-[11px] font-black uppercase tracking-[0.4em] text-text-muted border-r border-border-default/20">:: EXTENSION</th>
+                                <th className="px-10 py-8 text-[11px] font-black uppercase tracking-[0.4em] text-text-muted border-r border-border-default/20">:: TIMESTAMP_INIT</th>
+                                {canEdit && <th className="px-10 py-8 text-right text-[11px] font-black uppercase tracking-[0.5em] text-text-muted">_COMMAND_IO</th>}
                             </tr>
-                        ))}
-                        {(!documentos || documentos.length === 0) && (
-                            <tr><td colSpan="4" className="py-4 text-center text-gray-500">No hay documentos adjuntos</td></tr>
-                        )}
-                    </tbody>
-                </table>
+                        </thead>
+                        <tbody className="divide-y divide-border-default/10 bg-bg-surface/30">
+                            {documentos?.map((doc) => (
+                                <tr key={doc.id} className="hover:bg-bg-elevated transition-all group/row border-l-4 border-l-transparent hover:border-l-text-accent cursor-default">
+                                    <td className="px-10 py-8 border-r border-border-default/10">
+                                        <a 
+                                            href={doc.ruta.startsWith('/') ? doc.ruta : `/${doc.ruta}`} 
+                                            target="_blank" 
+                                            rel="noopener noreferrer"
+                                            className="text-[12px] font-black text-text-primary uppercase tracking-tight hover:text-text-accent transition-colors underline decoration-text-accent/30 decoration-2 underline-offset-8 tabular-nums"
+                                        >
+                                            {doc.nombre.replace(/ /g, '_')}
+                                        </a>
+                                    </td>
+                                    <td className="px-10 py-8 border-r border-border-default/10">
+                                        <span className="text-[10px] font-black text-text-muted uppercase tracking-widest bg-bg-base border-2 border-border-default px-4 py-1 group-hover/row:border-text-accent group-hover/row:text-text-primary transition-all shadow-md">
+                                            .{doc.tipo.split('/')[1]?.toUpperCase() || 'BIN'}
+                                        </span>
+                                    </td>
+                                    <td className="px-10 py-8 text-[12px] font-black text-text-primary uppercase tracking-tight tabular-nums border-r border-border-default/10">
+                                        {new Date(doc.creadoEn).toLocaleDateString().replace(/\//g, ' / ')}
+                                    </td>
+                                    {canEdit && (
+                                        <td className="px-10 py-8 text-right whitespace-nowrap">
+                                            <button 
+                                                onClick={() => handleDelete(doc.id)} 
+                                                className="inline-flex items-center justify-center text-[10px] font-black text-text-muted border-2 border-border-default bg-bg-base px-6 py-3 uppercase tracking-widest hover:text-text-accent hover:border-text-accent transition-all shadow-xl active:scale-95 group/purge"
+                                            >
+                                                <span className="opacity-40 group-hover/purge:translate-x-1 transition-transform mr-2">!</span>
+                                                [ PURGE_ALLOC_TX ]
+                                            </button>
+                                        </td>
+                                    )}
+                                </tr>
+                            ))}
+                            {(!documentos || documentos.length === 0) && (
+                                <tr>
+                                    <td colSpan="4" className="py-24 text-center text-text-muted text-[12px] font-black uppercase tracking-[0.5em] opacity-40 italic">
+                                        ! NO_DOCUMENT_NODES_ATTACHED_TO_THIS_BUFFER_CORE
+                                    </td>
+                                </tr>
+                            )}
+                        </tbody>
+                    </table>
+                </div>
             </div>
         </div>
     );

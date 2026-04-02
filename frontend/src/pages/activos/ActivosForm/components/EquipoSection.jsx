@@ -3,9 +3,10 @@ import SelectWithAdd from '../../../../components/SelectWithAdd';
 import { SectionHeader, Field, inputCls } from './Shared';
 
 const EquipoSection = ({ formData, handleChange, handleUpperChange, catalogs, canEditCatalogs, handleOpenCatalogModal }) => (
-    <div className="bg-amber-50 rounded-lg p-4 border border-amber-100">
-        <SectionHeader title="Características del Equipo" icon="💻" />
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+    <div className="bg-bg-surface border border-border-default p-10 shadow-3xl hover:border-border-strong transition-all relative overflow-hidden group/section">
+        <div className="absolute top-0 right-0 p-4 opacity-5 pointer-events-none text-[10px] font-black">HARDWARE_SPEC_STREAM</div>
+        <SectionHeader title="CARACTERISTICAS_DEL_EQUIPO" />
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-10">
             <SelectWithAdd
                 label="Tipo de Equipo"
                 name="tipo"
@@ -17,13 +18,13 @@ const EquipoSection = ({ formData, handleChange, handleUpperChange, catalogs, ca
                 onAdd={() => handleOpenCatalogModal('TIPO_EQUIPO', 'Tipo de Equipo')}
             />
             <Field label="Serial" required>
-                <input type="text" name="serial" required value={formData.serial} onChange={handleUpperChange} className={inputCls} />
+                <input type="text" name="serial" required value={formData.serial} onChange={handleUpperChange} className={inputCls} placeholder="SN_0x..." />
             </Field>
             <Field label="Placa" required>
-                <input type="text" name="placa" required value={formData.placa} onChange={handleUpperChange} className={inputCls} />
+                <input type="text" name="placa" required value={formData.placa} onChange={handleUpperChange} className={inputCls} placeholder="P_IDENT..." />
             </Field>
             <Field label="Activo Fijo">
-                <input type="text" name="activoFijo" value={formData.activoFijo} onChange={handleUpperChange} className={inputCls} />
+                <input type="text" name="activoFijo" value={formData.activoFijo} onChange={handleUpperChange} className={inputCls} placeholder="AF_TAG..." />
             </Field>
             <SelectWithAdd
                 label="Marca"
@@ -46,9 +47,13 @@ const EquipoSection = ({ formData, handleChange, handleUpperChange, catalogs, ca
                 onAdd={() => handleOpenCatalogModal('MODELO', 'Modelo')}
             />
             <Field label="Nombre de Equipo">
-                <input type="text" name="nombreEquipo" value={formData.nombreEquipo} onChange={handleChange} className={inputCls} />
+                <input type="text" name="nombreEquipo" value={formData.nombreEquipo} onChange={handleChange} className={inputCls} placeholder="NODE_HOST_ID..." />
             </Field>
-            <div className="col-span-2 lg:col-span-4">
+            <div className="lg:col-span-1">
+                {/* Vacío o extra field */}
+            </div>
+
+            <div className="lg:col-span-2">
                 <SelectWithAdd
                     label="Procesador"
                     name="procesador"
@@ -77,7 +82,7 @@ const EquipoSection = ({ formData, handleChange, handleUpperChange, catalogs, ca
                 canAdd={canEditCatalogs}
                 onAdd={() => handleOpenCatalogModal('DISCO_DURO', 'Disco Duro')}
             />
-            <div className="col-span-2">
+            <div className="lg:col-span-2">
                 <SelectWithAdd
                     label="Sistema Operativo"
                     name="sistemaOperativo"

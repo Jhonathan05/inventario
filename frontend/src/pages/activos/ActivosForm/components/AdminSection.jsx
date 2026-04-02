@@ -3,9 +3,10 @@ import SelectWithAdd from '../../../../components/SelectWithAdd';
 import { SectionHeader, Field, inputCls } from './Shared';
 
 const AdminSection = ({ formData, handleChange, catalogs, categorias, canEditCatalogs, handleOpenCatalogModal }) => (
-    <div className="bg-indigo-50 rounded-lg p-4">
-        <SectionHeader title="Administración del Equipo" icon="🏢" />
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+    <div className="bg-bg-surface border border-border-default p-10 shadow-3xl hover:border-border-strong transition-all relative overflow-hidden group/section">
+        <div className="absolute top-0 right-0 p-4 opacity-5 pointer-events-none text-[10px] font-black">ADMIN_METADATA_STREAM</div>
+        <SectionHeader title="ADMINISTRACION_DEL_EQUIPO" />
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-10">
             <SelectWithAdd
                 label="Empresa Propietaria"
                 name="empresaPropietaria"
@@ -16,7 +17,7 @@ const AdminSection = ({ formData, handleChange, catalogs, categorias, canEditCat
                 onAdd={() => handleOpenCatalogModal('EMPRESA_PROPIETARIA', 'Empresa Propietaria')}
             />
             <Field label="Dependencia">
-                <input type="text" name="dependencia" value={formData.dependencia} onChange={handleChange} className={inputCls} />
+                <input type="text" name="dependencia" value={formData.dependencia} onChange={handleChange} className={inputCls} placeholder="DEP_UNIT..." />
             </Field>
             <SelectWithAdd
                 label="Fuente de Recurso"

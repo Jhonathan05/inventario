@@ -9,25 +9,37 @@ export const ReportColumns = ({
     moveColumn 
 }) => {
     return (
-        <div className="space-y-4">
-            {/* ORDEN DE COLUMNAS */}
+        <div className="space-y-8 font-mono animate-fadeIn">
+            {/* ORDEN DE COLUMNAS / SEQUENCE_MANAGER */}
             {selectedColumns.length > 0 && (
-                <div className="bg-white rounded-lg shadow-sm ring-1 ring-gray-200 p-4">
-                    <h3 className="text-sm font-semibold text-gray-900 mb-3">
-                        ↕️ Orden de Columnas ({selectedColumns.length})
+                <div className="bg-bg-surface border border-border-default p-8 shadow-2xl group hover:border-border-strong transition-all relative overflow-hidden">
+                    <div className="absolute top-0 right-0 p-4 opacity-5 pointer-events-none text-[8px] font-black uppercase tracking-widest">SEQ_QUEUE_RX</div>
+                    <h3 className="text-[10px] font-black text-text-accent uppercase tracking-[0.4em] mb-8 border-b border-border-default/50 pb-4 flex items-center justify-between">
+                        <span>↕ COLUMN_SEQUENCE_LOG</span>
+                        <span className="opacity-40">COUNT: {selectedColumns.length.toString().padStart(2, '0')}</span>
                     </h3>
-                    <div className="space-y-1 max-h-80 overflow-y-auto">
+                    <div className="space-y-3 max-h-[400px] overflow-y-auto custom-scrollbar pr-3">
                         {selectedColumns.map((col, idx) => (
-                            <div key={col.key} className="flex items-center justify-between bg-gray-50 rounded px-2 py-1.5 text-sm">
-                                <span className="text-gray-700 truncate flex-1">
-                                    <span className="text-gray-400 text-xs mr-1">{idx + 1}.</span>
-                                    {col.label}
+                            <div key={col.key} className="flex items-center justify-between bg-bg-base/50 border border-border-default px-4 py-3 transition-all group/row hover:border-text-accent/30 hover:bg-bg-elevated/20">
+                                <span className="text-text-primary text-[11px] font-black uppercase tracking-tight truncate flex-1 flex items-center gap-3">
+                                    <span className="text-text-muted text-[9px] font-black opacity-30">[{String(idx + 1).padStart(2, '0')}]</span>
+                                    {col.label.replace(/ /g, '_')}
                                 </span>
-                                <div className="flex gap-0.5 ml-2 flex-shrink-0">
-                                    <button onClick={() => moveColumn(idx, -1)} disabled={idx === 0}
-                                        className="text-gray-400 hover:text-gray-700 disabled:opacity-30 text-xs px-1.5 py-0.5 hover:bg-gray-200 rounded">▲</button>
-                                    <button onClick={() => moveColumn(idx, 1)} disabled={idx === selectedColumns.length - 1}
-                                        className="text-gray-400 hover:text-gray-700 disabled:opacity-30 text-xs px-1.5 py-0.5 hover:bg-gray-200 rounded">▼</button>
+                                <div className="flex gap-4 ml-4 flex-shrink-0" onClick={e => e.stopPropagation()}>
+                                    <button 
+                                        onClick={() => moveColumn(idx, -1)} 
+                                        disabled={idx === 0}
+                                        className="text-text-muted hover:text-text-accent disabled:opacity-10 text-[9px] font-black px-2 py-1 leading-none uppercase transition-colors"
+                                    >
+                                        [ UP ]
+                                    </button>
+                                    <button 
+                                        onClick={() => moveColumn(idx, 1)} 
+                                        disabled={idx === selectedColumns.length - 1}
+                                        className="text-text-muted hover:text-text-accent disabled:opacity-10 text-[9px] font-black px-2 py-1 leading-none uppercase transition-colors"
+                                    >
+                                        [ DN ]
+                                    </button>
                                 </div>
                             </div>
                         ))}
@@ -35,28 +47,53 @@ export const ReportColumns = ({
                 </div>
             )}
 
-            {/* SELECTOR DE COLUMNAS */}
-            <div className="bg-white rounded-lg shadow-sm ring-1 ring-gray-200 p-4">
-                <div className="flex items-center justify-between mb-3">
-                    <h3 className="text-sm font-semibold text-gray-900">☑️ Columnas ({selectedColumns.length}/{columns.length})</h3>
+            {/* SELECTOR DE COLUMNAS / MANIFEST_SELECTOR */}
+            <div className="bg-bg-surface border border-border-default p-8 shadow-2xl group hover:border-border-strong transition-all relative overflow-hidden">
+                <div className="absolute top-0 right-0 p-4 opacity-5 pointer-events-none text-[8px] font-black uppercase tracking-widest">MANIFEST_POOL</div>
+                <div className="flex items-center justify-between mb-8 pb-4 border-b border-border-default/50">
+                    <h3 className="text-[10px] font-black text-text-accent uppercase tracking-[0.4em]">
+                        ☑ COLUMN_MANIFEST
+                    </h3>
+                    <span className="text-[9px] font-black text-text-muted opacity-40 uppercase tracking-widest">
+                        {selectedColumns.length.toString().padStart(2, '0')} / {columns.length.toString().padStart(2, '0')} SELECTED
+                    </span>
                 </div>
-                <div className="flex gap-2 mb-3 flex-wrap">
-                    <button onClick={selectAll} className="text-xs text-indigo-600 hover:text-indigo-800 font-medium">Todas</button>
-                    <span className="text-gray-300">|</span>
-                    <button onClick={selectNone} className="text-xs text-indigo-600 hover:text-indigo-800 font-medium">Ninguna</button>
-                    <span className="text-gray-300">|</span>
-                    <button onClick={selectDefaults} className="text-xs text-indigo-600 hover:text-indigo-800 font-medium">Por defecto</button>
+                
+                <div className="flex gap-6 mb-8 flex-wrap border-b border-border-default/20 pb-6">
+                    <button onClick={selectAll} className="text-[9px] font-black uppercase tracking-widest text-text-muted hover:text-text-primary transition-all">[ ALL ]</button>
+                    <button onClick={selectNone} className="text-[9px] font-black uppercase tracking-widest text-text-muted hover:text-text-primary transition-all">[ NONE ]</button>
+                    <button onClick={selectDefaults} className="text-[9px] font-black uppercase tracking-widest text-text-accent hover:text-text-primary transition-all underline decoration-2 underline-offset-4 decoration-text-accent/30">[ RESET_DEFAULT ]</button>
                 </div>
-                <div className="space-y-3 max-h-80 overflow-y-auto pr-1">
+
+                <div className="space-y-10 max-h-[500px] overflow-y-auto pr-3 custom-scrollbar">
                     {Object.entries(groups).map(([groupName, groupCols]) => (
-                        <div key={groupName}>
-                            <h4 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1.5">{groupName}</h4>
-                            <div className="space-y-1">
+                        <div key={groupName} className="space-y-4">
+                            <div className="flex items-center gap-4">
+                                <span className="text-[9px] font-black text-text-muted uppercase tracking-[0.3em] flex-shrink-0">/ {groupName.toUpperCase()}</span>
+                                <div className="h-px bg-border-default/30 flex-grow"></div>
+                            </div>
+                            <div className="grid grid-cols-1 gap-2">
                                 {groupCols.map(col => (
-                                    <label key={col.key} className="flex items-center gap-2 cursor-pointer hover:bg-gray-50 rounded px-1 py-0.5">
-                                        <input type="checkbox" checked={col.selected} onChange={() => toggleColumn(col.key)}
-                                            className="rounded border-gray-300 text-indigo-600 focus:ring-indigo-600 h-3.5 w-3.5" />
-                                        <span className="text-sm text-gray-700">{col.label}</span>
+                                    <label 
+                                        key={col.key} 
+                                        className={`flex items-center px-4 py-2.5 gap-4 cursor-pointer transition-all border group/item ${col.selected ? 'bg-text-accent/5 border-text-accent/20' : 'bg-transparent border-transparent hover:bg-bg-elevated/30'}`}
+                                    >
+                                        <div className="relative flex items-center justify-center">
+                                            <input 
+                                                type="checkbox" 
+                                                checked={col.selected} 
+                                                onChange={() => toggleColumn(col.key)}
+                                                className="appearance-none w-4 h-4 border border-border-default bg-bg-base checked:bg-text-primary checked:border-text-primary focus:outline-none transition-all cursor-pointer" 
+                                            />
+                                            {col.selected && (
+                                                <div className="absolute pointer-events-none text-bg-base text-[10px] font-black select-none">
+                                                    ✓
+                                                </div>
+                                            )}
+                                        </div>
+                                        <span className={`text-[11px] font-black uppercase tracking-tight transition-colors ${col.selected ? 'text-text-primary' : 'text-text-muted group-hover/item:text-text-primary'}`}>
+                                            {col.label.replace(/ /g, '_')}
+                                        </span>
                                     </label>
                                 ))}
                             </div>

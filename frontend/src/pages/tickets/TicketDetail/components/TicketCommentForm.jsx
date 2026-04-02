@@ -1,5 +1,3 @@
-import { PaperClipIcon, PaperAirplaneIcon } from '@heroicons/react/24/outline';
-
 export const TicketCommentForm = ({ 
     nuevoComentario, 
     setNuevoComentario, 
@@ -10,27 +8,43 @@ export const TicketCommentForm = ({
     fileInputRef, 
     saving 
 }) => {
-    return (
-        <form onSubmit={handleAgregarComentario} className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden no-print">
-            <div className="p-4">
-                <textarea
-                    rows="2"
-                    value={nuevoComentario}
-                    onChange={e => setNuevoComentario(e.target.value)}
-                    placeholder="Añade una actualización o nota sobre este caso..."
-                    className="block w-full rounded-lg border border-gray-200 bg-gray-50 text-sm p-2.5 focus:border-blue-500 focus:ring-blue-500 resize-none"
-                />
+    const labelCls = "text-[11px] font-black uppercase tracking-[0.4em] text-text-muted mb-8 border-b border-border-default pb-4 opacity-70 group-hover:text-text-primary transition-colors";
+    const textareaCls = "w-full bg-bg-base border-2 border-border-default p-8 text-[12px] font-black uppercase tracking-tighter sm:tracking-tight text-text-primary focus:outline-none focus:border-border-strong transition-all resize-none leading-relaxed placeholder:opacity-20 shadow-inner";
 
-                {/* Preview de archivos a adjuntar */}
+    return (
+        <form onSubmit={handleAgregarComentario} className="bg-bg-surface border border-border-default p-10 font-mono shadow-3xl no-print relative overflow-hidden group hover:border-border-strong transition-all">
+            <div className="absolute top-0 right-0 p-6 opacity-10 pointer-events-none text-xs font-black uppercase tracking-[0.5em] group-hover:opacity-20 transition-opacity">LOG_INPUT_RX</div>
+            <h3 className={labelCls}>
+                / APPEND_TO_TIMELINE_STREAM
+            </h3>
+            
+            <div className="space-y-8">
+                <div className="relative group/field">
+                     <div className="absolute top-4 left-4 opacity-5 pointer-events-none text-[10px] font-black uppercase tracking-widest group-focus-within/field:opacity-30 transition-opacity">ENTRY_POINT_TX</div>
+                    <textarea
+                        rows="6"
+                        value={nuevoComentario}
+                        onChange={e => setNuevoComentario(e.target.value)}
+                        placeholder="ENTER_UPDATE_OR_TECHNICAL_OBSERVATIONS_LOG..."
+                        className={textareaCls}
+                        autoComplete="off"
+                    />
+                </div>
+
+                {/* Preview de archivos a adjuntar / Buffer fragments */}
                 {archivosComentario.length > 0 && (
-                    <div className="mt-2 flex flex-wrap gap-2 px-4">
+                    <div className="flex flex-wrap gap-4 animate-slideDown">
                         {archivosComentario.map((f, i) => (
-                            <span key={i} className="inline-flex items-center gap-1 text-xs bg-blue-50 text-blue-700 rounded-full px-2.5 py-1 border border-blue-100">
-                                <PaperClipIcon className="w-3 h-3" />
-                                <span className="max-w-[120px] truncate">{f.name}</span>
-                                <button type="button" onClick={() => handleRemoveFile(i)}
-                                    className="ml-0.5 text-blue-400 hover:text-red-500">
-                                    ×
+                            <span key={i} className="inline-flex items-center gap-4 text-[10px] font-black uppercase tracking-widest bg-bg-base border border-border-default px-5 py-2.5 text-text-primary shadow-xl hover:border-text-accent transition-all group/frag">
+                                <span className="text-text-accent opacity-50 group-hover/frag:opacity-100">[F_BUF]</span>
+                                <span>{f.name.toUpperCase().replace(/ /g, '_')}</span>
+                                <button 
+                                    type="button" 
+                                    onClick={() => handleRemoveFile(i)}
+                                    className="text-text-muted hover:text-text-accent transition-all text-xl leading-none active:scale-90"
+                                    title="UNLINK_FRAGMENT"
+                                >
+                                    &times;
                                 </button>
                             </span>
                         ))}
@@ -38,22 +52,38 @@ export const TicketCommentForm = ({
                 )}
             </div>
 
-            {/* Action bar */}
-            <div className="px-4 py-2.5 bg-gray-50 border-t border-gray-100 flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                    <input ref={fileInputRef} type="file" multiple accept="image/*,.pdf,.doc,.docx,.xls,.xlsx"
-                        onChange={handleFileSelect} className="hidden" />
-                    <button type="button" onClick={() => fileInputRef.current?.click()}
-                        className="inline-flex items-center gap-1.5 text-xs text-gray-500 hover:text-blue-600 font-medium px-2 py-1 rounded hover:bg-blue-50 transition-colors">
-                        <PaperClipIcon className="w-4 h-4" />
-                        Adjuntar archivo
+            {/* Action protocol bar */}
+            <div className="mt-10 pt-10 border-t border-border-default/30 flex flex-col sm:flex-row items-center justify-between gap-8">
+                <div className="flex items-center gap-6">
+                    <input 
+                        ref={fileInputRef} 
+                        type="file" 
+                        multiple 
+                        accept="image/*,.pdf,.doc,.docx,.xls,.xlsx"
+                        onChange={handleFileSelect} 
+                        className="hidden" 
+                    />
+                    <button 
+                        type="button" 
+                        onClick={() => fileInputRef.current?.click()}
+                        className="text-[11px] font-black text-text-muted uppercase tracking-[0.4em] border border-border-default px-8 py-4 hover:border-text-accent hover:text-text-primary transition-all flex items-center gap-4 group/adj active:scale-95 bg-bg-base/30 shadow-xl"
+                    >
+                        <span className="opacity-40 group-hover/adj:scale-125 transition-transform">+</span>
+                        <span>[ ATTACH_PAYLOAD ]</span>
                     </button>
                 </div>
-                <button type="submit" disabled={(nuevoComentario.trim().length === 0 && archivosComentario.length === 0) || saving}
-                    className="inline-flex items-center gap-1.5 px-4 py-1.5 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700 disabled:opacity-50 transition-colors shadow-sm">
-                    <PaperAirplaneIcon className="w-4 h-4" />
-                    {saving ? 'Enviando...' : 'Enviar Nota'}
+                <button 
+                    type="submit" 
+                    disabled={(nuevoComentario.trim().length === 0 && archivosComentario.length === 0) || saving}
+                    className="w-full sm:w-auto bg-bg-elevated border border-border-strong px-12 py-4 text-[11px] font-black text-text-accent hover:text-text-primary uppercase tracking-[0.5em] transition-all flex items-center justify-center gap-5 shadow-3xl disabled:opacity-30 group/submit active:scale-95"
+                >
+                    <span>{saving ? '[ SYNCING_COMMITS... ]' : '[ > ] COMMIT_LOG_ENTRY'}</span>
+                    {!saving && <span className="opacity-40 group-hover/submit:translate-x-1 transition-transform">→</span>}
                 </button>
+            </div>
+            
+            <div className="mt-6 text-[8px] font-black text-text-muted uppercase tracking-[0.4em] opacity-10">
+                 TRANSACTION_LOGGING: ON // CHANNEL_ENCRYPTION: ACTIVE
             </div>
         </form>
     );

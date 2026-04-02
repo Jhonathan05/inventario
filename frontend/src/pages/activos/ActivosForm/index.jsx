@@ -37,27 +37,32 @@ const ActivosForm = ({ open, onClose, activo }) => {
     if (!open) return null;
 
     return (
-        <div className="fixed inset-0 z-[10001] overflow-y-auto" role="dialog" aria-modal="true">
+        <div className="fixed inset-0 z-[10001] overflow-y-auto font-mono" role="dialog" aria-modal="true">
             <div className="flex items-start justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:p-0">
-                <div className="fixed inset-0 bg-gray-600 bg-opacity-75 transition-opacity" onClick={() => onClose(false)}></div>
+                <div className="fixed inset-0 bg-bg-base/80 border-border-default backdrop-blur-sm transition-opacity" onClick={() => onClose(false)}></div>
 
-                <div className="relative inline-block align-top bg-white rounded-xl px-6 pt-6 pb-6 text-left overflow-hidden shadow-2xl transform transition-all sm:my-8 sm:w-full sm:max-w-5xl">
-                    <div className="flex items-center justify-between mb-6">
-                        <h3 className="text-xl font-bold text-gray-900">
-                            {activo ? '✏️ Editar Activo' : '➕ Nuevo Activo'}
-                        </h3>
-                        <button onClick={() => onClose(false)} className="text-gray-400 hover:text-gray-500">
-                            <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                            </svg>
+                <div className="relative inline-block align-top bg-bg-surface border border-border-default p-10 text-left shadow-3xl transform transition-all sm:my-8 sm:w-full sm:max-w-5xl z-10 overflow-hidden">
+                    <div className="absolute top-0 right-0 p-4 opacity-5 pointer-events-none text-xs font-black">ASSET_COMMIT_HOOK</div>
+                    
+                    <div className="flex items-center justify-between mb-10 border-b border-border-default pb-8">
+                        <div>
+                            <h3 className="text-sm font-black text-text-primary uppercase tracking-[0.4em]">
+                                / {activo ? 'MODIFY_ASSET_NODE' : 'REGISTER_NEW_ASSET'}
+                            </h3>
+                            <p className="text-[10px] text-text-muted font-bold mt-2 uppercase tracking-widest opacity-60">REGISTRY_PATH: inventory.db // UID: {activo?.id?.slice(0,8) || 'NULL'}</p>
+                        </div>
+                        <button onClick={() => onClose(false)} className="text-text-muted hover:text-text-accent text-2xl leading-none font-black transition-colors">
+                            [ &times; ]
                         </button>
                     </div>
 
                     {error && (
-                        <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg text-sm text-red-700">{error}</div>
+                        <div className="mb-10 p-6 border border-text-accent bg-bg-base text-text-accent font-black text-[10px] uppercase tracking-widest animate-pulse shadow-xl">
+                            ! CRITICAL_COMMIT_FAULT :: {error}
+                        </div>
                     )}
 
-                    <form onSubmit={handleSubmit} className="space-y-6">
+                    <form onSubmit={handleSubmit} className="space-y-12 animate-fadeIn">
                         <AdminSection 
                             formData={formData} 
                             handleChange={handleChange} 
@@ -91,21 +96,20 @@ const ActivosForm = ({ open, onClose, activo }) => {
                             setShowCompraGarantia={setShowCompraGarantia} 
                         />
 
-                        {/* FOOTER BUTTONS */}
-                        <div className="flex gap-3 justify-end pt-2 border-t border-gray-200">
+                        <div className="pt-10 flex flex-col sm:flex-row gap-6 border-t border-border-default/50">
                             <button
                                 type="button"
-                                className="rounded-lg border border-gray-300 bg-white px-5 py-2 text-sm font-medium text-gray-700 shadow-sm hover:bg-gray-50"
                                 onClick={() => onClose(false)}
+                                className="flex-1 px-8 py-4 text-[11px] font-black text-text-muted hover:text-text-primary uppercase tracking-[0.3em] border border-border-default hover:border-border-strong transition-all bg-bg-base/30 shadow-xl"
                             >
-                                Cancelar
+                                [ DISCARD_PROC ]
                             </button>
                             <button
                                 type="submit"
                                 disabled={loading}
-                                className="rounded-lg bg-indigo-600 px-5 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 disabled:opacity-70"
+                                className="flex-1 px-8 py-4 text-[11px] font-black text-bg-base bg-text-primary hover:bg-text-accent transition-all shadow-3xl disabled:opacity-20 uppercase tracking-[0.4em]"
                             >
-                                {loading ? 'Guardando...' : 'Guardar Activo'}
+                                {loading ? '[ SYNCING... ]' : '[ EXECUTE_COMMIT ]'}
                             </button>
                         </div>
                     </form>

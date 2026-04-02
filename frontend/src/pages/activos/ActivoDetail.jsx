@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, Link } from 'react-router-dom';
 import api from '../../lib/axios';
 import { getImageUrl, formatCurrency, formatDate } from '../../lib/utils';
 import { useAuth } from '../../context/AuthContext';
@@ -42,310 +42,334 @@ const ActivoDetail = () => {
     };
 
     const getStatusBadge = (estado) => {
-        const colors = {
-            'DISPONIBLE': 'bg-green-50 text-green-700 ring-green-600/20',
-            'ASIGNADO': 'bg-blue-50 text-blue-700 ring-blue-700/10',
-            'EN_MANTENIMIENTO': 'bg-yellow-50 text-yellow-800 ring-yellow-600/20',
-            'DADO_DE_BAJA': 'bg-red-50 text-red-700 ring-red-600/20',
-        };
-        return colors[estado] || 'bg-gray-50 text-gray-600 ring-gray-500/10';
+        switch (estado) {
+            case 'DISPONIBLE': return 'border-text-primary text-text-primary bg-bg-base opacity-40 hover:opacity-100';
+            case 'ASIGNADO': return 'border-border-default text-text-primary bg-bg-elevated/50';
+            case 'EN_MANTENIMIENTO': return 'border-text-accent text-text-accent bg-text-accent/5 animate-pulse shadow-[0_0_15px_rgba(var(--text-accent),0.3)]';
+            case 'DADO_DE_BAJA': return 'border-border-default text-text-muted opacity-20';
+            default: return 'border-border-default text-text-muted';
+        }
     };
 
     const getHVStatusBadge = (estado) => {
-        if (estado === 'CREADO') return 'bg-blue-50 text-blue-700 ring-blue-700/10';
-        if (estado === 'EN_PROCESO') return 'bg-yellow-50 text-yellow-800 ring-yellow-600/20';
-        if (estado === 'ESPERA_SUMINISTRO') return 'bg-orange-50 text-orange-700 ring-orange-600/20';
-        if (estado === 'PROCESO_GARANTIA') return 'bg-purple-50 text-purple-700 ring-purple-600/20';
-        if (estado === 'FINALIZADO' || estado === 'CERRADO') return 'bg-green-50 text-green-700 ring-green-600/20';
-        return 'bg-gray-50 text-gray-600 ring-gray-500/10';
+        const base = "inline-flex items-center px-4 py-1 text-[9px] font-black uppercase tracking-widest border-2 transition-all shadow-md";
+        if (estado === 'FINALIZADO' || estado === 'CERRADO') return `${base} border-text-primary text-text-primary bg-bg-base opacity-40 hover:opacity-100`;
+        if (estado === 'EN_PROCESO' || estado === 'CREADO') return `${base} border-text-accent text-text-accent bg-text-accent/5 animate-pulse`;
+        return `${base} border-border-default text-text-muted opacity-30`;
     };
 
-    if (loading) return <div className="p-8 text-center text-gray-500">Cargando...</div>;
-    if (!activo) return <div className="p-8 text-center text-red-500">Activo no encontrado</div>;
+    if (loading) return (
+        <div className="mt-24 text-center py-24 font-mono animate-fadeIn">
+            <div className="w-16 h-16 border-4 border-t-text-accent border-border-default animate-spin mx-auto mb-8"></div>
+            <div className="text-[14px] uppercase tracking-[0.8em] text-text-accent font-black animate-pulse"># SYNCING_NODE_DATA_BUFFER...</div>
+            <div className="mt-4 text-[10px] text-text-muted uppercase tracking-widest opacity-40 italic">querying_repository_node_tx_0xFD4</div>
+        </div>
+    );
+    
+    if (!activo) return (
+        <div className="mt-24 text-center py-24 font-mono bg-bg-surface border-2 border-text-accent/30 mx-8 shadow-3xl animate-fadeIn relative overflow-hidden">
+            <div className="absolute top-0 right-0 p-8 opacity-10 text-xs font-black uppercase tracking-widest">FATAL_IDENT_FAULT</div>
+            <div className="text-[14px] uppercase tracking-[0.4em] text-text-accent font-black mb-6">! SYSTEM_ERROR :: NODE_IO_NULL</div>
+            <div className="text-[10px] text-text-muted uppercase tracking-widest opacity-60 mb-12">IDENTIFIER "{id}" RESOLVED_TO_NULL_VAL_INTERRUPT</div>
+            <button onClick={() => navigate('/activos')} className="bg-bg-elevated border-2 border-border-default px-10 py-4 text-[11px] font-black uppercase tracking-widest text-text-primary hover:border-text-accent hover:text-text-accent transition-all active:scale-95 shadow-2xl">
+                [ &larr; ] RETURN_TO_LIST_CORE
+            </button>
+        </div>
+    );
 
     const tabs = [
-        { key: 'general', label: 'General' },
-        { key: 'asignaciones', label: 'Asignaciones' },
-        { key: 'hojadevida', label: 'Hoja de Vida' },
-        { key: 'documentos', label: 'Documentos' },
-        { key: 'software', label: 'Software' },
+        { key: 'general', label: 'GEN_DATA_TX' },
+        { key: 'asignaciones', label: 'ALLOCATION_HISTORY' },
+        { key: 'hojadevida', label: 'MAINTENANCE_LOG' },
+        { key: 'documentos', label: 'DOC_VAULT' },
+        { key: 'software', label: 'SW_RESOURCES_MAP' },
     ];
 
     const InfoItem = ({ label, value }) => (
-        <div>
-            <dt className="text-sm font-medium text-gray-500">{label}</dt>
-            <dd className="mt-1 text-sm text-gray-900">{value || '-'}</dd>
+        <div className="group/item relative overflow-hidden p-6 bg-bg-base/20 border border-border-default/30 hover:border-text-accent/30 transition-all">
+            <div className="absolute top-0 right-0 p-2 opacity-5 text-[7px] font-black uppercase tracking-tighter group-hover/item:opacity-20 transition-opacity">IO_DATA</div>
+            <dt className="text-[10px] font-black text-text-muted uppercase tracking-[0.3em] mb-3 border-l-2 border-border-default pl-4 group-hover/item:border-text-accent transition-all">:: {label.toUpperCase().replace(/ /g, '_')}</dt>
+            <dd className="text-[12px] font-black text-text-primary uppercase tracking-tight pl-4 truncate tabular-nums" title={value}>{value || <span className="opacity-20 italic">NULL_VAL_ACK</span>}</dd>
         </div>
     );
 
     return (
-        <div className="px-2 sm:px-4 md:px-6 lg:px-8">
-            {/* Header */}
-            <div className="mb-6">
-                <button onClick={() => navigate('/activos')} className="text-sm text-indigo-600 hover:text-indigo-900 mb-2">
-                    &larr; Volver a lista
+        <div className="font-mono mb-24 px-4 sm:px-6 lg:px-8 animate-fadeIn">
+            {/* Navigation / Header Identifier */}
+            <div className="mb-12">
+                <button onClick={() => navigate('/activos')} className="text-[11px] font-black text-text-muted hover:text-text-primary uppercase tracking-[0.4em] transition-all mb-8 flex items-center gap-4 group/back active:scale-95">
+                    <span className="group-hover/back:-translate-x-2 transition-transform text-text-accent text-lg">&larr;</span> [ BACK_TO_INVENTORY_HUB ]
                 </button>
-                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-                    <div>
-                        <h1 className="text-xl sm:text-2xl font-bold text-gray-900">
-                            {activo.marca} {activo.modelo}
-                        </h1>
-                        <p className="text-sm text-gray-500">
-                            Placa: {activo.placa} | AF: {activo.activoFijo || 'N/A'} | Serial: {activo.serial}
-                        </p>
+                
+                <div className="bg-bg-surface border-2 border-border-default p-10 shadow-3xl relative overflow-hidden group hover:border-border-strong transition-all">
+                    <div className="absolute top-0 right-0 p-8 opacity-10 pointer-events-none text-xs font-black uppercase tracking-[0.5em] group-hover:opacity-20 transition-opacity">NODE_MANIFEST_STREAM_0x{activo.id.slice(0,6).toUpperCase()}</div>
+                    <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-10 relative z-10">
+                        <div>
+                            <div className="flex items-center gap-4 mb-3">
+                                 <div className="w-2.5 h-2.5 bg-text-accent animate-pulse"></div>
+                                 <h1 className="text-3xl font-black uppercase tracking-[0.4em] text-text-primary leading-tight">
+                                     / {activo.marca} {activo.modelo}
+                                 </h1>
+                            </div>
+                            <div className="text-[11px] text-text-muted font-black uppercase tracking-[0.25em] flex flex-wrap gap-8 opacity-60 group-hover:opacity-100 transition-opacity tabular-nums">
+                                <span className="flex items-center gap-2">IDENT_PLACA: <span className="text-text-primary bg-bg-base px-2 py-0.5 border border-border-default/50">[{activo.placa}]</span></span>
+                                <span className="flex items-center gap-2">AF_TAG: <span className="text-text-primary bg-bg-base px-2 py-0.5 border border-border-default/50">[{activo.activoFijo || '----'}]</span></span>
+                                <span className="flex items-center gap-2">SERIAL_IO: <span className="text-text-primary bg-bg-base px-2 py-0.5 border border-border-default/50">[{activo.serial}]</span></span>
+                            </div>
+                        </div>
+                        <div className="flex flex-wrap items-center gap-8 bg-bg-base/30 p-4 border border-border-default/50 backdrop-blur-sm">
+                            <span className={`px-6 py-2.5 text-[11px] font-black tracking-[0.4em] uppercase border-2 shadow-xl transition-all tabular-nums ${getStatusBadge(activo.estado)}`}>
+                                [ {activo.estado?.toUpperCase().replace(/_/g, ' ')} ]
+                            </span>
+                            {canEdit && (
+                                <button
+                                    onClick={() => setIsEditModalOpen(true)}
+                                    className="bg-bg-elevated border-2 border-border-strong px-10 py-3 text-[11px] font-black text-text-accent hover:text-text-primary uppercase tracking-[0.5em] transition-all shadow-3xl active:scale-95 group/btn"
+                                >
+                                    <span className="relative z-10 group-hover/btn:tracking-[0.6em] transition-all">[ MODIFY_NODE_TX ]</span>
+                                </button>
+                            )}
+                        </div>
                     </div>
-                    <div className="flex items-center gap-2 flex-wrap">
-                        <span className={`inline-flex items-center rounded-md px-2 py-1 text-xs font-medium ring-1 ring-inset ${getStatusBadge(activo.estado)}`}>
-                            {activo.estado?.replace('_', ' ')}
-                        </span>
-                        {canEdit && (
-                            <button
-                                onClick={() => setIsEditModalOpen(true)}
-                                className="rounded-md bg-indigo-600 px-3 py-2 text-sm font-semibold text-white hover:bg-indigo-500"
-                            >
-                                Editar
-                            </button>
-                        )}
+                    {/* Progress tracking accent line */}
+                    <div className="absolute bottom-0 left-0 w-full h-[3px] bg-text-accent/20">
+                         <div className="h-full bg-text-accent w-1/4 animate-loadingBarSlow"></div>
                     </div>
                 </div>
             </div>
 
-            {/* Tabs (scrollable on mobile) */}
-            <div className="border-b border-gray-200 mb-6 overflow-x-auto">
-                <nav className="-mb-px flex space-x-6 min-w-max" aria-label="Tabs">
-                    {tabs.map((tab) => (
-                        <button
-                            key={tab.key}
-                            onClick={() => setActiveTab(tab.key)}
-                            className={`${activeTab === tab.key
-                                ? 'border-indigo-500 text-indigo-600'
-                                : 'border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700'
-                                } whitespace-nowrap border-b-2 py-3 px-1 text-sm font-medium`}
-                        >
-                            {tab.label}
-                        </button>
-                    ))}
-                </nav>
+            {/* Logical Tabs / Stream Selector */}
+            <div className="mb-12 border-b-2 border-border-default/30 flex overflow-x-auto custom-scrollbar bg-bg-surface/30 backdrop-blur-md sticky top-0 z-40">
+                {tabs.map((tab) => (
+                    <button
+                        key={tab.key}
+                        onClick={() => setActiveTab(tab.key)}
+                        className={`whitespace-nowrap px-10 py-6 text-[11px] font-black uppercase tracking-[0.4em] transition-all border-b-2 relative overflow-hidden active:scale-95 group ${activeTab === tab.key
+                            ? 'border-text-accent text-text-primary bg-text-accent/5'
+                            : 'border-transparent text-text-muted hover:text-text-primary hover:bg-bg-elevated/50'
+                            }`}
+                    >
+                        <span className="relative z-10">{tab.label}</span>
+                        {activeTab === tab.key && <div className="absolute top-0 right-0 p-1 opacity-20 text-[7px] font-black uppercase">RX</div>}
+                    </button>
+                ))}
             </div>
 
-            {/* Content */}
-            <div className="pb-10">
+            {/* Payload Viewport */}
+            <div className="animate-fadeIn">
                 {activeTab === 'general' && (
-                    <div className="space-y-8">
-                        {/* Row 1: Basic Info + Image */}
-                        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-                            <div className="lg:col-span-2">
-                                <h3 className="text-lg font-medium text-gray-900 mb-4">Información Básica</h3>
-                                <dl className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-4 bg-white p-4 rounded-lg shadow-sm ring-1 ring-gray-200">
+                    <div className="space-y-12">
+                        <div className="grid grid-cols-1 lg:grid-cols-3 gap-12">
+                            <div className="lg:col-span-2 bg-bg-surface border-2 border-border-default p-12 shadow-3xl relative overflow-hidden group/box">
+                                <div className="absolute top-0 right-0 p-4 opacity-5 text-[8px] font-black uppercase tracking-tighter group-hover/box:opacity-20 transition-opacity">SYS_IO_BLOCK_A</div>
+                                <div className="flex items-center gap-6 mb-12 pb-8 border-b-2 border-border-default">
+                                    <div className="w-8 h-8 flex items-center justify-center border-2 border-text-primary font-black text-sm">&alpha;</div>
+                                    <h3 className="text-[14px] font-black text-text-primary uppercase tracking-[0.5em]"># CORE_SPECIFICATION_BLOCK</h3>
+                                </div>
+                                <dl className="grid grid-cols-1 sm:grid-cols-2 gap-8">
                                     <InfoItem label="Categoría" value={activo.categoria?.nombre} />
                                     <InfoItem label="Tipo de Equipo" value={activo.tipo} />
-                                    <InfoItem label="Nombre de Equipo" value={activo.nombreEquipo} />
-                                    <InfoItem label="Ubicación" value={activo.ubicacion} />
-                                    <InfoItem label="Activo Fijo" value={activo.activoFijo} />
-                                    <InfoItem label="Valor Compra" value={formatCurrency(activo.valorCompra)} />
-                                    <InfoItem label="Fecha Compra" value={formatDate(activo.fechaCompra)} />
-                                    <InfoItem label="Garantía Hasta" value={formatDate(activo.garantiaHasta)} />
-                                    <InfoItem label="Color" value={activo.color} />
+                                    <InfoItem label="Nombre Host" value={activo.nombreEquipo} />
+                                    <InfoItem label="Ubicación Física" value={activo.ubicacion} />
+                                    <InfoItem label="Activo Fijo Tag" value={activo.activoFijo} />
+                                    <InfoItem label="Valor Adquisición" value={formatCurrency(activo.valorCompra)} />
+                                    <InfoItem label="Fecha Adquisición" value={formatDate(activo.fechaCompra)} />
+                                    <InfoItem label="Vencimiento Garantía" value={formatDate(activo.garantiaHasta)} />
+                                    <InfoItem label="Color / Chasis" value={activo.color} />
                                     <div className="sm:col-span-2">
-                                        <InfoItem label="Observaciones" value={activo.observaciones || 'Ninguna'} />
+                                        <InfoItem label="Metadata Log Ops" value={activo.observaciones} />
                                     </div>
                                 </dl>
                             </div>
-                            <div>
-                                <h3 className="text-lg font-medium text-gray-900 mb-4">Imagen</h3>
-                                <div className="overflow-hidden rounded-lg bg-gray-100 ring-1 ring-gray-200">
-                                    <img src={getImageUrl(activo.imagen)} alt="" className="w-full object-cover max-h-64" />
+                            <div className="bg-bg-surface border-2 border-border-default p-12 shadow-3xl relative overflow-hidden group/imgbox">
+                                <div className="absolute top-0 right-0 p-4 opacity-5 text-[8px] font-black uppercase tracking-tighter">IO_IMG_PORT</div>
+                                <div className="flex items-center gap-6 mb-12 pb-8 border-b-2 border-border-default">
+                                    <div className="w-8 h-8 flex items-center justify-center border-2 border-text-primary font-black text-sm">&beta;</div>
+                                    <h3 className="text-[14px] font-black text-text-primary uppercase tracking-[0.5em]"># VISUAL_NODE_TRACE</h3>
                                 </div>
+                                <div className="aspect-square bg-bg-base border-4 border-border-default overflow-hidden relative group/img shadow-2xl">
+                                    <div className="absolute inset-0 bg-text-accent/5 pointer-events-none opacity-0 group-hover/img:opacity-100 transition-opacity"></div>
+                                    {getImageUrl(activo.imagen) ? (
+                                        <img src={getImageUrl(activo.imagen)} alt="" className="w-full h-full object-cover group-hover/img:scale-110 transition-transform duration-1000" />
+                                    ) : (
+                                        <div className="h-full w-full flex items-center justify-center opacity-10 grayscale p-12">
+                                             {/* Placeholder icon could go here */}
+                                             <div className="text-8xl">?</div>
+                                        </div>
+                                    )}
+                                    <div className="absolute top-0 left-0 p-4 bg-bg-surface/80 border-b border-r border-border-default text-[9px] font-black uppercase tracking-[0.3em] opacity-80 backdrop-blur-sm">REF: {activo.placa}</div>
+                                </div>
+                                <div className="mt-8 text-[9px] text-text-muted font-black uppercase tracking-[0.4em] opacity-40 text-center italic">IDENT_HASH: 0x{activo.id.substring(activo.id.length - 8).toUpperCase()}</div>
                             </div>
                         </div>
 
-                        {/* Row 2: Administration */}
-                        <div>
-                            <h3 className="text-lg font-medium text-gray-900 mb-4">Administración</h3>
-                            <dl className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-x-6 gap-y-4 bg-white p-4 rounded-lg shadow-sm ring-1 ring-gray-200">
-                                <InfoItem label="Empresa Propietaria" value={activo.empresaPropietaria} />
-                                <InfoItem label="Dependencia" value={activo.dependencia} />
-                                <InfoItem label="Fuente de Recurso" value={activo.fuenteRecurso} />
-                                <InfoItem label="Tipo de Recurso" value={activo.tipoRecurso} />
-                                <InfoItem label="Tipo de Control" value={activo.tipoControl} />
-                                <InfoItem label="Estado Operativo" value={activo.estadoOperativo} />
-                                <InfoItem label="Razón de Estado" value={activo.razonEstado} />
-                            </dl>
+                        {/* Admin & Holder Layers */}
+                        <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
+                             <div className="bg-bg-surface border-2 border-border-default p-12 shadow-3xl group/admin relative overflow-hidden">
+                                <div className="absolute top-0 right-0 p-4 opacity-5 text-[8px] font-black uppercase tracking-tighter">SYS_IO_BLOCK_G</div>
+                                <div className="flex items-center gap-6 mb-12 pb-8 border-b-2 border-border-default">
+                                    <div className="w-8 h-8 flex items-center justify-center border-2 border-text-primary font-black text-sm">&gamma;</div>
+                                    <h3 className="text-[14px] font-black text-text-primary uppercase tracking-[0.5em]"># ADMIN_GOVERNANCE_LAYER</h3>
+                                </div>
+                                <dl className="grid grid-cols-1 sm:grid-cols-2 gap-8">
+                                    <InfoItem label="Entidad Propietaria" value={activo.empresaPropietaria} />
+                                    <InfoItem label="Unidad Dependencia" value={activo.dependencia} />
+                                    <InfoItem label="Stream Recurso" value={activo.fuenteRecurso} />
+                                    <InfoItem label="Tipo Recurso" value={activo.tipoRecurso} />
+                                    <InfoItem label="Protocolo Control" value={activo.tipoControl} />
+                                    <InfoItem label="Estado Operativo" value={activo.estadoOperativo} />
+                                    <InfoItem label="Razón Status" value={activo.razonEstado} />
+                                </dl>
+                             </div>
+
+                             <div className="bg-bg-surface border-2 border-border-default p-12 shadow-3xl group/holder relative overflow-hidden">
+                                <div className="absolute top-0 right-0 p-4 opacity-5 text-[8px] font-black uppercase tracking-tighter">SYS_IO_BLOCK_H</div>
+                                <div className="flex items-center gap-6 mb-12 pb-8 border-b-2 border-border-default">
+                                    <div className="w-8 h-8 flex items-center justify-center border-2 border-text-primary font-black text-sm">&delta;</div>
+                                    <h3 className="text-[14px] font-black text-text-primary uppercase tracking-[0.5em]"># HOLDER_ASSIGNMENT_ENCLAVE</h3>
+                                </div>
+                                <dl className="grid grid-cols-1 sm:grid-cols-2 gap-8">
+                                    <InfoItem label="Empresa Holder" value={activo.empresaFuncionario} />
+                                    <InfoItem label="Tipo Personal" value={activo.tipoPersonal} />
+                                    <InfoItem label="Ident UID" value={activo.cedulaFuncionario} />
+                                    <InfoItem label="Alias / Shortname" value={activo.shortname} />
+                                    <div className="sm:col-span-2">
+                                        <InfoItem label="Full Holder Identity" value={activo.nombreFuncionario} />
+                                    </div>
+                                    <InfoItem label="Geo Dept" value={activo.departamento} />
+                                    <InfoItem label="Geo Region" value={activo.ciudad} />
+                                    <InfoItem label="Logical Role" value={activo.cargo} />
+                                    <InfoItem label="Area Core" value={activo.area} />
+                                </dl>
+                             </div>
                         </div>
 
-                        {/* Row 3: Funcionario */}
-                        <div>
-                            <h3 className="text-lg font-medium text-gray-900 mb-4">Funcionario Asociado</h3>
-                            <dl className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-x-6 gap-y-4 bg-white p-4 rounded-lg shadow-sm ring-1 ring-gray-200">
-                                <InfoItem label="Empresa Funcionario" value={activo.empresaFuncionario} />
-                                <InfoItem label="Tipo de Personal" value={activo.tipoPersonal} />
-                                <InfoItem label="Cédula" value={activo.cedulaFuncionario} />
-                                <InfoItem label="Nombre / Shortname" value={activo.nombreFuncionario ? `${activo.nombreFuncionario} (${activo.shortname || '-'})` : '-'} />
-                                <InfoItem label="Departamento" value={activo.departamento} />
-                                <InfoItem label="Ciudad" value={activo.ciudad} />
-                                <InfoItem label="Cargo" value={activo.cargo} />
-                                <InfoItem label="Área" value={activo.area} />
-                            </dl>
-                        </div>
-
-                        {/* Row 4: Technical Specs */}
-                        <div>
-                            <h3 className="text-lg font-medium text-gray-900 mb-4">Especificaciones Técnicas</h3>
-                            <dl className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-4 bg-white p-4 rounded-lg shadow-sm ring-1 ring-gray-200">
-                                <InfoItem label="Procesador" value={activo.procesador} />
-                                <InfoItem label="Memoria RAM" value={activo.memoriaRam} />
-                                <InfoItem label="Disco Duro" value={activo.discoDuro} />
-                                <InfoItem label="Sistema Operativo" value={activo.sistemaOperativo} />
+                        {/* Tech Spec Layer */}
+                        <div className="bg-bg-surface border-2 border-border-default p-12 shadow-3xl group/tech relative overflow-hidden">
+                            <div className="absolute top-0 right-0 p-4 opacity-5 text-[8px] font-black uppercase tracking-tighter">SYS_IO_BLOCK_T</div>
+                            <div className="flex items-center gap-6 mb-12 pb-8 border-b-2 border-border-default">
+                                <div className="w-8 h-8 flex items-center justify-center border-2 border-text-primary font-black text-sm">&tau;</div>
+                                <h3 className="text-[14px] font-black text-text-primary uppercase tracking-[0.5em]"># TECHNICAL_HARDWARE_SPEC_MATRIX</h3>
+                            </div>
+                            <dl className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
+                                <InfoItem label="Procesador Unit" value={activo.procesador} />
+                                <InfoItem label="RAM_Buffer" value={activo.memoriaRam} />
+                                <InfoItem label="Storage_Volume" value={activo.discoDuro} />
+                                <InfoItem label="System_Core_OS" value={activo.sistemaOperativo} />
                             </dl>
                         </div>
                     </div>
                 )}
 
                 {activeTab === 'asignaciones' && (
-                    <div>
-                        <h3 className="text-lg font-medium text-gray-900 mb-4">Historial de Asignaciones</h3>
-                        {/* Desktop table */}
-                        <div className="hidden md:block overflow-x-auto shadow ring-1 ring-black ring-opacity-5 rounded-lg">
-                            <table className="min-w-full divide-y divide-gray-300">
-                                <thead className="bg-gray-50">
-                                    <tr>
-                                        <th className="py-3.5 pl-4 pr-3 text-left text-sm font-semibold text-gray-900">Funcionario</th>
-                                        <th className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">Tipo</th>
-                                        <th className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">Fecha Inicio</th>
-                                        <th className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">Fecha Fin</th>
-                                        <th className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">Obs</th>
+                    <div className="bg-bg-surface border-2 border-border-default shadow-3xl overflow-hidden group/alloc hover:border-border-strong transition-all relative">
+                        <div className="absolute top-0 right-0 p-8 opacity-10 pointer-events-none text-xs font-black uppercase tracking-[1em] group-hover/alloc:text-text-accent transition-colors">ALLOC_TX_LOG_STREAM</div>
+                        <div className="overflow-x-auto custom-scrollbar">
+                            <table className="w-full text-left border-collapse min-w-[900px] border-spacing-0">
+                                <thead>
+                                    <tr className="bg-bg-base border-b-2 border-border-default">
+                                        <th className="px-10 py-8 text-[11px] font-black uppercase tracking-[0.4em] text-text-muted border-r border-border-default/20">:: HOLDER_IDENTITY</th>
+                                        <th className="px-10 py-8 text-[11px] font-black uppercase tracking-[0.4em] text-text-muted border-r border-border-default/20">:: ALLOC_PROTOCOL</th>
+                                        <th className="px-10 py-8 text-[11px] font-black uppercase tracking-[0.4em] text-text-muted border-r border-border-default/20">:: START_TX_STAMP</th>
+                                        <th className="px-10 py-8 text-[11px] font-black uppercase tracking-[0.4em] text-text-muted border-r border-border-default/20">:: END_TX_STAMP</th>
+                                        <th className="px-10 py-8 text-[11px] font-black uppercase tracking-[0.4em] text-text-muted">:: LOG_METADATA_MANIFEST</th>
                                     </tr>
                                 </thead>
-                                <tbody className="divide-y divide-gray-200 bg-white">
+                                <tbody className="divide-y divide-border-default/10 bg-bg-surface/30">
                                     {activo.asignaciones?.map((asig) => (
-                                        <tr key={asig.id}>
-                                            <td className="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-medium text-gray-900">
-                                                {asig.funcionario.nombre}
+                                        <tr key={asig.id} className="hover:bg-bg-elevated transition-all group/row border-l-4 border-l-transparent hover:border-l-text-accent cursor-default">
+                                            <td className="px-10 py-8 text-[12px] font-black text-text-primary uppercase tracking-tight tabular-nums border-r border-border-default/10">{asig.funcionario.nombre.toUpperCase().replace(/ /g, '_')}</td>
+                                            <td className="px-10 py-8 border-r border-border-default/10">
+                                                <span className="inline-flex items-center border-2 border-border-default px-4 py-1 text-[10px] font-black uppercase tracking-widest text-text-muted bg-bg-base group-hover/row:border-text-accent group-hover/row:text-text-primary transition-all shadow-md">
+                                                    [{asig.tipo}]
+                                                </span>
                                             </td>
-                                            <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500">{asig.tipo}</td>
-                                            <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500">{formatDate(asig.fechaInicio)}</td>
-                                            <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500">{formatDate(asig.fechaFin)}</td>
-                                            <td className="px-3 py-4 text-sm text-gray-500">{asig.observaciones}</td>
+                                            <td className="px-10 py-8 text-[12px] font-black text-text-primary uppercase tracking-tight tabular-nums border-r border-border-default/10">{formatDate(asig.fechaInicio)}</td>
+                                            <td className="px-10 py-8 text-[12px] font-black text-text-primary uppercase tracking-tight tabular-nums border-r border-border-default/10">
+                                                {asig.fechaFin ? formatDate(asig.fechaFin) : <span className="text-text-accent animate-pulse bg-text-accent/5 px-3 py-1 border border-text-accent/30">[ CURRENT_TX_ACTIVE ]</span>}
+                                            </td>
+                                            <td className="px-10 py-8 text-[10px] text-text-muted font-black uppercase tracking-widest leading-relaxed max-w-sm" title={asig.observaciones}>
+                                                <div className="line-clamp-2">/ {asig.observaciones?.toUpperCase() || 'NO_METADATA_CAP_ACK'}</div>
+                                            </td>
                                         </tr>
                                     ))}
                                     {(!activo.asignaciones || activo.asignaciones.length === 0) && (
-                                        <tr><td colSpan="5" className="py-6 text-center text-gray-500">Sin historial</td></tr>
+                                        <tr><td colSpan="5" className="py-24 text-center text-text-muted text-[12px] font-black uppercase tracking-[0.5em] opacity-40 italic">! NO_ALLOCATION_HISTORY_LOGGED_IN_CORE</td></tr>
                                     )}
                                 </tbody>
                             </table>
-                        </div>
-                        {/* Mobile cards */}
-                        <div className="md:hidden space-y-3">
-                            {(!activo.asignaciones || activo.asignaciones.length === 0) && (
-                                <div className="py-6 text-center text-gray-500 bg-white rounded-lg shadow">Sin historial</div>
-                            )}
-                            {activo.asignaciones?.map((asig) => (
-                                <div key={asig.id} className="bg-white rounded-lg shadow ring-1 ring-black/5 p-4">
-                                    <div className="flex items-center justify-between mb-2">
-                                        <span className="font-medium text-gray-900 text-sm">{asig.funcionario.nombre}</span>
-                                        <span className="text-xs bg-indigo-50 text-indigo-700 px-2 py-0.5 rounded ring-1 ring-inset ring-indigo-700/10">{asig.tipo}</span>
-                                    </div>
-                                    <div className="text-xs text-gray-500 space-y-1">
-                                        <div>📅 Inicio: {formatDate(asig.fechaInicio)}</div>
-                                        <div>📅 Fin: {formatDate(asig.fechaFin)}</div>
-                                        {asig.observaciones && <div className="text-gray-600 mt-1">📝 {asig.observaciones}</div>}
-                                    </div>
-                                </div>
-                            ))}
                         </div>
                     </div>
                 )}
 
                 {activeTab === 'hojadevida' && (
-                    <div>
-                        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 mb-4">
-                            <h3 className="text-lg font-medium text-gray-900">Mantenimientos y Eventos</h3>
+                    <div className="animate-fadeIn">
+                        <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-10 mb-12 px-6">
+                            <div className="flex items-center gap-6">
+                                 <div className="w-3 h-3 bg-text-accent animate-pulse"></div>
+                                 <h3 className="text-[16px] font-black text-text-primary uppercase tracking-[0.6em] relative">/ MAINTENANCE_AND_SYSTEM_EVENT_HISTORY</h3>
+                            </div>
                             {canEdit && (
                                 <button
                                     onClick={() => setIsHVModalOpen(true)}
-                                    className="cursor-pointer inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700"
+                                    className="bg-bg-elevated border-2 border-border-strong px-12 py-4 text-[12px] font-black text-text-accent hover:text-text-primary uppercase tracking-[0.6em] transition-all shadow-3xl hover:scale-105 active:scale-95 group/btn"
                                 >
-                                    + Registrar Evento
+                                    <span className="relative z-10">[ + ] REGISTER_EVENT_IO_STAMP</span>
                                 </button>
                             )}
                         </div>
-                        {/* Desktop table */}
-                        <div className="hidden md:block overflow-x-auto shadow ring-1 ring-black ring-opacity-5 rounded-lg">
-                            <table className="min-w-full divide-y divide-gray-300">
-                                <thead className="bg-gray-50">
-                                    <tr>
-                                        <th className="py-3.5 pl-4 pr-3 text-left text-sm font-semibold text-gray-900">Fecha</th>
-                                        <th className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">Tipo</th>
-                                        <th className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">Descripción</th>
-                                        <th className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">Analista</th>
-                                        <th className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">Costo</th>
-                                        <th className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">Caso Aranda</th>
-                                        <th className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">Estado</th>
-                                        <th className="px-3 py-3.5 text-right text-sm font-semibold text-gray-900">Acciones</th>
-                                    </tr>
-                                </thead>
-                                <tbody className="divide-y divide-gray-200 bg-white">
-                                    {activo.hojaVida?.map((hv) => (
-                                        <tr key={hv.id}>
-                                            <td className="whitespace-nowrap py-4 pl-4 pr-3 text-sm text-gray-900">{formatDate(hv.fecha)}</td>
-                                            <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500">{hv.tipo}</td>
-                                            <td className="px-3 py-4 text-sm text-gray-500 max-w-xs truncate">{hv.descripcion}</td>
-                                            <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500">{hv.responsable?.nombre || hv.tecnico || '-'}</td>
-                                            <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500">{formatCurrency(hv.costo)}</td>
-                                            <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500">{hv.casoAranda || '-'}</td>
-                                            <td className="whitespace-nowrap px-3 py-4 text-sm">
-                                                <span className={`inline-flex items-center rounded-md px-2 py-1 text-xs font-medium ring-1 ring-inset ${getHVStatusBadge(hv.estado)}`}>
-                                                    {hv.estado?.replace('_', ' ') || 'EN PROCESO'}
-                                                </span>
-                                            </td>
-                                            <td className="whitespace-nowrap px-3 py-4 text-sm text-right">
-                                                <button
-                                                    onClick={() => { setSelectedHV(hv); setIsStatusModalOpen(true); }}
-                                                    className="text-indigo-600 hover:text-indigo-900 font-medium"
-                                                >
-                                                    {(hv.estado === 'FINALIZADO' || hv.estado === 'CERRADO' || !canEdit) ? 'Ver' : 'Gestionar'}
-                                                </button>
-                                            </td>
+                        
+                        <div className="bg-bg-surface border-2 border-border-default shadow-3xl overflow-hidden group/maint hover:border-border-strong transition-all relative">
+                            <div className="absolute top-0 right-0 p-8 opacity-10 pointer-events-none text-xs font-black uppercase tracking-[1em] group-hover/maint:text-text-accent transition-colors">MAINT_PHYSICAL_CORE_STREAM</div>
+                            <div className="overflow-x-auto custom-scrollbar">
+                                <table className="w-full text-left border-collapse min-w-[1100px] border-spacing-0">
+                                    <thead>
+                                        <tr className="bg-bg-base border-b-2 border-border-default">
+                                            <th className="px-8 py-8 text-[11px] font-black uppercase tracking-[0.4em] text-text-muted border-r border-border-default/20">:: STAMP</th>
+                                            <th className="px-8 py-8 text-[11px] font-black uppercase tracking-[0.4em] text-text-muted border-r border-border-default/20">:: TYPE</th>
+                                            <th className="px-8 py-8 text-[11px] font-black uppercase tracking-[0.4em] text-text-muted border-r border-border-default/20">:: LOG_DESC_TX</th>
+                                            <th className="px-8 py-8 text-[11px] font-black uppercase tracking-[0.4em] text-text-muted border-r border-border-default/20">:: ANALYST_UID</th>
+                                            <th className="px-8 py-8 text-[11px] font-black uppercase tracking-[0.4em] text-text-muted border-r border-border-default/20">:: COST_UNIT</th>
+                                            <th className="px-8 py-8 text-[11px] font-black uppercase tracking-[0.4em] text-text-muted border-r border-border-default/20">:: EXT_IDENT</th>
+                                            <th className="px-8 py-8 text-[11px] font-black uppercase tracking-[0.4em] text-text-muted border-r border-border-default/20">:: STATE</th>
+                                            <th className="px-8 py-8 text-right text-[11px] font-black uppercase tracking-[0.5em] text-text-muted">_COMMAND_IO</th>
                                         </tr>
-                                    ))}
-                                    {(!activo.hojaVida || activo.hojaVida.length === 0) && (
-                                        <tr><td colSpan="8" className="py-6 text-center text-gray-500">No hay registros de mantenimiento</td></tr>
-                                    )}
-                                </tbody>
-                            </table>
-                        </div>
-                        {/* Mobile cards */}
-                        <div className="md:hidden space-y-3">
-                            {(!activo.hojaVida || activo.hojaVida.length === 0) && (
-                                <div className="py-6 text-center text-gray-500 bg-white rounded-lg shadow">No hay registros</div>
-                            )}
-                            {activo.hojaVida?.map((hv) => (
-                                <div key={hv.id} className="bg-white rounded-lg shadow ring-1 ring-black/5 p-4">
-                                    <div className="flex items-start justify-between mb-2">
-                                        <div>
-                                            <span className="font-medium text-gray-900 text-sm">{hv.tipo}</span>
-                                            <span className="text-xs text-gray-500 ml-2">{formatDate(hv.fecha)}</span>
-                                        </div>
-                                        <span className={`inline-flex items-center rounded-md px-2 py-0.5 text-xs font-medium ring-1 ring-inset ${getHVStatusBadge(hv.estado)}`}>
-                                            {hv.estado?.replace('_', ' ')}
-                                        </span>
-                                    </div>
-                                    <p className="text-sm text-gray-600 line-clamp-2">{hv.descripcion}</p>
-                                    <div className="text-xs text-gray-500 mt-2 space-y-0.5">
-                                        <div>🔧 {hv.responsable?.nombre || hv.tecnico || 'Sin analista'}</div>
-                                        {hv.casoAranda && <div>🎫 Aranda: {hv.casoAranda}</div>}
-                                        <div>💰 {formatCurrency(hv.costo)}</div>
-                                    </div>
-                                    <div className="mt-3 pt-3 border-t border-gray-100 flex justify-end">
-                                        <button
-                                            onClick={() => { setSelectedHV(hv); setIsStatusModalOpen(true); }}
-                                            className="text-xs text-indigo-700 bg-indigo-50 rounded-md px-3 py-1.5 font-medium hover:bg-indigo-100"
-                                        >
-                                            {(hv.estado === 'FINALIZADO' || hv.estado === 'CERRADO' || !canEdit) ? 'Ver Detalles' : 'Gestionar'}
-                                        </button>
-                                    </div>
-                                </div>
-                            ))}
+                                    </thead>
+                                    <tbody className="divide-y divide-border-default/10 bg-bg-surface/30">
+                                        {activo.hojaVida?.map((hv) => (
+                                            <tr key={hv.id} className="hover:bg-bg-elevated transition-all group/row border-l-4 border-l-transparent hover:border-l-text-accent cursor-default">
+                                                <td className="px-8 py-8 text-[12px] font-black text-text-primary uppercase tracking-tight tabular-nums border-r border-border-default/10">{formatDate(hv.fecha)}</td>
+                                                <td className="px-8 py-8 border-r border-border-default/10">
+                                                    <span className="text-[10px] font-black text-text-primary uppercase tracking-widest bg-bg-base border-2 border-border-default px-4 py-1 shadow-md group-hover/row:border-text-accent transition-colors">/{hv.tipo}</span>
+                                                </td>
+                                                <td className="px-8 py-8 text-[11px] font-black text-text-muted uppercase tracking-tight max-w-sm border-r border-border-default/10" title={hv.description}>
+                                                     <div className="line-clamp-2">/ {hv.descripcion?.toUpperCase()}</div>
+                                                </td>
+                                                <td className="px-8 py-8 text-[11px] font-black text-text-primary uppercase tracking-tight tabular-nums border-r border-border-default/10">{hv.responsable?.nombre?.toUpperCase().replace(/ /g, '_') || hv.tecnico?.toUpperCase().replace(/ /g, '_') || 'NULL_ANALYST_ACK'}</td>
+                                                <td className="px-8 py-8 text-[12px] font-black text-text-accent uppercase tracking-tight tabular-nums border-r border-border-default/10">{formatCurrency(hv.costo)}</td>
+                                                <td className="px-8 py-8 text-[11px] font-black text-text-muted uppercase tracking-[0.2em] font-mono opacity-60 border-r border-border-default/10">0x{hv.casoAranda?.toUpperCase() || 'NULL_IDENT'}</td>
+                                                <td className="px-8 py-8 border-r border-border-default/10">
+                                                    <span className={getHVStatusBadge(hv.estado)}>
+                                                        [ {hv.estado?.replace('_', ' ') || 'ACTIVE'} ]
+                                                    </span>
+                                                </td>
+                                                <td className="px-8 py-8 text-right whitespace-nowrap">
+                                                    <button
+                                                        onClick={() => { setSelectedHV(hv); setIsStatusModalOpen(true); }}
+                                                        className="inline-flex items-center justify-center text-[10px] font-black text-text-muted border-2 border-border-default bg-bg-base px-6 py-3 uppercase tracking-widest hover:text-text-primary hover:border-text-accent transition-all shadow-xl active:scale-95 group/btn"
+                                                    >
+                                                        <span className="opacity-40 group-hover/btn:translate-x-2 transition-transform mr-3">→</span>
+                                                        {(hv.estado === 'FINALIZADO' || hv.estado === 'CERRADO' || !canEdit) ? '[ VIEW_LOG_RD ]' : '[ MANAGE_SYNC ]'}
+                                                    </button>
+                                                </td>
+                                            </tr>
+                                        ))}
+                                        {(!activo.hojaVida || activo.hojaVida.length === 0) && (
+                                            <tr><td colSpan="8" className="py-24 text-center text-text-muted text-[12px] font-black uppercase tracking-[0.5em] opacity-40 italic">! NO_MAINTENANCE_LOGS_DETECTED_IN_REPOSITORY_TX</td></tr>
+                                        )}
+                                    </tbody>
+                                </table>
+                            </div>
                         </div>
                     </div>
                 )}
@@ -367,6 +391,18 @@ const ActivoDetail = () => {
                 )}
             </div>
 
+            {/* Controller Footer Identification Area */}
+            <div className="mt-24 flex flex-col sm:flex-row justify-between items-center gap-10 p-12 bg-bg-surface/40 border-2 border-border-default opacity-40 shadow-inner group/footer">
+                <div className="text-[11px] font-black text-text-muted uppercase tracking-[0.8em] flex items-center gap-6">
+                     <div className="w-3 h-3 bg-text-accent rotate-45 animate-pulse shadow-[0_0_12px_rgba(251,97,7,0.6)]"></div>
+                     NODE_MANIFEST_STABLE // HASH: {id.substring(id.length - 8).toUpperCase()}
+                </div>
+                <div className="text-[12px] font-black text-text-muted uppercase tracking-[0.4em] italic group-hover:text-text-primary transition-colors">
+                     FNC_IT_INFRASTRUCTURE_MONITOR // ACCESS_LVL: 7
+                </div>
+            </div>
+
+            {/* Modals Bridge Integration */}
             {isEditModalOpen && (
                 <ActivosForm
                     open={isEditModalOpen}

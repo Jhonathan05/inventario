@@ -49,13 +49,6 @@ const MainLayout = () => {
         }
     };
 
-    const getAlertaIcon = (tipo) => {
-        if (tipo === 'SLA_TICKET_RESPUESTA') return <ClockIcon className="w-5 h-5 text-red-500" />;
-        if (tipo === 'GARANTIA_VENCIMIENTO') return <ExclamationTriangleIcon className="w-5 h-5 text-yellow-500" />;
-        if (tipo === 'MANTENIMIENTO_PROLONGADO') return <ExclamationTriangleIcon className="w-5 h-5 text-orange-500" />;
-        return <InformationCircleIcon className="w-5 h-5 text-blue-500" />;
-    };
-
     // Cerrar dropdowns al hacer clic fuera
     useEffect(() => {
         const handleClickOutside = (event) => {
@@ -79,86 +72,93 @@ const MainLayout = () => {
     }, [user]);
 
     return (
-        <div className="app-layout">
+        <div className="app-layout font-mono selection:bg-text-accent selection:text-bg-base">
             <Sidebar />
 
-            <div className="main-content min-h-screen">
-                <header className="container pt-6">
-                    <div className="flex justify-between items-center p-4 rounded-2xl glass shadow-sm gap-2 md:gap-4 relative z-[1000]">
+            <div className="main-content min-h-screen bg-bg-base">
+                <header className="container pt-8">
+                    <div className="flex justify-between items-center p-6 bg-bg-surface border-2 border-border-default md:border-4 gap-4 md:gap-8 relative z-[1000] shadow-3xl group/header overflow-hidden">
+                        <div className="absolute top-0 right-0 p-6 opacity-5 pointer-events-none text-xs font-black uppercase tracking-[1em] group-hover/header:translate-x-2 transition-transform">SHELL_CORE_0x00</div>
+                        
                         <div className="md:hidden flex-1 overflow-hidden">
-                            <h1 className="text-lg m-0 text-fnc-700 leading-tight truncate">Inventario TIC</h1>
-                            <p className="text-xs text-charcoal-600 m-0 truncate font-medium">{user?.nombre}</p>
-                            <p className="text-[10px] text-fnc-500 capitalize m-0 font-bold">{user?.rol || 'Personal'}</p>
+                            <h1 className="text-xl m-0 text-text-accent leading-tight truncate font-black tracking-widest uppercase">/ inventario_tic</h1>
+                            <p className="text-[10px] text-text-muted m-0 truncate font-black uppercase tracking-widest opacity-60">USER: {user?.nombre?.toUpperCase()}</p>
                         </div>
+                        
                         <div className="hidden md:block flex-1">
-                            <h2 className="m-0 text-charcoal-800">Panel de Control</h2>
-                            <p className="text-sm text-fnc-600 capitalize m-0 font-medium tracking-tight">Gestión de Activos y Bitácora Técnica</p>
+                            <div className="flex items-center gap-6">
+                                <div className="w-2.5 h-2.5 bg-text-accent animate-pulse shadow-[0_0_10px_rgba(var(--text-accent),0.5)]"></div>
+                                <h1 className="m-0 text-text-primary text-2xl font-black uppercase tracking-[0.4em]">system_dashboard_controller</h1>
+                            </div>
+                            <div className="flex items-center gap-6 mt-3">
+                                <p className="text-[11px] text-text-muted font-black uppercase tracking-[0.3em] opacity-40 italic">gestion_activos // audit_stream // parity_check_ok</p>
+                            </div>
                         </div>
 
                         {/* Sistema de Alertas (Campana) */}
                         {user?.rol === 'ANALISTA_TIC' && (
-                            <div className="relative mr-2" ref={alertsRef}>
+                            <div className="relative mr-4" ref={alertsRef}>
                                 <button
                                     onClick={() => setAlertsOpen(!alertsOpen)}
-                                    className={`relative p-2 rounded-xl transition-all ${
-                                        alertsOpen ? 'bg-fnc-100 text-fnc-700' : 'text-charcoal-400 hover:bg-gray-100 hover:text-fnc-600'
-                                    }`}
+                                    className={`relative p-3 border-2 transition-all active:scale-90 group/bell
+                                        ${alertsOpen 
+                                            ? 'bg-bg-elevated border-text-accent text-text-accent ring-4 ring-text-accent/10 shadow-2xl scale-110' 
+                                            : 'bg-bg-base border-border-default text-text-muted hover:border-text-primary hover:text-text-primary hover:shadow-xl'
+                                        }`}
                                 >
-                                    <BellIcon className="h-6 w-6" />
+                                    <BellIcon className={`h-6 w-6 transition-all ${alertsOpen ? 'animate-none' : 'group-hover/bell:scale-110'}`} />
                                     {alertas.pendientes > 0 && (
-                                        <span className="absolute top-1 right-1 flex h-5 w-5 items-center justify-center rounded-full bg-red-500 text-[10px] font-bold text-white ring-2 ring-white animate-pulse">
+                                        <span className="absolute -top-3 -right-3 flex h-6 w-6 items-center justify-center bg-text-accent text-[11px] font-black text-bg-base ring-2 ring-bg-base shadow-xl animate-bounce">
                                             {alertas.pendientes}
                                         </span>
                                     )}
                                 </button>
 
                                 {alertsOpen && (
-                                    <div className="absolute right-0 mt-3 w-80 rounded-2xl shadow-2xl bg-white ring-1 ring-black ring-opacity-5 z-[9999] overflow-hidden animate-slide-up origin-top-right border border-gray-100">
-                                        <div className="bg-fnc-700 p-4 text-white">
-                                            <h3 className="text-sm font-bold flex items-center justify-between">
-                                                Alertas y Notificaciones
-                                                <span className="bg-fnc-500 px-2 py-0.5 rounded-full text-[10px] uppercase tracking-wider">Sistema</span>
+                                    <div className="absolute right-0 mt-6 w-96 bg-bg-surface shadow-[0_30px_100px_rgba(0,0,0,0.8)] z-[9999] overflow-hidden animate-slideUp origin-top-right border-4 border-border-strong ring-8 ring-black/5">
+                                        <div className="bg-bg-base p-6 border-b-2 border-border-default flex items-center justify-between">
+                                            <h3 className="text-xs font-black flex items-center gap-4 text-text-primary uppercase tracking-[0.4em]">
+                                                <div className="w-2 h-2 bg-text-accent"></div>
+                                                notifications_manifest
                                             </h3>
-                                            <p className="text-[10px] text-fnc-100 mt-1">Tienes {alertas.pendientes} notificaciones sin leer.</p>
+                                            <span className="text-[10px] font-bold text-text-accent bg-bg-elevated px-3 py-1 border border-text-accent/20">BUFF_LEN: {alertas.pendientes.toString().padStart(2, '0')}</span>
                                         </div>
 
-                                        <div className="max-h-96 overflow-y-auto divide-y divide-gray-100">
+                                        <div className="max-h-[32rem] overflow-y-auto divide-y-2 divide-border-default/20 custom-scrollbar bg-bg-surface/50">
                                             {alertas.listaRecientes.length > 0 ? (
                                                 alertas.listaRecientes.map((alerta) => (
                                                     <button
                                                         key={alerta.id}
                                                         onClick={() => handleAlertaClick(alerta)}
-                                                        className={`w-full text-left p-4 hover:bg-fnc-50 transition-colors flex items-start gap-3 group ${!alerta.leida ? 'bg-blue-50/50' : ''}`}
+                                                        className={`w-full text-left p-6 hover:bg-bg-elevated/50 transition-all flex items-start gap-5 group filter grayscale hover:grayscale-0 active:bg-bg-base ${!alerta.leida ? 'bg-bg-base border-l-4 border-l-text-accent shadow-inner' : 'opacity-60 border-l-4 border-l-transparent'}`}
                                                     >
-                                                        <div className={`mt-1 h-2 w-2 rounded-full shrink-0 ${!alerta.leida ? 'bg-blue-500 animate-pulse' : 'bg-gray-300'}`} />
+                                                        <div className={`mt-2 h-2 w-2 shadow-[0_0_8px_currentcolor] transition-all group-hover:scale-150 ${!alerta.leida ? 'bg-text-accent' : 'bg-text-muted opacity-30'}`} />
                                                         <div className="flex-1 min-w-0">
-                                                            <div className="flex items-center gap-2 mb-1">
-                                                                {getAlertaIcon(alerta.tipo)}
-                                                                <p className={`text-xs font-semibold truncate ${!alerta.leida ? 'text-blue-900' : 'text-gray-900'}`}>
+                                                            <div className="flex items-center gap-2 mb-2">
+                                                                <p className={`text-[11px] font-black uppercase tracking-[0.2em] truncate group-hover:text-text-primary transition-colors ${!alerta.leida ? 'text-text-primary underline decoration-text-accent/30 decoration-2 underline-offset-4' : 'text-text-muted'}`}>
                                                                     {alerta.titulo}
                                                                 </p>
                                                             </div>
-                                                            <p className="text-[10px] text-gray-600 line-clamp-2 leading-tight">
+                                                            <p className="text-[10px] text-text-muted font-bold line-clamp-2 leading-relaxed opacity-60 group-hover:opacity-100 transition-opacity uppercase tracking-widest">
                                                                 {alerta.mensaje}
                                                             </p>
-                                                            <div className="flex items-center gap-2 mt-2">
-                                                                <span className="text-[9px] text-gray-400 flex items-center gap-0.5">
-                                                                    <ClockIcon className="w-3 h-3" />
-                                                                    {formatDistanceToNow(new Date(alerta.creadoEn), { addSuffix: true, locale: es })}
+                                                            <div className="flex items-center justify-between mt-4">
+                                                                <span className="text-[8px] font-black text-text-muted bg-bg-base px-2 py-1 border border-border-default opacity-50 tabular-nums">
+                                                                    TS: {formatDistanceToNow(new Date(alerta.creadoEn), { addSuffix: true, locale: es }).toUpperCase()}
                                                                 </span>
+                                                                <span className="text-[8px] font-black text-text-accent opacity-0 group-hover:opacity-100 transition-opacity tracking-[0.3em]">READ_TX &rarr;</span>
                                                             </div>
                                                         </div>
                                                     </button>
                                                 ))
                                             ) : (
-                                                <div className="p-8 text-center bg-gray-50">
-                                                    <BellIcon className="h-10 w-10 text-gray-300 mx-auto mb-2" />
-                                                    <p className="text-xs text-gray-500">No tienes alertas pendientes.</p>
+                                                <div className="p-14 text-center bg-bg-base border-y-2 border-border-default/10">
+                                                    <p className="text-[11px] text-text-muted uppercase tracking-[0.8em] font-black opacity-30 italic animate-pulse"># NULL_NOTIF_BUFFER</p>
                                                 </div>
                                             )}
                                         </div>
 
-                                        <div className="p-3 bg-gray-50 border-t border-gray-100">
+                                        <div className="p-6 bg-bg-base border-t-2 border-border-default/50">
                                             <button
                                                 onClick={async () => {
                                                     try {
@@ -168,9 +168,9 @@ const MainLayout = () => {
                                                         console.error(e);
                                                     }
                                                 }}
-                                                className="w-full py-2 bg-white border border-gray-200 rounded-lg text-xs font-bold text-fnc-700 hover:bg-fnc-50 hover:border-fnc-200 transition-all shadow-sm"
+                                                className="w-full py-4 bg-bg-surface border-2 border-border-default text-[10px] font-black text-text-primary hover:bg-text-accent hover:text-bg-base hover:border-text-accent transition-all uppercase tracking-[0.5em] active:scale-95 shadow-lg group/clear"
                                             >
-                                                Limpiar alertas leídas
+                                                <span className="group-hover:tracking-[0.8em] transition-all">[ CLEAR_READ_LOGS_TX ]</span>
                                             </button>
                                         </div>
                                     </div>
@@ -179,37 +179,45 @@ const MainLayout = () => {
                         )}
 
                         {/* Datos de Usuario y Menú Desplegable */}
-                        <div className="flex items-center gap-3 text-right md:border-l md:border-charcoal-200 md:pl-4 ml-auto" ref={dropdownRef}>
-                            <div className="hidden md:flex flex-col justify-center">
-                                <span className="text-sm font-bold text-charcoal-800">{user?.nombre || 'Administrador'}</span>
-                                <span className="text-xs text-charcoal-500">{user?.email || 'admin@federacion.com'}</span>
-                                <span className="text-[10px] text-fnc-600 uppercase font-bold mt-0.5">{user?.rol || 'Rol'}</span>
+                        <div className="flex items-center gap-5 text-right border-l-2 border-border-default/40 pl-6 ml-auto" ref={dropdownRef}>
+                            <div className="hidden md:flex flex-col justify-center gap-2">
+                                <span className="text-sm font-black text-text-primary uppercase tracking-[0.3em]">{user?.nombre || 'USER_IDENT_0x00'}</span>
+                                <div className="flex items-center justify-end gap-3">
+                                    <span className="text-[9px] text-text-muted font-black uppercase tracking-[0.2em] bg-bg-base px-2 py-1 border border-border-default opacity-60">{user?.rol || 'GUEST_IO'}</span>
+                                    <div className="w-2 h-0.5 bg-text-accent opacity-30"></div>
+                                </div>
                             </div>
 
                             <div className="relative">
                                 <button
                                     onClick={() => setDropdownOpen(!dropdownOpen)}
-                                    className="h-11 w-11 rounded-full bg-fnc-100 flex items-center justify-center text-fnc-700 font-bold text-lg flex-shrink-0 shadow-sm border border-fnc-200 hover:ring-2 hover:ring-fnc-300 hover:ring-offset-1 transition-all focus:outline-none"
+                                    className={`h-12 w-12 border-2 flex items-center justify-center text-text-primary font-black text-lg flex-shrink-0 transition-all focus:outline-none shadow-xl active:scale-90
+                                        ${dropdownOpen 
+                                            ? 'bg-text-accent border-text-accent text-bg-base scale-110 ring-4 ring-text-accent/20' 
+                                            : 'bg-bg-elevated border-border-default hover:border-text-primary hover:scale-105'
+                                        }`}
                                 >
                                     {user?.nombre?.[0]?.toUpperCase() || 'U'}
                                 </button>
 
                                 {dropdownOpen && (
-                                    <div className="absolute right-0 mt-2 w-48 rounded-xl shadow-lg bg-white ring-1 ring-black ring-opacity-5 divide-y divide-gray-100 focus:outline-none z-50 animate-slide-up origin-top-right">
-                                        <div className="px-4 py-3 md:hidden">
-                                            <p className="text-sm font-medium text-gray-900 truncate">{user?.nombre || 'Usuario'}</p>
-                                            <p className="text-xs text-gray-500 truncate">{user?.email || 'correo@ejemplo.com'}</p>
+                                    <div className="absolute right-0 mt-4 w-56 bg-bg-surface shadow-[0_30px_100px_rgba(0,0,0,0.8)] focus:outline-none z-50 animate-slideUp origin-top-right border-4 border-border-strong divide-y-2 divide-border-default ring-8 ring-black/5">
+                                        <div className="px-6 py-5 md:hidden bg-bg-base border-b-2 border-border-default">
+                                            <p className="text-xs font-black text-text-primary truncate uppercase tracking-widest">{user?.nombre || 'USER'}</p>
+                                            <div className="h-px bg-text-accent mt-3 opacity-20"></div>
+                                            <p className="text-[9px] text-text-muted truncate uppercase font-black tracking-[0.3em] mt-3">{user?.rol || 'GUEST'}</p>
                                         </div>
-                                        <div className="py-1">
+                                        <div className="py-2 bg-bg-surface">
                                             <button
                                                 onClick={handleLogout}
-                                                className="group flex w-full items-center px-4 py-2 text-sm text-red-600 hover:bg-red-50 hover:text-red-700 transition-colors"
+                                                className="group flex w-full items-center justify-between px-6 py-4 text-[11px] text-text-primary hover:bg-text-accent hover:text-bg-base transition-all uppercase font-black tracking-[0.4em] active:bg-border-strong"
                                             >
-                                                <svg className="mr-3 h-5 w-5 text-red-400 group-hover:text-red-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
-                                                </svg>
-                                                Cerrar Sesión
+                                                <span># logout_session</span>
+                                                <span className="opacity-0 group-hover:opacity-100 transition-opacity translate-x-4 group-hover:translate-x-0">&lsaquo;QUIT&rsaquo;</span>
                                             </button>
+                                        </div>
+                                        <div className="px-6 py-3 bg-bg-base opacity-20">
+                                            <p className="text-[8px] font-black uppercase tracking-tighter">IO_PORT_STABLE // CRC_OK</p>
                                         </div>
                                     </div>
                                 )}
@@ -218,7 +226,7 @@ const MainLayout = () => {
                     </div>
                 </header>
 
-                <main className="container pt-4">
+                <main className="container pt-8 pb-32">
                     <Outlet />
                 </main>
             </div>

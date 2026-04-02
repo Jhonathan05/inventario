@@ -1,4 +1,3 @@
-import { ArrowDownTrayIcon } from '@heroicons/react/24/outline';
 import { generateTicketReport } from '../../reports/TicketReport';
 
 export const TicketManagement = ({ 
@@ -12,50 +11,86 @@ export const TicketManagement = ({
     setNuevoEstado, 
     handleCambiarEstado 
 }) => {
+    const selectCls = "flex-1 bg-bg-base border border-border-default px-5 py-3 text-[11px] font-black uppercase tracking-widest text-text-primary focus:outline-none focus:border-border-strong transition-all appearance-none cursor-pointer shadow-inner";
+    const btnCls = "px-6 py-3 bg-bg-elevated border border-border-default text-[10px] font-black text-text-muted hover:text-text-primary hover:border-text-accent uppercase tracking-[0.3em] transition-all disabled:opacity-30 active:scale-95 shadow-xl";
+    const labelCls = "text-[10px] font-black text-text-muted uppercase tracking-[0.3em] block mb-3 opacity-60 group-hover/field:text-text-accent transition-colors";
+
     return (
-        <div className="bg-gray-50 rounded-xl shadow-sm border border-gray-100 p-5 space-y-4 no-print">
-            <h3 className="text-xs font-semibold uppercase text-gray-500 tracking-wider">Gestión del Caso</h3>
-            <div>
-                <label className="text-xs font-semibold text-gray-600 block mb-1">Analista Asignado</label>
-                <div className="flex gap-2">
-                    <select value={tecnicoAsignado} onChange={e => setTecnicoAsignado(e.target.value)}
-                        className="flex-1 text-sm border border-gray-200 rounded-md shadow-sm bg-white focus:ring-blue-500">
-                        <option value="">-- Sin Asignar --</option>
-                        {tecnicos.map(t => <option key={t.id} value={t.id}>{t.nombre}</option>)}
-                    </select>
-                    <button onClick={handleAsignarTecnico}
-                        disabled={String(tecnicoAsignado) === String(ticket.asignadoAId || '')}
-                        className="px-3 py-1.5 bg-white border border-gray-200 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50">
-                        Asignar
-                    </button>
+        <div className="bg-bg-surface border border-border-default p-10 space-y-10 font-mono no-print shadow-3xl relative overflow-hidden group hover:border-border-strong transition-all">
+            <div className="absolute top-0 right-0 p-6 opacity-10 pointer-events-none text-xs font-black uppercase tracking-[0.5em] group-hover:opacity-20 transition-opacity">CTRL_PANEL_RX</div>
+            <h3 className="text-[11px] font-black uppercase tracking-[0.4em] text-text-muted mb-8 border-b border-border-default pb-4">/ FLOW_CONTROL_SYSTEM</h3>
+            
+            <div className="space-y-10">
+                <div className="group/field">
+                    <label className={labelCls}>:: ASSIGNED_ANALYST_NODE</label>
+                    <div className="flex gap-4">
+                        <div className="relative flex-1">
+                            <select 
+                                value={tecnicoAsignado} 
+                                onChange={e => setTecnicoAsignado(e.target.value)}
+                                className={selectCls}
+                            >
+                                <option value="">[ -- UNASSIGNED_CORE -- ]</option>
+                                {tecnicos.map(t => <option key={t.id} value={t.id}>{t.nombre.toUpperCase().replace(/ /g, '_')}</option>)}
+                            </select>
+                            <div className="absolute inset-y-0 right-0 flex items-center pr-4 pointer-events-none opacity-40 text-[8px]">
+                                [ &darr; ]
+                            </div>
+                        </div>
+                        <button 
+                            onClick={handleAsignarTecnico}
+                            disabled={String(tecnicoAsignado) === String(ticket.asignadoAId || '')}
+                            className={btnCls}
+                        >
+                            EXEC_ASSIGN
+                        </button>
+                    </div>
+                </div>
+
+                <div className="group/field">
+                    <label className={labelCls}>:: CASE_STATUS_PROTOCOL</label>
+                    <div className="flex gap-4">
+                        <div className="relative flex-1">
+                            <select 
+                                value={nuevoEstado} 
+                                onChange={e => setNuevoEstado(e.target.value)}
+                                className={selectCls}
+                            >
+                                <option value="CREADO">INITIALIZED</option>
+                                <option value="EN_CURSO">PROCESSING_BUF</option>
+                                <option value="EJECUCION">EXECUTING_RX</option>
+                                <option value="SIN_RESPUESTA">NO_IO_RESPONSE</option>
+                                <option value="RESUELTO">RESOLVED_TX</option>
+                                <option value="COMPLETADO">CLOSED_SUCCESS</option>
+                            </select>
+                            <div className="absolute inset-y-0 right-0 flex items-center pr-4 pointer-events-none opacity-40 text-[8px]">
+                                [ &darr; ]
+                            </div>
+                        </div>
+                        <button 
+                            onClick={handleCambiarEstado} 
+                            disabled={nuevoEstado === ticket.estado}
+                            className={btnCls}
+                        >
+                            PUSH_UPDATE
+                        </button>
+                    </div>
                 </div>
             </div>
-            <div>
-                <label className="text-xs font-semibold text-gray-600 block mb-1">Estado del Caso</label>
-                <div className="flex gap-2">
-                    <select value={nuevoEstado} onChange={e => setNuevoEstado(e.target.value)}
-                        className="flex-1 text-sm border border-gray-200 rounded-md shadow-sm bg-white focus:ring-blue-500">
-                        <option value="CREADO">Creado</option>
-                        <option value="EN_CURSO">En Curso</option>
-                        <option value="EJECUCION">En Ejecución</option>
-                        <option value="SIN_RESPUESTA">Sin Respuesta</option>
-                        <option value="RESUELTO">Resuelto</option>
-                        <option value="COMPLETADO">Completado</option>
-                    </select>
-                    <button onClick={handleCambiarEstado} disabled={nuevoEstado === ticket.estado}
-                        className="px-3 py-1.5 bg-white border border-gray-200 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50">
-                        Actualizar
-                    </button>
-                </div>
-            </div>
-            <div className="pt-2">
+
+            <div className="pt-8 border-t border-border-default/30">
                 <button
                     onClick={() => generateTicketReport(ticket, user)}
-                    className="w-full py-2 bg-gray-900 text-white rounded-lg text-xs font-bold hover:bg-black transition-colors flex items-center justify-center gap-2 shadow-xl"
+                    className="w-full py-5 bg-bg-elevated border border-border-strong text-text-accent font-black text-[12px] hover:text-text-primary uppercase tracking-[0.5em] transition-all flex items-center justify-center gap-5 shadow-3xl group/print active:scale-95"
                 >
-                    <ArrowDownTrayIcon className="w-4 h-4" />
-                    GENERAR REPORTE DE CICLO DE VIDA (PDF)
+                    <span className="opacity-40 group-hover/print:scale-125 transition-transform">#</span>
+                    <span>[ GENERATE_LIFE_CYCLE_REPORT_PDF ]</span>
+                    <span className="opacity-40 group-hover/print:translate-y-1 transition-transform">v</span>
                 </button>
+            </div>
+            
+            <div className="text-[8px] font-black text-text-muted uppercase tracking-[0.4em] opacity-10">
+                 SYSTEM_FLOW_REPORTS_ENABLED: V.4.0
             </div>
         </div>
     );

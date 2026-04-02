@@ -5,9 +5,7 @@ import toast from 'react-hot-toast';
 import api from '../../lib/axios';
 import { funcionariosService } from '../../api/funcionarios.service';
 import { activosService } from '../../api/activos.service';
-import { ticketsService } from '../../api/tickets.service';
 import SelectWithAdd from '../../components/SelectWithAdd';
-import { XMarkIcon, TagIcon, PaperClipIcon, TrashIcon, ExclamationCircleIcon } from '@heroicons/react/24/outline';
 
 const sortList = (list) => {
     return [...list].sort((a, b) => {
@@ -45,12 +43,10 @@ const TicketForm = () => {
     });
     const activos = sortList(activosRaw);
 
-
-
     const handleFileChange = (e) => {
         const files = Array.from(e.target.files);
         setAdjuntos(prev => [...prev, ...files]);
-        e.target.value = ''; // Reset input to allow re-selecting same file
+        e.target.value = ''; 
     };
 
     const removeFile = (index) => {
@@ -59,14 +55,15 @@ const TicketForm = () => {
 
     const handleSubmit = async (e) => {
         e.preventDefault();
-        if (!formData.funcionarioId) { toast.error('Selecciona un funcionario'); return; }
+        if (!formData.funcionarioId) { 
+            toast.error('SELECTION_REQUIRED: SOURCE_ENTITY'); 
+            return; 
+        }
 
+        setLoading(true);
         try {
-            setLoading(true);
-
-            // Use FormData to support file uploads
             const payload = new FormData();
-            payload.append('titulo', formData.titulo);
+            payload.append('titulo', formData.titulo.toUpperCase());
             payload.append('descripcion', formData.descripcion);
             payload.append('prioridad', formData.prioridad);
             payload.append('tipo', formData.tipo);
@@ -76,10 +73,10 @@ const TicketForm = () => {
 
             const res = await api.post('/tickets', payload);
             queryClient.invalidateQueries({ queryKey: ['tickets'] });
-            toast.success('Caso creado exitosamente');
+            toast.success('CORE_COMMIT_SUCCESS: CASE_INITIALIZED');
             navigate(`/tickets/${res.data.id}`);
-        } catch {
-            toast.error('Error al crear el caso');
+        } catch (err) {
+            toast.error('CORE_COMMIT_FAULT: TRANSACTION_ABORTED');
         } finally {
             setLoading(false);
         }
@@ -87,113 +84,157 @@ const TicketForm = () => {
 
     const handleFormChange = (e) => {
         const { name, value } = e.target;
-        setFormData(prev => {
-            const next = { ...prev, [name]: value };
-            // Si cambia el funcionario, resetear el activo o al menos forzar filtrado
-            if (name === 'funcionarioId') {
-                // Opcional: setMostrarTodosLosActivos(false);
-            }
-            return next;
-        });
+        setFormData(prev => ({ ...prev, [name]: value }));
     };
 
-    // Obtener cédula del funcionario seleccionado para filtrar activos
     const selectedFuncionario = funcionarios.find(f => String(f.id) === String(formData.funcionarioId));
     
-    // Filtrar activos según el funcionario seleccionado o mostrar todos
     const activosMostrados = (mostrarTodosLosActivos || !formData.funcionarioId)
         ? activos
         : activos.filter(a => a.cedulaFuncionario === selectedFuncionario?.cedula);
 
-    const getFileIcon = (file) => {
-        if (file.type.startsWith('image/')) return '🖼️';
-        if (file.type === 'application/pdf') return '📄';
-        return '📎';
+    const getFileSymbol = (file) => {
+        if (file.type.startsWith('image/')) return '[IMG_NODE]';
+        if (file.type === 'application/pdf') return '[PDF_DOC]';
+        return '[BIN_BLOB]';
     };
 
+    const inputCls = "w-full bg-bg-base border border-border-default px-5 py-4 text-[12px] font-black uppercase tracking-widest text-text-primary focus:outline-none focus:border-border-strong transition-all placeholder:opacity-20 appearance-none";
+    const labelCls = "block text-[10px] font-black text-text-muted uppercase tracking-[0.3em] mb-3";
+
     return (
-        <div className="max-w-4xl mx-auto space-y-6">
-            {/* Header */}
-            <div className="flex justify-between items-center bg-white p-6 rounded-xl shadow-sm border border-gray-100">
+        <div className="max-w-5xl mx-auto space-y-10 font-mono mb-20 px-4 sm:px-6 animate-fadeIn">
+            {/* Header / Entry Console */}
+            <div className="flex justify-between items-center bg-bg-surface border border-border-default p-10 shadow-3xl relative overflow-hidden group hover:border-border-strong transition-all">
+                <div className="absolute top-0 right-0 p-6 opacity-10 pointer-events-none text-xs font-black uppercase tracking-[0.5em] group-hover:opacity-20 transition-opacity">INCIDENT_REG_8.0</div>
                 <div>
-                    <h1 className="text-2xl font-bold text-gray-900">Nuevo Caso de Soporte</h1>
-                    <p className="text-sm text-gray-500 mt-1">Registra un incidente o requerimiento</p>
+                    <h1 className="text-3xl font-black uppercase tracking-[0.4em] text-text-primary leading-tight">/ create_new_case</h1>
+                    <div className="mt-4 flex items-center gap-6">
+                        <div className="flex items-center gap-2">
+                             <div className="w-2 h-2 bg-text-accent animate-pulse"></div>
+                             <p className="text-[10px] text-text-muted font-black uppercase tracking-widest opacity-60">KERNEL_READY // REGISTERING_NEW_EVENT</p>
+                        </div>
+                    </div>
                 </div>
-                <button onClick={() => navigate('/tickets')} className="p-2 text-gray-400 hover:text-gray-600 rounded-full hover:bg-gray-100">
-                    <XMarkIcon className="w-6 h-6" />
+                <button 
+                    onClick={() => navigate('/tickets')} 
+                    className="text-text-muted hover:text-text-accent transition-all font-black text-3xl px-6 py-2 active:scale-95 transition-transform"
+                >
+                    [ &times; ]
                 </button>
             </div>
 
-            <form onSubmit={handleSubmit} className="bg-white p-6 rounded-xl shadow-sm border border-gray-100 space-y-6">
-                {/* Info General */}
-                <div>
-                    <h3 className="text-sm font-semibold uppercase text-gray-500 border-b pb-2 mb-4 flex items-center gap-1.5">
-                        <ExclamationCircleIcon className="w-4 h-4 text-blue-500" /> Detalles del Requerimiento
-                    </h3>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div className="md:col-span-2">
-                            <label className="block text-sm font-medium text-gray-700 mb-1">Título *</label>
-                            <input type="text" required value={formData.titulo} onChange={e => setFormData({ ...formData, titulo: e.target.value.toUpperCase() })}
-                                className="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:bg-white"
-                                placeholder="Ej. PROBLEMA CON ACCESO AL CORREO" />
+            <form onSubmit={handleSubmit} className="bg-bg-surface p-12 border border-border-default shadow-3xl space-y-12 relative group hover:border-border-strong transition-all">
+                <div className="absolute top-0 left-0 w-full h-[1px] bg-gradient-to-r from-transparent via-border-default to-transparent opacity-50"></div>
+                
+                {/* 01: Details Manifest */}
+                <div className="space-y-10">
+                    <div className="flex items-center gap-5 border-b border-border-default pb-6">
+                        <span className="text-[14px] font-black text-text-accent opacity-60 tabular-nums">[01]</span>
+                        <h3 className="text-[11px] font-black uppercase tracking-[0.4em] text-text-primary">
+                             MANIFEST_DETAILS_STREAM
+                        </h3>
+                    </div>
+                    
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
+                        <div className="md:col-span-2 group/field">
+                            <label className={`${labelCls} group-hover/field:text-text-accent transition-colors`}>:: CASE_SUMMARY_TITLE *</label>
+                            <input 
+                                type="text" 
+                                required 
+                                value={formData.titulo} 
+                                onChange={e => setFormData({ ...formData, titulo: e.target.value.toUpperCase() })}
+                                className={inputCls}
+                                placeholder="E.G._SYSTEM_FAILURE_LOG_POINT_A" 
+                                autoComplete="off"
+                            />
                         </div>
-                        <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1">Tipo *</label>
-                            <select required value={formData.tipo} onChange={e => setFormData({ ...formData, tipo: e.target.value })}
-                                className="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-blue-500">
-                                <option value="INCIDENTE">Incidente (Falla de algo existente)</option>
-                                <option value="REQUERIMIENTO">Requerimiento (Solicitud nueva)</option>
-                            </select>
+                        <div className="group/field">
+                            <label className={`${labelCls} group-hover/field:text-text-accent transition-colors`}>:: CASE_CLASSIFICATION *</label>
+                            <div className="relative">
+                                <select 
+                                    required 
+                                    value={formData.tipo} 
+                                    onChange={e => setFormData({ ...formData, tipo: e.target.value })}
+                                    className={inputCls}
+                                >
+                                    <option value="INCIDENTE">INCIDENT [EXISTING_FAILURE]</option>
+                                    <option value="REQUERIMIENTO">REQUIREMENT [NEW_REQUEST]</option>
+                                </select>
+                                <div className="absolute inset-y-0 right-0 flex items-center pr-4 pointer-events-none opacity-40 text-[8px]">
+                                    [ &darr; ]
+                                </div>
+                            </div>
                         </div>
-                        <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1">Prioridad *</label>
-                            <select required value={formData.prioridad} onChange={e => setFormData({ ...formData, prioridad: e.target.value })}
-                                className="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-blue-500">
-                                <option value="ALTA">Alta</option>
-                                <option value="BAJA">Baja</option>
-                                <option value="CRITICA">Crítica (Interrumpe operación)</option>
-                                <option value="MEDIA">Media</option>
-                            </select>
+                        <div className="group/field">
+                            <label className={`${labelCls} group-hover/field:text-text-accent transition-colors`}>:: PRIORITY_LEVEL *</label>
+                            <div className="relative">
+                                <select 
+                                    required 
+                                    value={formData.prioridad} 
+                                    onChange={e => setFormData({ ...formData, prioridad: e.target.value })}
+                                    className={inputCls}
+                                >
+                                    <option value="MEDIA">STANDARD_MEDIUM</option>
+                                    <option value="ALTA">HIGH_PRIORITY_NODE</option>
+                                    <option value="CRITICA">CRITICAL_EMERGENCY_RX</option>
+                                    <option value="BAJA">LOW_PRIORITY_BUF</option>
+                                </select>
+                                <div className="absolute inset-y-0 right-0 flex items-center pr-4 pointer-events-none opacity-40 text-[8px]">
+                                    [ &darr; ]
+                                </div>
+                            </div>
                         </div>
-                        <div className="md:col-span-2">
-                            <label className="block text-sm font-medium text-gray-700 mb-1">Descripción *</label>
-                            <textarea required rows="4" value={formData.descripcion} onChange={e => setFormData({ ...formData, descripcion: e.target.value })}
-                                className="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 resize-none"
-                                placeholder="Describe el problema con el mayor detalle posible..." />
+                        <div className="md:col-span-2 group/field">
+                            <label className={`${labelCls} group-hover/field:text-text-accent transition-colors`}>:: ROOT_DESCRIPTION_PAYLOAD *</label>
+                            <textarea 
+                                required 
+                                rows="8" 
+                                value={formData.descripcion} 
+                                onChange={e => setFormData({ ...formData, descripcion: e.target.value })}
+                                className={`${inputCls} resize-none min-h-[180px] leading-relaxed tracking-tighter normal-case`}
+                                placeholder="DETAILED_FAILURE_VECTOR_DOCUMENTATION..." 
+                            />
                         </div>
                     </div>
                 </div>
 
-                {/* Asociación */}
-                <div>
-                    <h3 className="text-sm font-semibold uppercase text-gray-500 border-b pb-2 mb-4">Asociación</h3>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {/* 02: Entity Linking */}
+                <div className="space-y-10">
+                    <div className="flex items-center gap-5 border-b border-border-default pb-6">
+                        <span className="text-[14px] font-black text-text-accent opacity-60 tabular-nums">[02]</span>
+                        <h3 className="text-[11px] font-black uppercase tracking-[0.4em] text-text-primary">
+                             ENTITY_ASSOCIATION_MAP
+                        </h3>
+                    </div>
+                    
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
                         <SelectWithAdd
-                            label="Funcionario Solicitante"
+                            label=":: ORIGIN_REQUESTER_ENTITY_UID"
                             name="funcionarioId"
                             value={formData.funcionarioId}
                             onChange={handleFormChange}
-                            options={funcionarios.map(f => ({ id: f.id, nombre: `${f.nombre} (${f.cedula})` }))}
+                            options={funcionarios.map(f => ({ id: f.id, nombre: `${f.nombre.toUpperCase()} (${f.cedula})` }))}
                             required={true}
                             canAdd={false}
-                            placeholder="Buscar solicitante..."
+                            placeholder="SCAN_UID..."
                         />
-                        <div className="flex flex-col">
-                            <div className="flex justify-between items-end mb-1">
-                                <label className="block text-xs font-medium text-gray-600">
-                                    Activo Relacionado (Opcional)
+                        <div className="flex flex-col group/field">
+                            <div className="flex justify-between items-end mb-3">
+                                <label className={`${labelCls} mb-0 group-hover/field:text-text-accent transition-colors`}>
+                                    :: RELATED_ASSET_TAG (OPT)
                                 </label>
                                 {formData.funcionarioId && (
                                     <button
                                         type="button"
                                         onClick={() => setMostrarTodosLosActivos(!mostrarTodosLosActivos)}
-                                        className={`text-[10px] font-bold px-2 py-0.5 rounded border transition-colors ${
+                                        className={`text-[9px] font-black px-4 py-1.5 border transition-all uppercase tracking-widest shadow-md ${
                                             mostrarTodosLosActivos 
-                                            ? 'bg-blue-600 text-white border-blue-600' 
-                                            : 'bg-white text-blue-600 border-blue-600 hover:bg-blue-50'
+                                            ? 'bg-text-primary text-bg-base border-text-primary' 
+                                            : 'bg-bg-base text-text-muted border-border-default hover:border-text-accent hover:text-text-primary'
                                         }`}
                                     >
-                                        {mostrarTodosLosActivos ? 'VER ASIGNADOS' : 'BUSCAR GLOBAL'}
+                                        {mostrarTodosLosActivos ? '[ SCAN_MODE: ALL ]' : '[ SCAN_MODE: ASSIGNED ]'}
                                     </button>
                                 )}
                             </div>
@@ -204,72 +245,92 @@ const TicketForm = () => {
                                 onChange={handleFormChange}
                                 options={[
                                     ...activosMostrados,
-                                    // Asegurar que el activo ya seleccionado siempre sea visible
                                     ...(formData.activoId && !activosMostrados.find(a => String(a.id) === String(formData.activoId))
                                         ? [activos.find(a => String(a.id) === String(formData.activoId))].filter(Boolean)
                                         : [])
-                                ].map(a => ({ id: a.id, nombre: `${a.placa} — ${a.marca} ${a.modelo}` }))}
+                                ].map(a => ({ id: a.id, nombre: `${a.placa} -- ${a.marca?.toUpperCase()} ${a.modelo?.toUpperCase()}` }))}
                                 canAdd={false}
                                 placeholder={
                                     !formData.funcionarioId 
-                                    ? "Selecciona un funcionario primero..." 
-                                    : (activosMostrados.length === 0 ? "Sin equipos asignados" : "Seleccione equipo...")
+                                    ? "WAITING_SOURCE_ENTITY..." 
+                                    : (activosMostrados.length === 0 ? "ZERO_ASSETS_IN_LOCAL_BUFFER" : "SELECT_ASSET_NODE...")
                                 }
                             />
-                            <p className="mt-1 text-[10px] text-gray-500 flex items-center gap-1 px-1">
-                                <TagIcon className="w-3 h-3 text-blue-400" /> 
-                                {mostrarTodosLosActivos 
-                                    ? "Mostrando TODOS los activos del inventario." 
-                                    : (formData.funcionarioId ? `Mostrando activos de ${selectedFuncionario?.nombre}` : "Asocia un funcionario para ver sus equipos.")}
-                            </p>
                         </div>
                     </div>
                 </div>
 
-                {/* Evidencias / Adjuntos */}
-                <div>
-                    <h3 className="text-sm font-semibold uppercase text-gray-500 border-b pb-2 mb-4 flex items-center gap-1.5">
-                        <PaperClipIcon className="w-4 h-4 text-blue-500" /> Evidencias Adjuntas (Opcional)
-                    </h3>
+                {/* 03: Evidence Buffer */}
+                <div className="space-y-10">
+                    <div className="flex items-center gap-5 border-b border-border-default pb-6">
+                        <span className="text-[14px] font-black text-text-accent opacity-60 tabular-nums">[03]</span>
+                        <h3 className="text-[11px] font-black uppercase tracking-[0.4em] text-text-primary">
+                             EVIDENCE_PAYLOAD_BUFFER
+                        </h3>
+                    </div>
 
                     <label
                         htmlFor="file-upload"
-                        className="flex flex-col items-center justify-center w-full border-2 border-dashed border-gray-200 rounded-xl p-6 cursor-pointer hover:border-blue-400 hover:bg-blue-50 transition-colors text-center"
+                        className="flex flex-col items-center justify-center w-full border-2 border-dashed border-border-default bg-bg-base/20 p-16 cursor-pointer hover:border-text-accent hover:bg-bg-base/40 transition-all text-center group/upload relative overflow-hidden"
                     >
-                        <PaperClipIcon className="w-8 h-8 text-gray-300 mb-2" />
-                        <p className="text-sm font-medium text-gray-600">Arrastra archivos o haz clic para adjuntar</p>
-                        <p className="text-xs text-gray-400 mt-1">Imágenes, PDF, Word — máx. 5 MB por archivo</p>
+                        <div className="absolute top-0 right-0 p-3 opacity-5 pointer-events-none text-[9px] font-black uppercase tracking-[0.3em]">UPLOAD_RX_CHANNEL</div>
+                        <span className="text-3xl mb-6 group-hover/upload:scale-125 transition-transform duration-500 opacity-60 group-hover/upload:opacity-100">++</span>
+                        <p className="text-[12px] font-black text-text-primary uppercase tracking-[0.4em]">CONNECT_PAYLOAD_SAMPLES</p>
+                        <p className="text-[10px] text-text-muted mt-3 uppercase tracking-widest opacity-60 font-black">IMG, PDF, LOGS // LIMIT: 5.0MB_PER_FRAGMENT</p>
                         <input id="file-upload" type="file" multiple accept="image/*,.pdf,.doc,.docx,.xls,.xlsx"
                             onChange={handleFileChange} className="hidden" />
                     </label>
 
                     {adjuntos.length > 0 && (
-                        <ul className="mt-3 space-y-2">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 animate-slideUp">
                             {adjuntos.map((file, i) => (
-                                <li key={i} className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg border border-gray-100 text-sm">
-                                    <span className="text-lg">{getFileIcon(file)}</span>
+                                <div key={i} className="flex items-center gap-5 p-6 bg-bg-base border border-border-default group/file hover:border-text-accent hover:bg-bg-elevated/20 transition-all relative overflow-hidden shadow-xl">
+                                    <div className="absolute top-0 right-0 p-2 opacity-5 pointer-events-none text-[8px] font-black uppercase tracking-tighter">DATA_CHUNK_{i}</div>
+                                    <span className="text-[9px] font-black text-text-accent border border-text-accent/30 px-2 py-1 bg-bg-base tabular-nums shadow-sm">{getFileSymbol(file)}</span>
                                     <div className="flex-1 min-w-0">
-                                        <p className="font-medium text-gray-800 truncate">{file.name}</p>
-                                        <p className="text-xs text-gray-400">{(file.size / 1024).toFixed(1)} KB</p>
+                                        <p className="text-[11px] font-black text-text-primary truncate uppercase tracking-tight">{file.name.replace(/ /g, '_')}</p>
+                                        <p className="text-[9px] text-text-muted font-black mt-2 opacity-60 tabular-nums">ALLOC_SIZE: {(file.size / 1024).toFixed(1)}_KB</p>
                                     </div>
-                                    <button type="button" onClick={() => removeFile(i)} className="text-gray-400 hover:text-red-500 transition-colors p-1">
-                                        <TrashIcon className="w-4 h-4" />
+                                    <button 
+                                        type="button" 
+                                        onClick={() => removeFile(i)} 
+                                        className="text-text-muted hover:text-text-accent transition-all px-4 py-2 font-black text-lg active:scale-90"
+                                        title="UNLINK_FRAGMENT"
+                                    >
+                                        &times;
                                     </button>
-                                </li>
+                                </div>
                             ))}
-                        </ul>
+                        </div>
                     )}
                 </div>
 
-                {/* Acciones */}
-                <div className="flex justify-end gap-3 pt-4 border-t">
-                    <button type="button" onClick={() => navigate('/tickets')} disabled={loading}
-                        className="px-6 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 text-sm font-medium disabled:opacity-50">
-                        Cancelar
+                {/* Final Protocol Execution */}
+                <div className="flex flex-col sm:flex-row justify-end gap-8 pt-12 border-t border-border-default/50">
+                    <button 
+                        type="button" 
+                        onClick={() => navigate('/tickets')} 
+                        disabled={loading}
+                        className="px-12 py-5 border border-border-default text-[11px] font-black text-text-muted uppercase tracking-[0.4em] hover:text-text-primary hover:border-border-strong transition-all disabled:opacity-30 bg-bg-base/30 shadow-xl active:scale-95"
+                    >
+                        [ CANCEL_TRANSACTION_TX ]
                     </button>
-                    <button type="submit" disabled={loading}
-                        className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 text-sm font-medium disabled:opacity-50 shadow-sm">
-                        {loading ? 'Guardando...' : '✓ Crear Caso'}
+                    <button 
+                        type="submit" 
+                        disabled={loading}
+                        className="px-14 py-5 bg-bg-elevated border border-border-strong text-text-accent font-black text-[11px] hover:text-text-primary uppercase tracking-[0.5em] transition-all flex items-center justify-center gap-5 shadow-3xl disabled:opacity-30 group/submit active:scale-95"
+                    >
+                        {loading ? (
+                            <>
+                                <span className="animate-spin text-xl leading-none opacity-50">/</span>
+                                <span>EXECUTING_COMMIT...</span>
+                            </>
+                        ) : (
+                            <>
+                                <span>[ COMMIT_NEW_CASE_ENTRY ]</span>
+                                <span className="opacity-40 group-hover/submit:translate-x-1 transition-transform">→</span>
+                            </>
+                        )}
                     </button>
                 </div>
             </form>

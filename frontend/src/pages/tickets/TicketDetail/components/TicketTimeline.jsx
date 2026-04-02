@@ -1,56 +1,52 @@
-import { 
-    ClockIcon, 
-    TagIcon, 
-    ExclamationCircleIcon, 
-    UserPlusIcon, 
-    ChatBubbleLeftIcon 
-} from '@heroicons/react/24/outline';
 import { AdjuntoChip } from './AdjuntoChip';
 
-const getTrazaIcon = (tipo) => {
+const getTrazaSymbol = (tipo) => {
     switch (tipo) {
-        case 'CREACION': return <TagIcon className="w-3.5 h-3.5 text-gray-500" />;
-        case 'CAMBIO_ESTADO': return <ExclamationCircleIcon className="w-3.5 h-3.5 text-orange-500" />;
-        case 'ASIGNACION': return <UserPlusIcon className="w-3.5 h-3.5 text-blue-500" />;
-        default: return <ChatBubbleLeftIcon className="w-3.5 h-3.5 text-emerald-500" />;
+        case 'CREACION': return '[#]';
+        case 'CAMBIO_ESTADO': return '[!]';
+        case 'ASIGNACION': return '[@]';
+        default: return '[&]';
     }
 };
 
 export const TicketTimeline = ({ ticket, handleDownload, user }) => {
     return (
-        <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100 flex-1 print-section">
-            <h2 className="text-base font-bold text-gray-900 mb-6 flex items-center gap-2 print-section-title">
-                <ClockIcon className="w-5 h-5 text-gray-400 no-print" /> Historia Detallada de Eventos (Trazabilidad)
+        <div className="bg-bg-surface border border-border-default p-10 font-mono flex-1 shadow-3xl relative overflow-hidden group hover:border-border-strong transition-all">
+            <div className="absolute top-0 right-0 p-8 opacity-10 pointer-events-none text-xs font-black uppercase tracking-[0.5em] group-hover:opacity-20 transition-opacity">LOG_STREAM_RX</div>
+            <h2 className="text-[11px] font-black uppercase tracking-[0.4em] text-text-muted mb-10 border-b border-border-default pb-4">
+                / DETAILED_EVENT_TRAILS
             </h2>
 
-            <div className="relative border-l-2 border-gray-200 ml-3 space-y-6 max-h-[500px] overflow-y-auto pr-2 pb-2 print:max-h-none print:overflow-visible">
+            <div className="relative border-l-2 border-border-default/20 ml-6 space-y-12 max-h-[700px] overflow-y-auto pr-8 pb-10 print:max-h-none print:overflow-visible custom-scrollbar scroll-smooth">
                 {ticket.trazas?.length === 0 && (
-                    <p className="pl-6 text-sm text-gray-400 italic">Sin historial de eventos.</p>
+                    <div className="pl-12 py-10 opacity-30">
+                        <p className="text-[11px] text-text-muted italic uppercase tracking-[0.4em] font-black">! NO_EVENT_LOGS_DETECTED_IN_STREAM</p>
+                    </div>
                 )}
                 {ticket.trazas?.map((traza, i) => (
-                    <div key={i} className="relative pl-6 print-section">
-                        <div className="absolute -left-2.5 top-0.5 bg-white border-2 border-gray-200 rounded-full w-5 h-5 flex items-center justify-center no-print">
-                            {getTrazaIcon(traza.tipoTraza)}
+                    <div key={i} className="relative pl-12 print-section group/item animate-fadeIn" style={{ animationDelay: `${i * 100}ms` }}>
+                        <div className="absolute -left-[11px] top-1 bg-bg-surface border-2 border-border-default text-[10px] font-black w-5 h-5 flex items-center justify-center no-print group-hover/item:border-text-accent group-hover/item:text-text-accent transition-all shadow-xl">
+                            {getTrazaSymbol(traza.tipoTraza)}
                         </div>
-                        <div className="flex flex-col sm:flex-row sm:justify-between sm:items-baseline">
-                            <span className="font-semibold text-sm text-gray-900 uppercase text-[10px] tracking-wider">{traza.creadoPor?.nombre || 'SISTEMA'}</span>
-                            <time className="text-[10px] text-gray-400 whitespace-nowrap">
-                                {new Date(traza.creadoEn).toLocaleString('es-ES', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' })}
+                        <div className="flex flex-col sm:flex-row sm:justify-between sm:items-baseline gap-4 mb-4">
+                            <span className="font-black text-[11px] text-text-primary uppercase tracking-[0.3em] bg-bg-base/50 px-3 py-1 border border-border-default/30 shadow-sm">{traza.creadoPor?.nombre?.toUpperCase().replace(/ /g, '_') || 'SYSTEM_CORE'}</span>
+                            <time className="text-[10px] text-text-muted font-black opacity-60 tabular-nums">
+                                [{new Date(traza.creadoEn).toLocaleString('es-ES', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' }).toUpperCase().replace(/ /g, '_')}]
                             </time>
                         </div>
-                        <div className={`mt-1 text-sm text-gray-700 ${traza.tipoTraza === 'COMENTARIO' ? 'bg-gray-50 p-2 rounded border border-gray-100' : ''}`}>
-                            {traza.comentario}
+                        <div className={`text-[12px] uppercase tracking-tighter sm:tracking-tight leading-relaxed font-black ${traza.tipoTraza === 'COMENTARIO' ? 'bg-bg-base/40 p-6 border-2 border-border-default border-dashed text-text-primary group-hover/item:border-border-strong transition-all shadow-inner' : 'text-text-muted opacity-80 italic'}`}>
+                            {traza.comentario.replace(/ /g, '_')}
                         </div>
                         {traza.tipoTraza === 'CAMBIO_ESTADO' && traza.estadoAnterior && (
-                            <div className="mt-1 flex items-center gap-2 text-[10px] font-bold">
-                                <span className="text-gray-400 line-through">{traza.estadoAnterior}</span>
-                                <span className="text-gray-400">→</span>
-                                <span className="text-blue-600 uppercase italic">{traza.estadoNuevo}</span>
+                            <div className="mt-5 flex items-center gap-4 text-[10px] font-black tracking-widest border border-border-default shadow-xl w-fit px-5 py-2 bg-bg-base transition-transform hover:scale-105">
+                                <span className="text-text-muted opacity-40">{traza.estadoAnterior.toUpperCase()}</span>
+                                <span className="text-text-accent opacity-30">--&gt;</span>
+                                <span className="text-text-accent">{traza.estadoNuevo.toUpperCase()}</span>
                             </div>
                         )}
                         {/* Adjuntos de la traza */}
                         {traza.adjuntos && traza.adjuntos.length > 0 && (
-                            <div className="mt-2 flex flex-wrap gap-1.5 no-print">
+                            <div className="mt-6 flex flex-wrap gap-4 no-print animate-slideUp">
                                 {traza.adjuntos.map(doc => (
                                     <AdjuntoChip key={doc.id} doc={doc} onDownload={handleDownload} />
                                 ))}
@@ -60,18 +56,28 @@ export const TicketTimeline = ({ ticket, handleDownload, user }) => {
                 ))}
             </div>
 
-            {/* Firma - Solo Impresión */}
-            <div className="print-only signature-area mt-12 pt-6 border-t border-dashed border-gray-300 flex justify-between">
-                <div className="w-[45%] text-center">
-                    <div className="border-t border-black mb-1"></div>
-                    <p className="text-[10px] font-bold uppercase">Firma del Analista Responsable</p>
-                    <p className="text-[10px] text-gray-500">{ticket.asignadoA?.nombre || user?.nombre}</p>
+            {/* High-Fidelity Signature Protocol - Solo Impresión */}
+            <div className="hidden print:flex signature-area mt-24 pt-12 border-t-2 border-dashed border-black justify-between">
+                <div className="w-[45%] text-center group/sig">
+                    <div className="h-40 flex items-end justify-center mb-4">
+                         <div className="w-full border-t-2 border-black"></div>
+                    </div>
+                    <p className="text-[11px] font-black uppercase tracking-[0.5em]">RESPONSIBLE_ANALYST_SIG_RX</p>
+                    <p className="text-[12px] text-black font-black mt-3 tracking-widest">{ticket.asignadoA?.nombre?.toUpperCase() || user?.nombre?.toUpperCase()}</p>
+                    <p className="text-[9px] text-gray-400 font-bold mt-1">ID_NODE: ANALYST_VERIFIED</p>
                 </div>
-                <div className="w-[45%] text-center">
-                    <div className="border-t border-black mb-1"></div>
-                    <p className="text-[10px] font-bold uppercase">Recibido a Satisfacción (Funcionario)</p>
-                    <p className="text-[10px] text-gray-500">{ticket.funcionario?.nombre}</p>
+                <div className="w-[45%] text-center group/sig">
+                    <div className="h-40 flex items-end justify-center mb-4">
+                         <div className="w-full border-t-2 border-black"></div>
+                    </div>
+                    <p className="text-[11px] font-black uppercase tracking-[0.5em]">USER_SATISFACTION_SIG_TX</p>
+                    <p className="text-[12px] text-black font-black mt-3 tracking-widest">{ticket.funcionario?.nombre?.toUpperCase()}</p>
+                    <p className="text-[9px] text-gray-400 font-bold mt-1">ID_NODE: REQUESTER_VERIFIED</p>
                 </div>
+            </div>
+            
+            <div className="mt-8 text-[9px] font-black text-text-muted uppercase tracking-[0.4em] opacity-10">
+                 STREAM_END // DATA_FRAGMENT_SYNC: PASS
             </div>
         </div>
     );
