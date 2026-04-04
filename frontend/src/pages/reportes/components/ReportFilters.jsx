@@ -1,7 +1,7 @@
 import { MUNICIPIOS_TOLIMA } from '../../../lib/constants';
 
-const UI_SELECT_CLASSES = "block w-full bg-bg-base border-4 border-border-default py-5 px-8 text-text-primary focus:border-text-accent focus:outline-none text-[14px] font-black uppercase tracking-[0.2em] appearance-none cursor-pointer transition-all shadow-[inset_0_10px_30px_rgba(0,0,0,0.6)] focus:shadow-[0_0_40px_rgba(var(--text-accent),0.1)] group-hover:border-text-accent/30";
-const UI_LABEL_CLASSES = "block text-[11px] font-black text-text-muted mb-4 uppercase tracking-[0.6em] group-focus-within:text-text-accent transition-all opacity-40 group-focus-within:opacity-100 italic group-focus-within:not-italic flex items-center gap-4";
+const UI_SELECT_CLASSES = "block w-full bg-bg-base border-2 sm:border-4 border-border-default py-3 sm:py-5 px-4 sm:px-8 text-text-primary focus:border-text-accent focus:outline-none text-[12px] sm:text-[14px] font-black uppercase tracking-[0.1em] sm:tracking-[0.2em] appearance-none cursor-pointer transition-all shadow-[inset_0_5px_15px_rgba(0,0,0,0.4)] focus:shadow-[0_0_20px_rgba(var(--text-accent),0.1)] group-hover:border-text-accent/30";
+const UI_LABEL_CLASSES = "block text-[10px] sm:text-[11px] font-black text-text-muted mb-2 sm:mb-4 uppercase tracking-[0.3em] sm:tracking-[0.6em] group-focus-within:text-text-accent transition-all opacity-40 group-focus-within:opacity-100 italic group-focus-within:not-italic flex items-center gap-2 sm:gap-4";
 
 export const FilterSelect = ({ label, value, onChange, options }) => (
     <div className="space-y-4 group/field relative animate-fadeInUp">
@@ -39,7 +39,7 @@ export const FilterDate = ({ label, value, onChange }) => (
                 type="date" 
                 value={value || ''} 
                 onChange={e => onChange(e.target.value || undefined)}
-                className="block w-full bg-bg-base border-4 border-border-default py-4.5 px-8 text-text-primary focus:border-text-accent focus:outline-none text-[14px] font-black uppercase tracking-[0.2em] transition-all shadow-[inset_0_10px_30px_rgba(0,0,0,0.6)] appearance-none group-hover:border-text-accent/30" 
+            className="block w-full bg-bg-base border-2 sm:border-4 border-border-default py-3 sm:py-4.5 px-4 sm:px-8 text-text-primary focus:border-text-accent focus:outline-none text-[12px] sm:text-[14px] font-black uppercase tracking-[0.1em] sm:tracking-[0.2em] transition-all shadow-[inset_0_5px_15px_rgba(0,0,0,0.4)] appearance-none group-hover:border-text-accent/30" 
             />
             {/* Focus underline detail RX Premium */}
             <div className="absolute bottom-0 left-0 h-[5px] bg-text-accent transition-all duration-1000 w-0 group-focus-within/date:w-full shadow-[0_0_20px_rgba(var(--text-accent),0.8)]"></div>
@@ -54,7 +54,7 @@ export const ReportFilters = ({ selectedReport, filters, setFilters, catalogs })
     switch (selectedReport.id) {
         case 'inventario':
             return (
-                <div className="space-y-12 animate-fadeIn bg-bg-base/30 p-8 border-4 border-dashed border-border-default/10 shadow-[inset_0_20px_60px_rgba(0,0,0,0.4)]">
+                <div className="space-y-6 sm:space-y-12 animate-fadeIn bg-bg-base/30 p-4 sm:p-8 border-2 sm:border-4 border-dashed border-border-default/10">
                     <FilterSelect label="Status" value={filters.estado} onChange={v => setFilters(p => ({ ...p, estado: v }))}
                         options={[{ value: 'DISPONIBLE', label: 'Disponible' }, { value: 'ASIGNADO', label: 'Asignado' }, { value: 'EN_MANTENIMIENTO', label: 'Mantenimiento' }, { value: 'DADO_DE_BAJA', label: 'Baja' }]} />
                     <FilterSelect label="Entity_Owner" value={filters.empresaPropietaria} onChange={v => setFilters(p => ({ ...p, empresaPropietaria: v }))}
@@ -69,10 +69,10 @@ export const ReportFilters = ({ selectedReport, filters, setFilters, catalogs })
             );
         case 'asignaciones':
             return (
-                <div className="space-y-12 animate-fadeIn bg-bg-base/30 p-8 border-4 border-dashed border-border-default/10 shadow-[inset_0_20px_60px_rgba(0,0,0,0.4)]">
+                <div className="space-y-6 sm:space-y-12 animate-fadeIn bg-bg-base/30 p-4 sm:p-8 border-2 sm:border-4 border-dashed border-border-default/10">
                     <FilterSelect label="Ops_Mode" value={filters.tipo} onChange={v => setFilters(p => ({ ...p, tipo: v }))}
                         options={[{ value: 'ASIGNACION', label: 'Asignación' }, { value: 'TRASLADO', label: 'Traslado' }, { value: 'DEVOLUCION', label: 'Devolución' }]} />
-                    <div className="grid grid-cols-1 gap-12 pt-6 border-t-2 border-border-default/20">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 sm:gap-12 pt-4 sm:pt-6 border-t-2 border-border-default/20">
                         <FilterDate label="Timestamp_Start" value={filters.fechaDesde} onChange={v => setFilters(p => ({ ...p, fechaDesde: v }))} />
                         <FilterDate label="Timestamp_End" value={filters.fechaHasta} onChange={v => setFilters(p => ({ ...p, fechaHasta: v }))} />
                     </div>
@@ -80,12 +80,12 @@ export const ReportFilters = ({ selectedReport, filters, setFilters, catalogs })
             );
         case 'mantenimiento':
             return (
-                <div className="space-y-12 animate-fadeIn bg-bg-base/30 p-8 border-4 border-dashed border-border-default/10 shadow-[inset_0_20px_60px_rgba(0,0,0,0.4)]">
+                <div className="space-y-6 sm:space-y-12 animate-fadeIn bg-bg-base/30 p-4 sm:p-8 border-2 sm:border-4 border-dashed border-border-default/10">
                     <FilterSelect label="Cycle_Status" value={filters.estado} onChange={v => setFilters(p => ({ ...p, estado: v }))}
                         options={[{ value: 'CREADO', label: 'Creado' }, { value: 'EN_PROCESO', label: 'En Proceso' }, { value: 'FINALIZADO', label: 'Finalizado' }, { value: 'CERRADO', label: 'Cerrado' }]} />
                     <FilterSelect label="Service_Class" value={filters.tipoServicio} onChange={v => setFilters(p => ({ ...p, tipoServicio: v }))}
                         options={[{ value: 'MANTENIMIENTO', label: 'Mantenimiento' }, { value: 'REPARACION', label: 'Reparación' }, { value: 'SUMINISTRO', label: 'Suministro' }, { value: 'INSPECCION', label: 'Inspección' }, { value: 'ACTUALIZACION', label: 'Actualización' }]} />
-                    <div className="grid grid-cols-1 gap-12 pt-6 border-t-2 border-border-default/20">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 sm:gap-12 pt-4 sm:pt-6 border-t-2 border-border-default/20">
                         <FilterDate label="Log_Start_TX" value={filters.fechaDesde} onChange={v => setFilters(p => ({ ...p, fechaDesde: v }))} />
                         <FilterDate label="Log_End_TX" value={filters.fechaHasta} onChange={v => setFilters(p => ({ ...p, fechaHasta: v }))} />
                     </div>
@@ -93,7 +93,7 @@ export const ReportFilters = ({ selectedReport, filters, setFilters, catalogs })
             );
         case 'garantias':
             return (
-                <div className="space-y-12 animate-fadeIn bg-bg-base/30 p-8 border-4 border-dashed border-border-default/10 shadow-[inset_0_20px_60px_rgba(0,0,0,0.4)]">
+                <div className="space-y-6 sm:space-y-12 animate-fadeIn bg-bg-base/30 p-4 sm:p-8 border-2 sm:border-4 border-dashed border-border-default/10">
                     <FilterSelect label="Expiry_Heuristics" value={filters.filtro} onChange={v => setFilters(p => ({ ...p, filtro: v }))}
                         options={[{ value: 'vencidas', label: '[!] EXPIRED_ONLY' }, { value: 'proximas', label: '[?] CRITICAL_NEAR_TS' }, { value: 'vigentes', label: '[*] ACTIVE_WARRANTY' }]} />
                 </div>

@@ -75,47 +75,47 @@ const MainLayout = () => {
         <div className="app-layout font-mono selection:bg-text-accent selection:text-bg-base">
             <Sidebar />
 
-            <div className="main-content min-h-screen bg-bg-base">
-                <header className="container pt-8">
-                    <div className="flex justify-between items-center p-6 bg-bg-surface border-2 border-border-default md:border-4 gap-4 md:gap-8 relative z-[1000] shadow-3xl group/header overflow-hidden">
-                        <div className="absolute top-0 right-0 p-6 opacity-5 pointer-events-none text-xs font-black uppercase tracking-[1em] group-hover/header:translate-x-2 transition-transform">SHELL_CORE_0x00</div>
+            <div className="main-content min-h-screen bg-bg-base flex flex-col">
+                <header className="container pt-3 sm:pt-4 md:pt-6">
+                    <div className="flex justify-between items-center p-3 sm:p-4 bg-bg-surface border border-border-default md:border-2 gap-3 md:gap-6 relative z-[1000] shadow-xl group/header overflow-hidden">
+                        <div className="absolute top-0 right-0 p-6 opacity-5 pointer-events-none text-xs font-black uppercase tracking-[1em] group-hover/header:translate-x-2 transition-transform hidden sm:block">SHELL_CORE_0x00</div>
                         
-                        <div className="md:hidden flex-1 overflow-hidden">
-                            <h1 className="text-xl m-0 text-text-accent leading-tight truncate font-black tracking-widest uppercase">/ inventario_tic</h1>
-                            <p className="text-[10px] text-text-muted m-0 truncate font-black uppercase tracking-widest opacity-60">USER: {user?.nombre?.toUpperCase()}</p>
+                        <div className="md:hidden flex-1 overflow-hidden min-w-0">
+                            <h1 className="text-base sm:text-lg m-0 text-text-accent leading-tight truncate font-black tracking-widest uppercase">/ inventario_tic</h1>
+                            <p className="text-[9px] sm:text-[10px] text-text-muted m-0 truncate font-black uppercase tracking-widest opacity-60">USER: {user?.nombre?.toUpperCase()}</p>
                         </div>
                         
                         <div className="hidden md:block flex-1">
-                            <div className="flex items-center gap-6">
-                                <div className="w-2.5 h-2.5 bg-text-accent animate-pulse shadow-[0_0_10px_rgba(var(--text-accent),0.5)]"></div>
-                                <h1 className="m-0 text-text-primary text-2xl font-black uppercase tracking-[0.4em]">system_dashboard_controller</h1>
+                            <div className="flex items-center gap-4 lg:gap-6">
+                                <div className="w-2 h-2 bg-text-accent animate-pulse"></div>
+                                <h1 className="m-0 text-text-primary text-base lg:text-xl font-black uppercase tracking-[0.2em] lg:tracking-[0.3em]">system_dashboard_controller</h1>
                             </div>
-                            <div className="flex items-center gap-6 mt-3">
-                                <p className="text-[11px] text-text-muted font-black uppercase tracking-[0.3em] opacity-40 italic">gestion_activos // audit_stream // parity_check_ok</p>
+                            <div className="flex items-center gap-6 mt-2">
+                                <p className="text-[10px] text-text-muted font-black uppercase tracking-[0.3em] opacity-40 italic">gestion_activos // audit_stream // parity_check_ok</p>
                             </div>
                         </div>
 
                         {/* Sistema de Alertas (Campana) */}
                         {user?.rol === 'ANALISTA_TIC' && (
-                            <div className="relative mr-4" ref={alertsRef}>
+                            <div className="relative mr-2 md:mr-4" ref={alertsRef}>
                                 <button
                                     onClick={() => setAlertsOpen(!alertsOpen)}
-                                    className={`relative p-3 border-2 transition-all active:scale-90 group/bell
+                                    className={`relative p-2 sm:p-3 border-2 transition-all active:scale-90 group/bell
                                         ${alertsOpen 
-                                            ? 'bg-bg-elevated border-text-accent text-text-accent ring-4 ring-text-accent/10 shadow-2xl scale-110' 
+                                            ? 'bg-bg-elevated border-text-accent text-text-accent ring-2 ring-text-accent/10 shadow-2xl scale-110' 
                                             : 'bg-bg-base border-border-default text-text-muted hover:border-text-primary hover:text-text-primary hover:shadow-xl'
                                         }`}
                                 >
-                                    <BellIcon className={`h-6 w-6 transition-all ${alertsOpen ? 'animate-none' : 'group-hover/bell:scale-110'}`} />
+                                    <BellIcon className={`h-5 w-5 sm:h-6 sm:w-6 transition-all ${alertsOpen ? 'animate-none' : 'group-hover/bell:scale-110'}`} />
                                     {alertas.pendientes > 0 && (
-                                        <span className="absolute -top-3 -right-3 flex h-6 w-6 items-center justify-center bg-text-accent text-[11px] font-black text-bg-base ring-2 ring-bg-base shadow-xl animate-bounce">
+                                        <span className="absolute -top-2 -right-2 flex h-5 w-5 items-center justify-center bg-text-accent text-[10px] font-black text-bg-base ring-2 ring-bg-base shadow-xl animate-bounce">
                                             {alertas.pendientes}
                                         </span>
                                     )}
                                 </button>
 
                                 {alertsOpen && (
-                                    <div className="absolute right-0 mt-6 w-96 bg-bg-surface shadow-[0_30px_100px_rgba(0,0,0,0.8)] z-[9999] overflow-hidden animate-slideUp origin-top-right border-4 border-border-strong ring-8 ring-black/5">
+                                    <div className="absolute right-0 mt-3 sm:mt-6 w-[calc(100vw-2rem)] xs:w-80 sm:w-96 max-h-[80vh] bg-bg-surface shadow-[0_30px_100px_rgba(0,0,0,0.8)] z-[9999] overflow-hidden animate-slideUp origin-top-right border-2 sm:border-4 border-border-strong flex flex-col">
                                         <div className="bg-bg-base p-6 border-b-2 border-border-default flex items-center justify-between">
                                             <h3 className="text-xs font-black flex items-center gap-4 text-text-primary uppercase tracking-[0.4em]">
                                                 <div className="w-2 h-2 bg-text-accent"></div>
@@ -179,21 +179,20 @@ const MainLayout = () => {
                         )}
 
                         {/* Datos de Usuario y Menú Desplegable */}
-                        <div className="flex items-center gap-5 text-right border-l-2 border-border-default/40 pl-6 ml-auto" ref={dropdownRef}>
+                        <div className="flex items-center gap-3 sm:gap-5 text-right border-l border-border-default/40 pl-3 sm:pl-6 ml-auto" ref={dropdownRef}>
                             <div className="hidden md:flex flex-col justify-center gap-2">
-                                <span className="text-sm font-black text-text-primary uppercase tracking-[0.3em]">{user?.nombre || 'USER_IDENT_0x00'}</span>
-                                <div className="flex items-center justify-end gap-3">
+                                <span className="text-xs lg:text-sm font-black text-text-primary uppercase tracking-[0.2em] lg:tracking-[0.3em]">{user?.nombre || 'USER_IDENT_0x00'}</span>
+                                <div className="flex items-center justify-end gap-2">
                                     <span className="text-[9px] text-text-muted font-black uppercase tracking-[0.2em] bg-bg-base px-2 py-1 border border-border-default opacity-60">{user?.rol || 'GUEST_IO'}</span>
-                                    <div className="w-2 h-0.5 bg-text-accent opacity-30"></div>
                                 </div>
                             </div>
 
                             <div className="relative">
                                 <button
                                     onClick={() => setDropdownOpen(!dropdownOpen)}
-                                    className={`h-12 w-12 border-2 flex items-center justify-center text-text-primary font-black text-lg flex-shrink-0 transition-all focus:outline-none shadow-xl active:scale-90
+                                    className={`h-9 w-9 sm:h-11 sm:w-11 border-2 flex items-center justify-center text-text-primary font-black text-base sm:text-lg flex-shrink-0 transition-all focus:outline-none shadow-xl active:scale-90
                                         ${dropdownOpen 
-                                            ? 'bg-text-accent border-text-accent text-bg-base scale-110 ring-4 ring-text-accent/20' 
+                                            ? 'bg-text-accent border-text-accent text-bg-base scale-110 ring-2 ring-text-accent/20' 
                                             : 'bg-bg-elevated border-border-default hover:border-text-primary hover:scale-105'
                                         }`}
                                 >
@@ -201,7 +200,7 @@ const MainLayout = () => {
                                 </button>
 
                                 {dropdownOpen && (
-                                    <div className="absolute right-0 mt-4 w-56 bg-bg-surface shadow-[0_30px_100px_rgba(0,0,0,0.8)] focus:outline-none z-50 animate-slideUp origin-top-right border-4 border-border-strong divide-y-2 divide-border-default ring-8 ring-black/5">
+                                    <div className="absolute right-0 mt-2 sm:mt-4 w-52 sm:w-56 bg-bg-surface shadow-[0_30px_100px_rgba(0,0,0,0.8)] focus:outline-none z-50 animate-slideUp origin-top-right border-2 sm:border-4 border-border-strong divide-y divide-border-default">
                                         <div className="px-6 py-5 md:hidden bg-bg-base border-b-2 border-border-default">
                                             <p className="text-xs font-black text-text-primary truncate uppercase tracking-widest">{user?.nombre || 'USER'}</p>
                                             <div className="h-px bg-text-accent mt-3 opacity-20"></div>
@@ -226,7 +225,7 @@ const MainLayout = () => {
                     </div>
                 </header>
 
-                <main className="container pt-8 pb-32">
+                <main className="container pt-3 sm:pt-4 md:pt-6 pb-20 md:pb-8 flex-1">
                     <Outlet />
                 </main>
             </div>

@@ -12,15 +12,12 @@ const Dashboard = () => {
     });
 
     if (loading) return (
-        <div className="p-32 text-center font-mono animate-fadeIn flex flex-col items-center justify-center min-h-[70vh]">
-            <div className="inline-flex flex-col items-center gap-12">
-                <div className="w-24 h-24 border-8 border-border-default border-t-text-accent animate-spin rounded-full shadow-[0_0_60px_rgba(var(--text-accent),0.3)]"></div>
-                <div className="space-y-6">
-                    <div className="text-text-accent text-[18px] font-black uppercase tracking-[1.2em] animate-pulse">
-                        # INITIALIZING_SYSTEM_MONITOR_v4.2
-                    </div>
-                    <div className="text-[11px] text-text-muted uppercase tracking-[0.6em] opacity-40 italic border-l-4 border-border-default/30 pl-8">
-                        ESTABLISHING_SECURE_KERNEL_CONNECTION_0x00_AF22...
+        <div className="p-12 sm:p-24 text-center font-mono animate-fadeIn flex flex-col items-center justify-center min-h-[60vh]">
+            <div className="inline-flex flex-col items-center gap-8">
+                <div className="w-16 h-16 border-4 border-border-default border-t-text-accent animate-spin rounded-full"></div>
+                <div className="space-y-4">
+                    <div className="text-text-accent text-[14px] font-black uppercase tracking-[0.8em] animate-pulse">
+                        # INITIALIZING_SYSTEM_MONITOR
                     </div>
                 </div>
             </div>
@@ -28,16 +25,11 @@ const Dashboard = () => {
     );
 
     if (!data) return (
-        <div className="p-32 text-center font-mono animate-shake flex flex-col items-center justify-center min-h-[70vh]">
-            <div className="inline-block p-16 border-8 border-text-accent bg-bg-base shadow-[0_0_150px_rgba(var(--text-accent),0.3)] relative overflow-hidden">
-                <div className="absolute top-0 left-0 w-full h-2 bg-text-accent animate-pulse"></div>
-                <div className="text-[22px] font-black text-text-accent uppercase tracking-[0.8em] mb-10 flex items-center justify-center gap-10">
-                    <span className="text-5xl animate-bounce">!!!</span>
+        <div className="p-12 sm:p-24 text-center font-mono flex flex-col items-center justify-center min-h-[60vh]">
+            <div className="inline-block p-8 sm:p-12 border-4 border-text-accent bg-bg-base relative overflow-hidden">
+                <div className="absolute top-0 left-0 w-full h-1 bg-text-accent animate-pulse"></div>
+                <div className="text-[16px] sm:text-[18px] font-black text-text-accent uppercase tracking-[0.4em] mb-6 flex items-center justify-center gap-6">
                     KERNEL_PANIC: DATA_STREAM_FAILURE
-                    <span className="text-5xl animate-bounce">!!!</span>
-                </div>
-                <div className="text-[13px] text-text-muted uppercase tracking-[0.4em] opacity-70 bg-bg-surface py-4 px-8 border-2 border-text-accent/20">
-                    REASON: BUFFER_OVERFLOW_OR_SERVICE_UNAVAILABLE_500 // ABORTING_PROC_SIGNAL_0
                 </div>
             </div>
         </div>
@@ -109,21 +101,21 @@ const Dashboard = () => {
     ];
 
     return (
-        <div className="font-mono space-y-20 animate-fadeIn mb-48 px-4 sm:px-6 lg:px-12 border-l-8 border-l-border-default/10">
+        <div className="font-mono space-y-12 sm:space-y-16 lg:space-y-20 animate-fadeIn mb-24 px-3 sm:px-4 lg:px-6 lg:border-l-4 border-l-border-default/10">
             {/* Main Premium Command Bar */}
-            <div className="flex flex-col xl:flex-row xl:items-end justify-between gap-16 border-b-8 border-border-default pb-20 group relative overflow-hidden">
-                <div className="absolute top-0 right-0 p-12 opacity-5 pointer-events-none text-2xl font-black uppercase tracking-[3em] group-hover:opacity-20 group-hover:translate-x-8 transition-all duration-1000 italic">DASHBOARD_CONTROLLER_RX_v4.2</div>
-                <div className="absolute bottom-0 left-0 w-full h-[8px] bg-gradient-to-r from-text-accent via-transparent to-transparent opacity-30 animate-pulse"></div>
+            <div className="flex flex-col xl:flex-row xl:items-end justify-between gap-8 sm:gap-12 border-b-4 border-border-default pb-8 sm:pb-12 group relative overflow-hidden">
+                <div className="absolute top-0 right-0 p-6 opacity-5 pointer-events-none text-xs font-black uppercase tracking-[1em] group-hover:opacity-20 transition-all duration-1000 italic">DASHBOARD_CONTROLLER</div>
+                <div className="absolute bottom-0 left-0 w-full h-[4px] bg-gradient-to-r from-text-accent via-transparent to-transparent opacity-30 animate-pulse"></div>
                 
                 <div className="relative z-10 flex-1">
-                    <div className="flex items-center gap-12 mb-10 group/title">
-                         <div className="w-10 h-10 flex items-center justify-center border-4 border-text-accent text-text-accent font-black text-xl rotate-45 group-hover:rotate-[225deg] transition-all duration-1000 shadow-[0_0_40px_rgba(var(--text-accent),0.4)] bg-bg-base">&alpha;</div>
-                         <h1 className="text-8xl font-black uppercase tracking-[-0.05em] sm:tracking-[0.1em] text-text-primary leading-none flex items-center gap-10">
-                            <span className="text-text-accent opacity-20 text-9xl font-normal group-hover:opacity-40 transition-opacity">/</span> 
+                    <div className="flex items-center gap-6 sm:gap-8 mb-6 group/title">
+                         <div className="w-8 h-8 flex items-center justify-center border-2 border-text-accent text-text-accent font-black text-base rotate-45 group-hover:rotate-[225deg] transition-all duration-1000 bg-bg-base">&alpha;</div>
+                         <h1 className="text-4xl sm:text-5xl lg:text-6xl font-black uppercase tracking-tight sm:tracking-[0.05em] text-text-primary leading-none flex items-center gap-4 sm:gap-8">
+                            <span className="text-text-accent opacity-20 group-hover:opacity-40 transition-opacity">/</span> 
                             <span>dashboard</span>
                          </h1>
                     </div>
-                    <div className="flex flex-wrap items-center gap-16 mt-12 border-l-8 border-text-accent/20 pl-16 italic">
+                    <div className="flex flex-wrap items-center gap-8 mt-6 border-l-4 border-text-accent/20 pl-8 italic">
                         <div className="space-y-4">
                              <p className="text-[16px] text-text-primary font-black uppercase tracking-[0.8em] group-hover:text-text-accent transition-colors">REALTIME_INFRASTRUCTURE_MONITORING_ENGINE</p>
                              <div className="h-1 w-64 bg-text-accent/20 relative overflow-hidden">
@@ -137,27 +129,26 @@ const Dashboard = () => {
                     </div>
                 </div>
 
-                <div className="flex flex-col items-end gap-6 no-print">
-                     <div className="flex items-center gap-10 bg-bg-surface border-4 border-border-default p-10 shadow-[0_40px_100px_rgba(0,0,0,0.6)] group/sync hover:border-text-accent hover:bg-bg-base/50 transition-all duration-700 active:scale-95 cursor-pointer">
-                        <div className="text-[13px] font-black text-text-muted uppercase tracking-[0.8em] group-hover/sync:text-text-accent transition-colors italic">SYNC_POINT:</div>
-                        <div className="text-[16px] font-black text-text-primary tabular-nums tracking-[0.3em] bg-bg-base px-8 py-4 border-4 border-border-default shadow-[inset_0_5px_20px_rgba(0,0,0,0.5)] group-hover/sync:border-text-accent/30 transition-all">
-                            [{new Date().toISOString().replace('T', ' ').substring(0, 19).toUpperCase()}]
+                <div className="flex flex-col items-end gap-3 no-print">
+                     <div className="flex items-center gap-6 bg-bg-surface border-2 sm:border-4 border-border-default p-4 sm:p-6 shadow-xl group/sync hover:border-text-accent hover:bg-bg-base/50 transition-all active:scale-95 cursor-pointer">
+                        <div className="text-[11px] font-black text-text-muted uppercase tracking-[0.4em] group-hover/sync:text-text-accent transition-colors italic">SYNC_POINT:</div>
+                        <div className="text-[13px] font-black text-text-primary tabular-nums tracking-[0.1em] bg-bg-base px-4 py-2 border-2 border-border-default shadow-inner group-hover/sync:border-text-accent/30 transition-all">
+                            [{new Date().toISOString().substring(0, 16).replace('T', ' ')}]
                         </div>
                     </div>
-                    <div className="text-[10px] text-text-muted font-black uppercase tracking-[1.5em] opacity-10 italic">_0xAF22_SECURE_PORT_OPEN</div>
                 </div>
             </div>
 
             {/* Global KPI Matrix RX */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-16 relative">
-                 <div className="absolute -top-10 left-0 text-[11px] font-black text-text-accent uppercase tracking-[1em] opacity-20 italic"># SYSTEM_RESOURCE_METRICS</div>
+            <div className="grid grid-cols-1 xs:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 lg:gap-8 relative">
+                 <div className="absolute -top-6 left-0 text-[10px] font-black text-text-accent uppercase tracking-[0.5em] opacity-20 italic"># SYSTEM_RESOURCE_METRICS</div>
                  {cards.map((card) => (
                     <KpiCard key={card.title} {...card} />
                 ))}
             </div>
 
             {/* Analysis Center Enclave */}
-            <div className="space-y-32">
+            <div className="space-y-16 sm:space-y-24">
                 <div className="relative group/charts">
                     <div className="absolute -top-12 right-0 flex items-center gap-6 opacity-10 group-hover/charts:opacity-40 transition-opacity">
                          <span className="text-[10px] font-black uppercase tracking-[1em]">IO_VISUALIZATION_READY</span>
@@ -178,16 +169,16 @@ const Dashboard = () => {
             </div>
 
             {/* High-Fidelity Footer Identifier */}
-            <div className="flex flex-col xl:flex-row justify-between items-center gap-16 p-20 bg-bg-surface/80 border-8 border-border-default shadow-[inset_0_20px_100px_rgba(0,0,0,0.4)] group hover:border-text-accent/30 transition-all duration-1000 relative overflow-hidden">
+            <div className="flex flex-col xl:flex-row justify-between items-center gap-8 p-6 sm:p-10 bg-bg-surface/80 border-2 sm:border-4 border-border-default shadow-xl group hover:border-text-accent/30 transition-all duration-1000 relative overflow-hidden">
                 <div className="absolute top-0 right-[-100%] w-full h-full bg-gradient-to-r from-transparent via-text-accent/5 to-transparent skew-x-[-30deg] animate-shine"></div>
                 
-                <div className="text-[14px] font-black text-text-muted uppercase tracking-[1em] flex items-center gap-10 group-hover:text-text-primary transition-all relative z-10">
-                     <div className="w-5 h-5 bg-text-accent rotate-45 animate-pulse shadow-[0_0_25px_rgba(var(--text-accent),0.8)] group-hover:rotate-[225deg] transition-transform duration-1000"></div>
-                     DASHBOARD_CONTROLLER_v4 // STATUS: KERNEL_AF22_STABLE_0x00
+                <div className="text-[11px] sm:text-[12px] font-black text-text-muted uppercase tracking-[0.6em] flex items-center gap-6 group-hover:text-text-primary transition-all relative z-10">
+                     <div className="w-3 h-3 bg-text-accent rotate-45 animate-pulse shadow-[0_0_15px_rgba(var(--text-accent),0.8)] group-hover:rotate-[225deg] transition-transform duration-1000"></div>
+                     DASHBOARD_CONTROLLER_v4 // STATUS: KERNEL_STABLE
                 </div>
-                <div className="text-[14px] font-black text-text-muted uppercase tracking-[0.6em] italic flex items-center gap-12 relative z-10">
-                     <div className="w-24 h-[3px] bg-border-default opacity-40 group-hover:w-48 group-hover:bg-text-accent transition-all duration-1000"></div>
-                     COLOMBIA_IT_REALTIME_MANIFEST // ACCESS_RX: RO_MASTER_STREAM_GATE
+                <div className="text-[11px] sm:text-[12px] font-black text-text-muted uppercase tracking-[0.4em] italic flex items-center gap-8 relative z-10">
+                     <div className="w-12 h-[2px] bg-border-default opacity-40 group-hover:w-24 group-hover:bg-text-accent transition-all duration-1000"></div>
+                     COLOMBIA_IT_REALTIME_MANIFEST
                 </div>
             </div>
         </div>
@@ -195,34 +186,34 @@ const Dashboard = () => {
 };
 
 const KpiCard = ({ title, value, symbol, accent, meta }) => (
-    <div className="group relative bg-bg-surface border-4 border-border-default p-14 flex flex-col justify-between hover:border-text-accent hover:shadow-[0_45px_120px_rgba(251,97,7,0.25)] transition-all duration-700 overflow-hidden cursor-default shadow-[0_30px_90px_rgba(0,0,0,0.6)] active:scale-95 group/card h-full">
-        <div className="absolute top-0 right-0 p-10 opacity-5 text-[13px] font-black uppercase tracking-[1.5em] group-hover:opacity-40 group-hover:text-text-accent transition-all duration-700 pointer-events-none italic">{meta}</div>
-        <div className="absolute bottom-0 left-0 w-0 h-3 bg-text-accent group-hover:w-full transition-all duration-1000 shadow-[0_0_30px_rgba(var(--text-accent),0.5)]"></div>
+    <div className="group relative bg-bg-surface border-2 sm:border-4 border-border-default p-6 sm:p-8 flex flex-col justify-between hover:border-text-accent hover:shadow-2xl transition-all duration-700 overflow-hidden cursor-default shadow-lg active:scale-95 group/card h-full">
+        <div className="absolute top-0 right-0 p-4 opacity-5 text-[10px] sm:text-[11px] font-black uppercase tracking-[0.8em] group-hover:opacity-40 group-hover:text-text-accent transition-all duration-700 pointer-events-none italic">{meta}</div>
+        <div className="absolute bottom-0 left-0 w-0 h-1.5 bg-text-accent group-hover:w-full transition-all duration-1000"></div>
         
-        <div className="flex items-center justify-between mb-20 relative">
-            <span className="text-[24px] font-black text-text-muted opacity-20 group-hover/card:opacity-100 group-hover/card:text-text-accent transition-all duration-700 font-mono bg-bg-base/80 w-16 h-16 flex items-center justify-center border-4 border-border-default shadow-[inset_0_10px_30px_rgba(0,0,0,0.5)] group-hover/card:rotate-[360deg] duration-1000">
+        <div className="flex items-center justify-between mb-8 sm:mb-12 relative">
+            <span className="text-[18px] sm:text-[20px] font-black text-text-muted opacity-20 group-hover/card:opacity-100 group-hover/card:text-text-accent transition-all duration-700 font-mono bg-bg-base/80 w-10 h-10 sm:w-12 sm:h-12 flex items-center justify-center border-2 border-border-default shadow-inner group-hover/card:rotate-[360deg] duration-1000">
                 {symbol}
             </span>
-            <div className="h-[4px] flex-1 mx-12 bg-border-default/10 group-hover/card:bg-text-accent/20 transition-all duration-1000 relative">
+            <div className="h-[2px] flex-1 mx-6 bg-border-default/10 group-hover/card:bg-text-accent/20 transition-all duration-1000 relative">
                  <div className="absolute inset-0 bg-text-accent/30 w-0 group-hover/card:w-full transition-all duration-1500"></div>
             </div>
         </div>
         
         <div className="relative z-10 flex-1 flex flex-col justify-end">
-            <p className={`text-7xl font-black ${accent} leading-none tracking-tighter group-hover/card:translate-x-8 transition-all duration-1000 tabular-nums mb-12 drop-shadow-[0_20px_30px_rgba(0,0,0,0.5)] italic group-hover/card:not-italic`}>
+            <p className={`text-4xl sm:text-5xl font-black ${accent} leading-none tracking-tight group-hover/card:translate-x-2 transition-all duration-1000 tabular-nums mb-6 drop-shadow-md italic group-hover/card:not-italic`}>
                 {value}
             </p>
-            <div className="h-[3px] w-24 bg-text-accent mb-10 opacity-10 group-hover/card:w-full group-hover/card:opacity-50 transition-all duration-1000"></div>
-            <div className="flex items-center gap-6">
-                 <div className="w-1.5 h-6 bg-text-accent opacity-0 group-hover/card:opacity-100 transition-opacity"></div>
-                 <p className="text-[13px] font-black text-text-muted uppercase tracking-[0.6em] leading-relaxed italic opacity-50 group-hover/card:opacity-100 group-hover/card:text-text-primary transition-all duration-500 border-l-4 border-border-default/20 pl-6 group-hover/card:border-text-accent">
-                    {title.replace(/_/g, '_')}
+            <div className="h-[2px] w-12 bg-text-accent mb-4 opacity-10 group-hover/card:w-full group-hover/card:opacity-50 transition-all duration-1000"></div>
+            <div className="flex items-center gap-3">
+                 <div className="w-1 h-4 bg-text-accent opacity-0 group-hover/card:opacity-100 transition-opacity"></div>
+                 <p className="text-[11px] font-black text-text-muted uppercase tracking-[0.2em] leading-relaxed italic opacity-50 group-hover/card:opacity-100 group-hover/card:text-text-primary transition-all duration-500 border-l-2 border-border-default/20 pl-4 group-hover/card:border-text-accent">
+                    {title}
                 </p>
             </div>
         </div>
         
         {/* Aggressive background decoration */}
-        <div className="absolute -bottom-16 -right-16 text-[180px] font-black opacity-[0.01] pointer-events-none group-hover/card:opacity-[0.15] transition-all duration-1000 uppercase tracking-tighter leading-none select-none italic group-hover/card:-rotate-12 group-hover/card:scale-125 transition-all">
+        <div className="absolute -bottom-8 -right-8 text-[80px] sm:text-[100px] font-black opacity-[0.01] pointer-events-none group-hover/card:opacity-[0.1] transition-all duration-1000 uppercase tracking-tighter leading-none select-none italic group-hover/card:-rotate-12 transition-all">
             {symbol.replace(/[\[\]]/g, '')}
         </div>
     </div>

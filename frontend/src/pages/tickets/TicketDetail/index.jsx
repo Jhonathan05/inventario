@@ -38,18 +38,18 @@ const TicketDetail = () => {
     if (loading || !ticket) {
         return (
             <div className="flex flex-col justify-center items-center h-screen font-mono bg-bg-base relative overflow-hidden">
-                <div className="absolute top-0 right-0 p-12 opacity-15 pointer-events-none text-2xl font-black animate-pulse tracking-[2em] italic">SYSTEM_BUSY_RX_BUF</div>
-                <div className="w-24 h-24 border-[12px] border-border-default border-t-text-accent animate-spin rounded-full mb-14 shadow-[0_0_60px_rgba(var(--text-accent),0.3)]"></div>
-                <div className="text-[18px] font-black text-text-accent animate-pulse uppercase tracking-[1em] mb-10">
-                    # SYNCING_TICKET_PAYLOAD_RX...
+                <div className="absolute top-0 right-0 p-8 opacity-15 pointer-events-none text-lg font-black animate-pulse tracking-[1em] italic hidden sm:block">SYSTEM_BUSY_RX_BUF</div>
+                <div className="w-16 h-16 sm:w-24 sm:h-24 border-[8px] sm:border-[12px] border-border-default border-t-text-accent animate-spin rounded-full mb-8 sm:mb-14"></div>
+                <div className="text-sm sm:text-[18px] font-black text-text-accent animate-pulse uppercase tracking-[0.5em] sm:tracking-[1em] mb-6 sm:mb-10">
+                    # SYNCING...
                 </div>
-                <div className="text-[11px] text-text-muted uppercase tracking-[0.4em] opacity-40 italic bg-bg-surface px-8 py-4 border-l-8 border-border-default shadow-inner">ESTABLISHING_ENCRYPTED_DB_CHANNEL // BUFFER_SYNC_ACTIVE_0xFD</div>
+                <div className="text-[10px] sm:text-[11px] text-text-muted uppercase tracking-[0.3em] opacity-40 italic bg-bg-surface px-4 sm:px-8 py-3 sm:py-4 border-l-4 sm:border-l-8 border-border-default shadow-inner text-center max-w-xs sm:max-w-none">ESTABLISHING_DB_CHANNEL</div>
             </div>
         );
     }
 
     return (
-        <div className="max-w-full mx-auto space-y-16 font-mono mb-48 px-10 animate-fadeIn selection:bg-text-accent selection:text-bg-base">
+        <div className="max-w-full mx-auto space-y-6 sm:space-y-10 lg:space-y-12 font-mono mb-16 sm:mb-24 lg:mb-32 px-3 sm:px-6 md:px-8 animate-fadeIn selection:bg-text-accent selection:text-bg-base">
             {/* Extended Terminal Logic - Print & Layout Rules v4.2 */}
             <style>
                 {`
@@ -115,20 +115,20 @@ const TicketDetail = () => {
 
             <TicketHeader ticket={ticket} onBack={() => navigate('/tickets')} />
 
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-16 relative">
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 sm:gap-8 lg:gap-10 relative">
                 {/* Visual Grid Accent */}
                 <div className="absolute top-0 left-0 w-full h-full opacity-[0.02] pointer-events-none bg-[radial-gradient(circle,rgba(var(--text-accent),0.1)_1px,transparent_1px)] bg-[size:40px_40px]"></div>
 
                 {/* Left Terminal Panel: Static Data & Registry RX */}
-                <div className="space-y-16 order-2 lg:order-1 relative z-10 transition-all">
-                    <div className="animate-slideRight border-8 border-border-default hover:border-text-accent/20 transition-all group/info bg-bg-surface shadow-[0_40px_100px_rgba(0,0,0,0.6)]" style={{ animationDelay: '100ms' }}>
+                <div className="space-y-6 sm:space-y-10 lg:space-y-16 order-2 lg:order-1 relative z-10 transition-all">
+                    <div className="animate-slideRight" style={{ animationDelay: '100ms' }}>
                         <TicketInfo ticket={ticket} onDownload={handleDownload} />
                     </div>
-                    <div className="animate-slideRight border-8 border-border-default hover:border-text-accent/20 transition-all group/invest bg-bg-surface shadow-[0_40px_100px_rgba(0,0,0,0.6)]" style={{ animationDelay: '200ms' }}>
+                    <div className="animate-slideRight" style={{ animationDelay: '200ms' }}>
                         <TicketInvolved ticket={ticket} />
                     </div>
                     {canEdit && (
-                        <div className="animate-slideRight border-8 border-border-default hover:border-text-accent/20 transition-all group/mgmt bg-bg-surface shadow-[0_40px_100px_rgba(0,0,0,0.6)]" style={{ animationDelay: '300ms' }}>
+                        <div className="animate-slideRight" style={{ animationDelay: '300ms' }}>
                             <TicketManagement 
                                 ticket={ticket}
                                 user={user}
@@ -150,9 +150,9 @@ const TicketDetail = () => {
                 </div>
 
                 {/* Right Terminal Panel: Dynamic Streams & Comm Log TX */}
-                <div className="lg:col-span-2 flex flex-col gap-16 order-1 lg:order-2 relative z-10">
+                <div className="lg:col-span-2 flex flex-col gap-6 sm:gap-8 lg:gap-10 order-1 lg:order-2 relative z-10">
                     {canEdit && (
-                        <div className="no-print animate-slideUp border-8 border-border-default hover:border-text-accent/20 transition-all bg-bg-surface shadow-[0_60px_150px_rgba(0,0,0,0.8)]">
+                        <div className="no-print animate-slideUp">
                             <TechnicalNotes 
                                 ticket={ticket}
                                 localTicket={localTicket}
@@ -163,7 +163,7 @@ const TicketDetail = () => {
                         </div>
                     )}
                     
-                    <div className="animate-slideUp border-8 border-border-default hover:border-text-accent/20 transition-all bg-bg-surface shadow-[0_60px_150px_rgba(0,0,0,0.8)]" style={{ animationDelay: '150ms' }}>
+                    <div className="animate-slideUp" style={{ animationDelay: '150ms' }}>
                         <TicketTimeline 
                             ticket={ticket} 
                             handleDownload={handleDownload} 
@@ -172,7 +172,7 @@ const TicketDetail = () => {
                     </div>
 
                     {canEdit && (
-                        <div className="no-print animate-slideUp border-8 border-border-default hover:border-text-accent/20 transition-all bg-bg-surface shadow-[0_60px_150px_rgba(0,0,0,0.8)]" style={{ animationDelay: '250ms' }}>
+                        <div className="no-print animate-slideUp" style={{ animationDelay: '250ms' }}>
                             <TicketCommentForm 
                                 nuevoComentario={nuevoComentario}
                                 setNuevoComentario={setNuevoComentario}
@@ -188,9 +188,9 @@ const TicketDetail = () => {
                 </div>
             </div>
             {/* Visual Status Trace Footer */}
-            <div className="pt-16 pb-10 flex justify-between items-center opacity-10 font-black text-[10px] uppercase tracking-[2em] italic transition-all hover:opacity-40">
-                <p>ITSM_CORE_v4.2_TRACE_0xFD42</p>
-                <p className="animate-pulse">_LISTENING_FOR_TX_EVENTS...</p>
+            <div className="pt-8 sm:pt-16 pb-6 sm:pb-10 flex justify-between items-center opacity-10 font-black text-[9px] sm:text-[10px] uppercase tracking-[0.5em] sm:tracking-[2em] italic transition-all hover:opacity-40">
+                <p>ITSM_CORE_v4.2</p>
+                <p className="animate-pulse hidden sm:block">_LISTENING...</p>
             </div>
         </div>
     );

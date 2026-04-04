@@ -16,18 +16,18 @@ export const TicketManagement = ({
     const labelCls = "text-[12px] font-black text-text-muted uppercase tracking-[0.5em] block mb-4 opacity-60 group-hover/field:text-text-accent transition-colors italic border-l-4 border-border-default pl-6 group-hover/field:border-text-accent";
 
     return (
-        <div className="bg-bg-surface border-4 border-border-default p-12 space-y-12 font-mono no-print shadow-[0_40px_100px_rgba(0,0,0,0.6)] relative overflow-hidden group/main hover:border-text-accent/20 transition-all duration-1000">
-            <div className="absolute top-0 right-0 p-8 opacity-5 pointer-events-none text-xl font-black uppercase tracking-[1.5em] group-hover/main:opacity-20 transition-all italic">CTRL_PANEL_RX_0xFD</div>
+        <div className="bg-bg-surface border-2 sm:border-4 border-border-default p-4 sm:p-8 md:p-12 space-y-8 sm:space-y-12 font-mono no-print shadow-xl relative overflow-hidden group/main hover:border-text-accent/20 transition-all duration-1000">
+            <div className="absolute top-0 right-0 p-8 opacity-5 pointer-events-none text-xl font-black uppercase tracking-[1.5em] group-hover/main:opacity-20 transition-all italic hidden sm:block">CTRL_PANEL_RX_0xFD</div>
             <div className="absolute bottom-0 left-0 w-full h-[6px] bg-gradient-to-r from-text-accent/60 via-transparent to-transparent opacity-20"></div>
             
-            <div className="flex items-center gap-6 border-b-4 border-border-default pb-6">
-                <div className="w-10 h-10 flex items-center justify-center border-4 border-text-accent text-text-accent font-black text-xl bg-bg-base shadow-xl italic">&sigma;</div>
-                <h3 className="text-[13px] font-black uppercase tracking-[0.6em] text-text-primary italic opacity-80 leading-none">
+            <div className="flex items-center gap-4 sm:gap-6 border-b-2 sm:border-b-4 border-border-default pb-4 sm:pb-6">
+                <div className="w-8 h-8 sm:w-10 sm:h-10 flex items-center justify-center border-2 sm:border-4 border-text-accent text-text-accent font-black text-base sm:text-xl bg-bg-base shadow-xl italic flex-shrink-0">&sigma;</div>
+                <h3 className="text-[11px] sm:text-[13px] font-black uppercase tracking-[0.4em] sm:tracking-[0.6em] text-text-primary italic opacity-80 leading-none">
                      OPERATIONAL_FLOW_CONTROL_HUB
                 </h3>
             </div>
             
-            <div className="space-y-12 relative z-10">
+            <div className="space-y-8 sm:space-y-12 relative z-10">
                 {/* Analyst Assignment Stream */}
                 <div className="group/field">
                     <label className={labelCls}>:: ASSIGN_TECHNICAL_RESOURCE_ALLOC</label>
@@ -96,7 +96,7 @@ export const TicketManagement = ({
             <div className="pt-10 border-t-4 border-border-default/30 space-y-6">
                 <button
                     onClick={() => generateTicketReport(ticket, user)}
-                    className="w-full py-6 bg-text-primary border-4 border-text-primary text-bg-base font-black text-[13px] hover:bg-text-accent hover:border-text-accent transition-all duration-700 flex items-center justify-center gap-8 shadow-[0_30px_100px_rgba(0,0,0,0.5)] group/print active:scale-95 relative overflow-hidden"
+                    className="w-full py-4 sm:py-6 bg-text-primary border-2 sm:border-4 border-text-primary text-bg-base font-black text-[12px] sm:text-[13px] hover:bg-text-accent hover:border-text-accent transition-all duration-700 flex items-center justify-center gap-6 sm:gap-8 shadow-xl group/print active:scale-95 relative overflow-hidden"
                 >
                     <div className="absolute top-0 left-[-100%] w-full h-full bg-gradient-to-r from-transparent via-white/10 to-transparent skew-x-[-30deg] animate-shine"></div>
                     <span className="relative z-10 flex items-center gap-6 group-hover/print:tracking-[0.8em] transition-all duration-1000">
