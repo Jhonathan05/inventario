@@ -123,7 +123,7 @@ const Usuarios = () => {
                                                     <p className="text-[13px] font-black text-text-primary uppercase tracking-tight group-hover/row:text-text-accent transition-colors tabular-nums">
                                                         {usuario.nombre.replace(/ /g, '_')}
                                                     </p>
-                                                    <p className="text-[10px] text-text-muted font-black mt-2 tracking-[0.3em] opacity-40 tabular-nums">HEX_UID: 0x{usuario.id.slice(0, 8).toUpperCase()}</p>
+                                                    <p className="text-[10px] text-text-muted font-black mt-2 tracking-[0.3em] opacity-40 tabular-nums">HEX_UID: 0x{String(usuario.id).slice(0, 8).toUpperCase()}</p>
                                                 </div>
                                             </div>
                                         </td>

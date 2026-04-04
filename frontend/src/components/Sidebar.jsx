@@ -47,13 +47,17 @@ const Sidebar = () => {
                         }
                         end={item.href === '/'}
                     >
-                        <span className="w-6 h-6 flex items-center justify-center font-black text-[14px] opacity-40 group-hover/nav:opacity-100 transition-opacity">
-                            {item.icon}
-                        </span>
-                        <span className="md:inline text-[11px] font-black uppercase tracking-[0.3em] whitespace-nowrap group-hover/nav:translate-x-1 transition-transform">
-                            {item.name.replace(/ /g, '_')}
-                        </span>
-                        <div className={`ml-auto w-1 h-1 bg-text-accent hidden md:block transition-all ${isActive ? 'opacity-100' : 'opacity-0group-hover/nav:opacity-20'}`}></div>
+                        {({ isActive }) => (
+                            <>
+                                <span className="w-6 h-6 flex items-center justify-center font-black text-[14px] opacity-40 group-hover/nav:opacity-100 transition-opacity">
+                                    {item.icon}
+                                </span>
+                                <span className="md:inline text-[11px] font-black uppercase tracking-[0.3em] whitespace-nowrap group-hover/nav:translate-x-1 transition-transform">
+                                    {item.name.replace(/ /g, '_')}
+                                </span>
+                                <div className={`ml-auto w-1 h-1 bg-text-accent hidden md:block transition-all ${isActive ? 'opacity-100' : 'opacity-0 group-hover/nav:opacity-20'}`}></div>
+                            </>
+                        )}
                     </NavLink>
                 ))}
             </div>

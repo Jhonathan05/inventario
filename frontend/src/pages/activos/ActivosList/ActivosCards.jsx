@@ -30,7 +30,7 @@ const ActivosCards = ({ activos, canEdit, onEdit }) => (
         )}
         {activos.map((activo) => (
             <div key={activo.id} className="bg-bg-surface p-8 border-2 border-border-default hover:border-border-strong transition-all group overflow-hidden relative shadow-3xl">
-                <div className="absolute top-0 right-0 p-4 opacity-5 pointer-events-none text-[8px] font-black uppercase tracking-widest group-hover:opacity-20 transition-opacity">NODE_RX_{activo.id.slice(0,8).toUpperCase()}</div>
+                <div className="absolute top-0 right-0 p-4 opacity-5 pointer-events-none text-[8px] font-black uppercase tracking-widest group-hover:opacity-20 transition-opacity">NODE_RX_{String(activo.id).slice(0,8).toUpperCase()}</div>
                 <div className="flex flex-col sm:flex-row items-start gap-8">
                     <div className="h-20 w-20 flex-shrink-0 bg-bg-base border-2 border-border-default overflow-hidden group-hover:border-border-strong transition-all relative shadow-xl">
                         {getImageUrl(activo.imagen)

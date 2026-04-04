@@ -43,37 +43,45 @@ const ActivoDetail = () => {
 
     const getStatusBadge = (estado) => {
         switch (estado) {
-            case 'DISPONIBLE': return 'border-text-primary text-text-primary bg-bg-base opacity-40 hover:opacity-100';
-            case 'ASIGNADO': return 'border-border-default text-text-primary bg-bg-elevated/50';
-            case 'EN_MANTENIMIENTO': return 'border-text-accent text-text-accent bg-text-accent/5 animate-pulse shadow-[0_0_15px_rgba(var(--text-accent),0.3)]';
-            case 'DADO_DE_BAJA': return 'border-border-default text-text-muted opacity-20';
+            case 'DISPONIBLE': return 'border-text-primary text-text-primary bg-bg-base opacity-40 hover:opacity-100 shadow-inner group-hover/header:border-text-accent transition-all';
+            case 'ASIGNADO': return 'border-border-default text-text-primary bg-bg-elevated/80 shadow-md group-hover/header:border-text-primary transition-all';
+            case 'EN_MANTENIMIENTO': return 'border-text-accent text-text-accent bg-text-accent/5 animate-pulse shadow-[0_0_20px_rgba(var(--text-accent),0.4)]';
+            case 'DADO_DE_BAJA': return 'border-border-default/40 text-text-muted opacity-20 grayscale transition-all';
             default: return 'border-border-default text-text-muted';
         }
     };
 
     const getHVStatusBadge = (estado) => {
-        const base = "inline-flex items-center px-4 py-1 text-[9px] font-black uppercase tracking-widest border-2 transition-all shadow-md";
-        if (estado === 'FINALIZADO' || estado === 'CERRADO') return `${base} border-text-primary text-text-primary bg-bg-base opacity-40 hover:opacity-100`;
-        if (estado === 'EN_PROCESO' || estado === 'CREADO') return `${base} border-text-accent text-text-accent bg-text-accent/5 animate-pulse`;
-        return `${base} border-border-default text-text-muted opacity-30`;
+        const base = "inline-flex items-center px-6 py-2 text-[10px] font-black uppercase tracking-[0.3em] border-4 transition-all shadow-xl tabular-nums";
+        if (estado === 'FINALIZADO' || estado === 'CERRADO') return `${base} border-text-primary text-text-primary bg-bg-base opacity-30 hover:opacity-100 group-hover/row:opacity-100`;
+        if (estado === 'EN_PROCESO' || estado === 'CREADO') return `${base} border-text-accent text-text-accent bg-text-accent/5 animate-pulse shadow-[0_0_15px_rgba(var(--text-accent),0.3)]`;
+        return `${base} border-border-default text-text-muted opacity-20`;
     };
 
     if (loading) return (
-        <div className="mt-24 text-center py-24 font-mono animate-fadeIn">
-            <div className="w-16 h-16 border-4 border-t-text-accent border-border-default animate-spin mx-auto mb-8"></div>
-            <div className="text-[14px] uppercase tracking-[0.8em] text-text-accent font-black animate-pulse"># SYNCING_NODE_DATA_BUFFER...</div>
-            <div className="mt-4 text-[10px] text-text-muted uppercase tracking-widest opacity-40 italic">querying_repository_node_tx_0xFD4</div>
+        <div className="mt-40 text-center py-40 font-mono animate-fadeIn selection:bg-text-accent selection:text-bg-base">
+            <div className="w-32 h-32 border-8 border-border-default border-t-text-accent animate-spin mx-auto mb-16 shadow-[0_0_80px_rgba(var(--text-accent),0.2)] rounded-full"></div>
+            <div className="text-[20px] uppercase tracking-[1.4em] text-text-accent font-black animate-pulse"># SYNCING_NODE_DATA_BLOCKS_RX...</div>
+            <div className="mt-8 text-[11px] text-text-muted uppercase tracking-[0.8em] opacity-40 italic border-l-4 border-border-default/30 pl-10 inline-block">querying_repository_node_tx_0xFD42_v4</div>
+            <div className="mt-16 max-w-sm mx-auto h-[4px] bg-bg-surface border-2 border-border-default overflow-hidden">
+                 <div className="h-full bg-text-accent animate-progressBar"></div>
+            </div>
         </div>
     );
     
     if (!activo) return (
-        <div className="mt-24 text-center py-24 font-mono bg-bg-surface border-2 border-text-accent/30 mx-8 shadow-3xl animate-fadeIn relative overflow-hidden">
-            <div className="absolute top-0 right-0 p-8 opacity-10 text-xs font-black uppercase tracking-widest">FATAL_IDENT_FAULT</div>
-            <div className="text-[14px] uppercase tracking-[0.4em] text-text-accent font-black mb-6">! SYSTEM_ERROR :: NODE_IO_NULL</div>
-            <div className="text-[10px] text-text-muted uppercase tracking-widest opacity-60 mb-12">IDENTIFIER "{id}" RESOLVED_TO_NULL_VAL_INTERRUPT</div>
-            <button onClick={() => navigate('/activos')} className="bg-bg-elevated border-2 border-border-default px-10 py-4 text-[11px] font-black uppercase tracking-widest text-text-primary hover:border-text-accent hover:text-text-accent transition-all active:scale-95 shadow-2xl">
-                [ &larr; ] RETURN_TO_LIST_CORE
-            </button>
+        <div className="mt-40 text-center py-40 font-mono bg-bg-surface border-8 border-text-accent/30 mx-10 shadow-[0_60px_150px_rgba(0,0,0,0.8)] animate-fadeIn relative overflow-hidden group">
+            <div className="absolute top-0 right-0 p-12 opacity-10 text-2xl font-black uppercase tracking-[1.5em] group-hover:text-text-accent group-hover:scale-110 transition-all pointer-events-none italic">0x00_FATAL_IDENT_FAULT</div>
+            <div className="relative z-10 p-16">
+                <div className="text-[24px] uppercase tracking-[0.8em] text-text-accent font-black mb-10 drop-shadow-lg">! SYSTEM_ERROR :: NODE_IO_NULL</div>
+                <div className="text-[12px] text-text-muted uppercase tracking-[0.5em] opacity-50 mb-20 max-w-lg mx-auto leading-relaxed border-l-4 border-text-accent/20 pl-8">IDENTIFIER_MANIFEST "{id}" RESOLVED_TO_NULL_VAL_INTERRUPT // CORE_HALTED</div>
+                <button onClick={() => navigate('/activos')} className="bg-bg-elevated border-4 border-border-strong px-14 py-6 text-[13px] font-black uppercase tracking-[0.6em] text-text-primary hover:border-text-accent hover:text-text-accent transition-all active:scale-90 shadow-[0_20px_60px_rgba(0,0,0,0.5)] group/btn relative overflow-hidden">
+                    <span className="relative z-10 flex items-center gap-6">
+                        <span className="group-hover/btn:-translate-x-3 transition-transform">&larr;</span> [ RETURN_TO_LIST_HUB ]
+                    </span>
+                    <div className="absolute inset-0 bg-text-accent/5 opacity-0 group-hover/btn:opacity-100 transition-opacity"></div>
+                </button>
+            </div>
         </div>
     );
 
@@ -81,95 +89,112 @@ const ActivoDetail = () => {
         { key: 'general', label: 'GEN_DATA_TX' },
         { key: 'asignaciones', label: 'ALLOCATION_HISTORY' },
         { key: 'hojadevida', label: 'MAINTENANCE_LOG' },
-        { key: 'documentos', label: 'DOC_VAULT' },
+        { key: 'documentos', label: 'DOC_VAULT_RX' },
         { key: 'software', label: 'SW_RESOURCES_MAP' },
     ];
 
     const InfoItem = ({ label, value }) => (
-        <div className="group/item relative overflow-hidden p-6 bg-bg-base/20 border border-border-default/30 hover:border-text-accent/30 transition-all">
-            <div className="absolute top-0 right-0 p-2 opacity-5 text-[7px] font-black uppercase tracking-tighter group-hover/item:opacity-20 transition-opacity">IO_DATA</div>
-            <dt className="text-[10px] font-black text-text-muted uppercase tracking-[0.3em] mb-3 border-l-2 border-border-default pl-4 group-hover/item:border-text-accent transition-all">:: {label.toUpperCase().replace(/ /g, '_')}</dt>
-            <dd className="text-[12px] font-black text-text-primary uppercase tracking-tight pl-4 truncate tabular-nums" title={value}>{value || <span className="opacity-20 italic">NULL_VAL_ACK</span>}</dd>
+        <div className="group/item relative overflow-hidden p-8 bg-bg-base/30 border-2 border-border-default/40 hover:border-text-accent/60 transition-all duration-500 shadow-xl active:scale-[0.98]">
+            <div className="absolute top-0 right-0 p-3 opacity-5 text-[8px] font-black uppercase tracking-tighter group-hover/item:opacity-20 group-hover/item:text-text-accent transition-all">IO_NODE_v4</div>
+            <dt className="text-[11px] font-black text-text-muted uppercase tracking-[0.4em] mb-4 border-l-4 border-border-default/40 pl-6 group-hover/item:border-text-accent/60 group-hover/item:text-text-primary transition-all italic opacity-60 group-hover/item:opacity-100">:: {label.toUpperCase().replace(/ /g, '_')}</dt>
+            <dd className="text-[14px] font-black text-text-primary uppercase tracking-[0.1em] pl-10 truncate tabular-nums group-hover/item:translate-x-2 transition-transform drop-shadow-sm" title={value}>{value || <span className="opacity-10 italic tracking-normal">NULL_VAL_ACK</span>}</dd>
+            <div className="absolute bottom-0 left-0 h-[2px] bg-text-accent transition-all duration-700 w-0 group-focus-within:w-full group-hover/item:w-full opacity-30"></div>
         </div>
     );
 
     return (
-        <div className="font-mono mb-24 px-4 sm:px-6 lg:px-8 animate-fadeIn">
-            {/* Navigation / Header Identifier */}
-            <div className="mb-12">
-                <button onClick={() => navigate('/activos')} className="text-[11px] font-black text-text-muted hover:text-text-primary uppercase tracking-[0.4em] transition-all mb-8 flex items-center gap-4 group/back active:scale-95">
-                    <span className="group-hover/back:-translate-x-2 transition-transform text-text-accent text-lg">&larr;</span> [ BACK_TO_INVENTORY_HUB ]
+        <div className="font-mono mb-40 px-4 sm:px-6 lg:px-10 animate-fadeIn selection:bg-text-accent selection:text-bg-base border-r-4 border-r-border-default/10">
+            {/* Header Navigation Enclave */}
+            <div className="mb-20">
+                <button onClick={() => navigate('/activos')} className="text-[13px] font-black text-text-muted hover:text-text-primary uppercase tracking-[0.5em] transition-all mb-12 flex items-center gap-6 group/back active:scale-95 group">
+                    <span className="group-hover/back:-translate-x-4 transition-transform text-text-accent text-3xl font-normal opacity-40 group-hover:opacity-100">&larr;</span> 
+                    <span className="border-b-4 border-transparent group-hover:border-text-accent pb-1 transition-all">[ BACK_TO_INVENTORY_HUB ]</span>
                 </button>
                 
-                <div className="bg-bg-surface border-2 border-border-default p-10 shadow-3xl relative overflow-hidden group hover:border-border-strong transition-all">
-                    <div className="absolute top-0 right-0 p-8 opacity-10 pointer-events-none text-xs font-black uppercase tracking-[0.5em] group-hover:opacity-20 transition-opacity">NODE_MANIFEST_STREAM_0x{activo.id.slice(0,6).toUpperCase()}</div>
-                    <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-10 relative z-10">
+                <div className="bg-bg-surface border-4 border-border-default p-12 shadow-[0_50px_150px_rgba(0,0,0,0.7)] relative overflow-hidden group/header hover:border-text-accent/40 transition-colors duration-700">
+                    <div className="absolute top-0 right-0 p-10 opacity-10 pointer-events-none text-xs font-black uppercase tracking-[2em] group-hover/header:opacity-20 group-hover/header:translate-x-6 transition-all italic italic">NODE_MANIFEST_BLOCK_0x{String(activo.id).slice(0,8).toUpperCase()}</div>
+                    <div className="absolute bottom-0 left-0 w-full h-[8px] bg-border-default/20">
+                         <div className="h-full bg-text-accent w-1/3 animate-loadingBarSlow shadow-[0_0_15px_rgba(var(--text-accent),0.3)]"></div>
+                    </div>
+
+                    <div className="flex flex-col xl:flex-row xl:items-center xl:justify-between gap-12 relative z-10">
                         <div>
-                            <div className="flex items-center gap-4 mb-3">
-                                 <div className="w-2.5 h-2.5 bg-text-accent animate-pulse"></div>
-                                 <h1 className="text-3xl font-black uppercase tracking-[0.4em] text-text-primary leading-tight">
-                                     / {activo.marca} {activo.modelo}
+                            <div className="flex items-center gap-10 mb-6 group">
+                                 <div className="w-6 h-6 bg-text-accent animate-pulse shadow-[0_0_30px_rgba(var(--text-accent),0.6)] group-hover/header:rotate-45 transition-transform duration-1000"></div>
+                                 <h1 className="text-5xl font-black uppercase tracking-[0.5em] text-text-primary leading-none drop-shadow-2xl">
+                                     <span className="text-text-accent opacity-20 text-6xl">/</span> {activo.marca} <span className="opacity-40 italic font-medium">{activo.modelo}</span>
                                  </h1>
                             </div>
-                            <div className="text-[11px] text-text-muted font-black uppercase tracking-[0.25em] flex flex-wrap gap-8 opacity-60 group-hover:opacity-100 transition-opacity tabular-nums">
-                                <span className="flex items-center gap-2">IDENT_PLACA: <span className="text-text-primary bg-bg-base px-2 py-0.5 border border-border-default/50">[{activo.placa}]</span></span>
-                                <span className="flex items-center gap-2">AF_TAG: <span className="text-text-primary bg-bg-base px-2 py-0.5 border border-border-default/50">[{activo.activoFijo || '----'}]</span></span>
-                                <span className="flex items-center gap-2">SERIAL_IO: <span className="text-text-primary bg-bg-base px-2 py-0.5 border border-border-default/50">[{activo.serial}]</span></span>
+                            <div className="text-[12px] text-text-muted font-black uppercase tracking-[0.4em] flex flex-wrap gap-12 opacity-50 group-hover/header:opacity-100 transition-all tabular-nums italic">
+                                <span className="flex items-center gap-4 bg-bg-base px-4 py-1.5 border-2 border-border-default/40 shadow-inner">IDENT_PLACA: <span className="text-text-primary not-italic font-black">[{activo.placa}]</span></span>
+                                <span className="flex items-center gap-4 bg-bg-base px-4 py-1.5 border-2 border-border-default/40 shadow-inner">AF_TAG_v4: <span className="text-text-primary not-italic font-black">[{activo.activoFijo || '----'}]</span></span>
+                                <span className="flex items-center gap-4 bg-bg-base px-4 py-1.5 border-2 border-border-default/40 shadow-inner">SERIAL_RX: <span className="text-text-primary not-italic font-black">[{activo.serial}]</span></span>
                             </div>
                         </div>
-                        <div className="flex flex-wrap items-center gap-8 bg-bg-base/30 p-4 border border-border-default/50 backdrop-blur-sm">
-                            <span className={`px-6 py-2.5 text-[11px] font-black tracking-[0.4em] uppercase border-2 shadow-xl transition-all tabular-nums ${getStatusBadge(activo.estado)}`}>
+                        <div className="flex flex-wrap items-center gap-12 bg-bg-base/30 p-8 border-4 border-border-default/60 backdrop-blur-md shadow-2xl group-hover/header:bg-bg-base/50 transition-all">
+                            <span className={`px-10 py-4 text-[12px] font-black tracking-[0.6em] uppercase border-4 shadow-[0_15px_40px_rgba(0,0,0,0.5)] transition-all tabular-nums hover:scale-105 active:scale-95 ${getStatusBadge(activo.estado)}`}>
                                 [ {activo.estado?.toUpperCase().replace(/_/g, ' ')} ]
                             </span>
                             {canEdit && (
                                 <button
                                     onClick={() => setIsEditModalOpen(true)}
-                                    className="bg-bg-elevated border-2 border-border-strong px-10 py-3 text-[11px] font-black text-text-accent hover:text-text-primary uppercase tracking-[0.5em] transition-all shadow-3xl active:scale-95 group/btn"
+                                    className="bg-bg-elevated border-4 border-border-strong px-14 py-4 text-[13px] font-black text-text-accent hover:text-text-primary hover:border-text-accent uppercase tracking-[0.6em] transition-all shadow-3xl active:scale-90 group/btn relative overflow-hidden"
                                 >
-                                    <span className="relative z-10 group-hover/btn:tracking-[0.6em] transition-all">[ MODIFY_NODE_TX ]</span>
+                                    <span className="relative z-10 group-hover/btn:tracking-[0.8em] transition-all flex items-center gap-4">
+                                        [ MODIFY_NODE_TX ] <span className="opacity-20 group-hover/btn:opacity-100 group-hover/btn:translate-x-4 transition-all">&raquo;</span>
+                                    </span>
+                                    <div className="absolute inset-x-0 bottom-0 h-0 group-hover/btn:h-full bg-text-accent/5 transition-all"></div>
                                 </button>
                             )}
                         </div>
                     </div>
-                    {/* Progress tracking accent line */}
-                    <div className="absolute bottom-0 left-0 w-full h-[3px] bg-text-accent/20">
-                         <div className="h-full bg-text-accent w-1/4 animate-loadingBarSlow"></div>
-                    </div>
                 </div>
             </div>
 
-            {/* Logical Tabs / Stream Selector */}
-            <div className="mb-12 border-b-2 border-border-default/30 flex overflow-x-auto custom-scrollbar bg-bg-surface/30 backdrop-blur-md sticky top-0 z-40">
+            {/* Logical Tabs / Stream Selector Viewport */}
+            <div className="mb-20 border-b-8 border-border-default flex overflow-x-auto custom-scrollbar bg-bg-surface/60 backdrop-blur-xl sticky top-0 z-50 shadow-2xl border-x-4">
                 {tabs.map((tab) => (
                     <button
                         key={tab.key}
                         onClick={() => setActiveTab(tab.key)}
-                        className={`whitespace-nowrap px-10 py-6 text-[11px] font-black uppercase tracking-[0.4em] transition-all border-b-2 relative overflow-hidden active:scale-95 group ${activeTab === tab.key
-                            ? 'border-text-accent text-text-primary bg-text-accent/5'
-                            : 'border-transparent text-text-muted hover:text-text-primary hover:bg-bg-elevated/50'
+                        className={`whitespace-nowrap px-14 py-10 text-[13px] font-black uppercase tracking-[0.6em] transition-all border-b-8 relative overflow-hidden active:scale-[0.98] group ${activeTab === tab.key
+                            ? 'border-text-accent text-text-primary bg-text-accent/10 shadow-[inset_0_-20px_40px_rgba(var(--text-accent),0.1)]'
+                            : 'border-transparent text-text-muted hover:text-text-primary hover:bg-bg-elevated/40'
                             }`}
                     >
-                        <span className="relative z-10">{tab.label}</span>
-                        {activeTab === tab.key && <div className="absolute top-0 right-0 p-1 opacity-20 text-[7px] font-black uppercase">RX</div>}
+                        <span className="relative z-10 flex items-center gap-6">
+                             {activeTab === tab.key && <span className="text-text-accent animate-pulse">&gt;</span>}
+                             {tab.label}
+                        </span>
+                        {activeTab === tab.key && (
+                            <div className="absolute top-0 right-0 p-3 opacity-20 text-[10px] font-black uppercase tracking-tighter bg-text-accent/10 italic">RX_STREAM</div>
+                        )}
+                        <div className="absolute bottom-0 left-0 w-full h-[4px] bg-text-accent transition-all duration-700 opacity-0 group-hover:opacity-40 translate-y-full group-hover:translate-y-0"></div>
                     </button>
                 ))}
             </div>
 
-            {/* Payload Viewport */}
-            <div className="animate-fadeIn">
+            {/* Manifest Payload Viewport */}
+            <div className="animate-fadeIn relative z-10">
                 {activeTab === 'general' && (
-                    <div className="space-y-12">
-                        <div className="grid grid-cols-1 lg:grid-cols-3 gap-12">
-                            <div className="lg:col-span-2 bg-bg-surface border-2 border-border-default p-12 shadow-3xl relative overflow-hidden group/box">
-                                <div className="absolute top-0 right-0 p-4 opacity-5 text-[8px] font-black uppercase tracking-tighter group-hover/box:opacity-20 transition-opacity">SYS_IO_BLOCK_A</div>
-                                <div className="flex items-center gap-6 mb-12 pb-8 border-b-2 border-border-default">
-                                    <div className="w-8 h-8 flex items-center justify-center border-2 border-text-primary font-black text-sm">&alpha;</div>
-                                    <h3 className="text-[14px] font-black text-text-primary uppercase tracking-[0.5em]"># CORE_SPECIFICATION_BLOCK</h3>
+                    <div className="space-y-20">
+                        <div className="grid grid-cols-1 lg:grid-cols-3 gap-16">
+                            {/* Block ALPHA - Specification */}
+                            <div className="lg:col-span-2 bg-bg-surface border-4 border-border-default p-16 shadow-[0_40px_120px_rgba(0,0,0,0.6)] relative overflow-hidden group/box hover:border-text-accent/30 transition-colors duration-700">
+                                <div className="absolute top-0 right-0 p-8 opacity-5 text-[11px] font-black uppercase tracking-[1em] group-hover/box:opacity-15 transition-all italic pointer-events-none">SYS_IO_BLOCK_ALPHA_RX</div>
+                                <div className="flex items-center gap-10 mb-16 pb-10 border-b-4 border-border-default/40">
+                                    <div className="w-12 h-12 flex items-center justify-center border-4 border-text-accent font-black text-2xl bg-text-accent/5 shadow-[0_0_30px_rgba(var(--text-accent),0.2)]">&alpha;</div>
+                                    <div>
+                                        <h3 className="text-[18px] font-black text-text-primary uppercase tracking-[0.8em]"># CORE_SPECIFICATION_MATRIX</h3>
+                                        <div className="h-1 w-40 bg-text-accent/40 mt-3 rounded-full overflow-hidden">
+                                             <div className="h-full bg-text-accent w-2/3 animate-loadingBarSlow"></div>
+                                        </div>
+                                    </div>
                                 </div>
-                                <dl className="grid grid-cols-1 sm:grid-cols-2 gap-8">
-                                    <InfoItem label="Categoría" value={activo.categoria?.nombre} />
-                                    <InfoItem label="Tipo de Equipo" value={activo.tipo} />
-                                    <InfoItem label="Nombre Host" value={activo.nombreEquipo} />
+                                <dl className="grid grid-cols-1 sm:grid-cols-2 gap-10">
+                                    <InfoItem label="Categoría Manifest" value={activo.categoria?.nombre} />
+                                    <InfoItem label="Tipo de Equipo RX" value={activo.tipo} />
+                                    <InfoItem label="Nombre Host ID" value={activo.nombreEquipo} />
                                     <InfoItem label="Ubicación Física" value={activo.ubicacion} />
                                     <InfoItem label="Activo Fijo Tag" value={activo.activoFijo} />
                                     <InfoItem label="Valor Adquisición" value={formatCurrency(activo.valorCompra)} />
@@ -177,198 +202,235 @@ const ActivoDetail = () => {
                                     <InfoItem label="Vencimiento Garantía" value={formatDate(activo.garantiaHasta)} />
                                     <InfoItem label="Color / Chasis" value={activo.color} />
                                     <div className="sm:col-span-2">
-                                        <InfoItem label="Metadata Log Ops" value={activo.observaciones} />
+                                        <InfoItem label="Metadata Log Ops / Manifest Notes" value={activo.observaciones} />
                                     </div>
                                 </dl>
                             </div>
-                            <div className="bg-bg-surface border-2 border-border-default p-12 shadow-3xl relative overflow-hidden group/imgbox">
-                                <div className="absolute top-0 right-0 p-4 opacity-5 text-[8px] font-black uppercase tracking-tighter">IO_IMG_PORT</div>
-                                <div className="flex items-center gap-6 mb-12 pb-8 border-b-2 border-border-default">
-                                    <div className="w-8 h-8 flex items-center justify-center border-2 border-text-primary font-black text-sm">&beta;</div>
-                                    <h3 className="text-[14px] font-black text-text-primary uppercase tracking-[0.5em]"># VISUAL_NODE_TRACE</h3>
+
+                            {/* Block BETA - Visual Node */}
+                            <div className="bg-bg-surface border-4 border-border-default p-16 shadow-[0_40px_120px_rgba(0,0,0,0.6)] relative overflow-hidden group/imgbox hover:border-text-accent/30 transition-colors duration-700">
+                                <div className="absolute top-0 right-0 p-8 opacity-5 text-[11px] font-black uppercase tracking-[1em] group-hover/imgbox:opacity-15 transition-all italic italic pointer-events-none">NODE_VISUAL_TRACE_BETA</div>
+                                <div className="flex items-center gap-10 mb-16 pb-10 border-b-4 border-border-default/40">
+                                    <div className="w-12 h-12 flex items-center justify-center border-4 border-text-accent font-black text-2xl bg-text-accent/5 shadow-[0_0_30px_rgba(var(--text-accent),0.2)]">&beta;</div>
+                                    <h3 className="text-[18px] font-black text-text-primary uppercase tracking-[0.8em]"># VISUAL_NODE_IO</h3>
                                 </div>
-                                <div className="aspect-square bg-bg-base border-4 border-border-default overflow-hidden relative group/img shadow-2xl">
-                                    <div className="absolute inset-0 bg-text-accent/5 pointer-events-none opacity-0 group-hover/img:opacity-100 transition-opacity"></div>
+                                <div className="aspect-square bg-bg-base border-8 border-border-default overflow-hidden relative group/img shadow-[0_30px_80px_rgba(0,0,0,0.8)] group-hover/imgbox:border-text-accent/20 transition-all duration-700">
+                                    <div className="absolute inset-0 bg-text-accent/10 pointer-events-none opacity-0 group-hover/img:opacity-100 transition-opacity z-10"></div>
+                                    <div className="absolute inset-0 bg-gradient-to-tr from-bg-base/40 to-transparent z-[5] pointer-events-none"></div>
                                     {getImageUrl(activo.imagen) ? (
-                                        <img src={getImageUrl(activo.imagen)} alt="" className="w-full h-full object-cover group-hover/img:scale-110 transition-transform duration-1000" />
+                                        <img src={getImageUrl(activo.imagen)} alt="" className="w-full h-full object-cover group-hover/img:scale-125 transition-transform duration-[3000ms]" />
                                     ) : (
-                                        <div className="h-full w-full flex items-center justify-center opacity-10 grayscale p-12">
-                                             {/* Placeholder icon could go here */}
-                                             <div className="text-8xl">?</div>
+                                        <div className="h-full w-full flex items-center justify-center opacity-10 grayscale p-16 relative">
+                                             <div className="text-9xl font-black blur-[2px]">NULL</div>
+                                             <div className="absolute text-[12px] font-black uppercase tracking-[1em] rotate-45 border-4 border-text-muted px-10 py-4 opacity-50"># NO_IMAGE_BUFF</div>
                                         </div>
                                     )}
-                                    <div className="absolute top-0 left-0 p-4 bg-bg-surface/80 border-b border-r border-border-default text-[9px] font-black uppercase tracking-[0.3em] opacity-80 backdrop-blur-sm">REF: {activo.placa}</div>
+                                    <div className="absolute top-0 left-0 p-6 bg-bg-surface/90 border-b-4 border-r-4 border-border-default text-[11px] font-black uppercase tracking-[0.4em] opacity-90 backdrop-blur-md z-20 shadow-2xl group-hover/imgbox:border-text-accent transition-colors">IO_TAG_RX: {activo.placa}</div>
+                                    {/* Scanline effect */}
+                                    <div className="absolute inset-0 z-30 pointer-events-none opacity-5 bg-gradient-to-b from-transparent via-text-accent to-transparent h-1/4 animate-scanline"></div>
                                 </div>
-                                <div className="mt-8 text-[9px] text-text-muted font-black uppercase tracking-[0.4em] opacity-40 text-center italic">IDENT_HASH: 0x{activo.id.substring(activo.id.length - 8).toUpperCase()}</div>
+                                <div className="mt-12 text-[11px] text-text-muted font-black uppercase tracking-[0.6em] opacity-30 text-center italic hover:opacity-100 transition-opacity">MANIFEST_HASH: 0x{String(activo.id).substring(String(activo.id).length - 12).toUpperCase()}</div>
                             </div>
                         </div>
 
-                        {/* Admin & Holder Layers */}
-                        <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
-                             <div className="bg-bg-surface border-2 border-border-default p-12 shadow-3xl group/admin relative overflow-hidden">
-                                <div className="absolute top-0 right-0 p-4 opacity-5 text-[8px] font-black uppercase tracking-tighter">SYS_IO_BLOCK_G</div>
-                                <div className="flex items-center gap-6 mb-12 pb-8 border-b-2 border-border-default">
-                                    <div className="w-8 h-8 flex items-center justify-center border-2 border-text-primary font-black text-sm">&gamma;</div>
-                                    <h3 className="text-[14px] font-black text-text-primary uppercase tracking-[0.5em]"># ADMIN_GOVERNANCE_LAYER</h3>
+                        {/* Block GAMMA & DELTA - Admin & Holder */}
+                        <div className="grid grid-cols-1 lg:grid-cols-2 gap-16">
+                             {/* GAMMA BLOCK */}
+                             <div className="bg-bg-surface border-4 border-border-default p-16 shadow-[0_40px_120px_rgba(0,0,0,0.6)] group/admin relative overflow-hidden hover:border-text-accent/30 transition-colors duration-700">
+                                <div className="absolute top-0 right-0 p-8 opacity-5 text-[11px] font-black uppercase tracking-[1em] italic pointer-events-none">SYS_IO_BLOCK_GAMMA</div>
+                                <div className="flex items-center gap-10 mb-16 pb-10 border-b-4 border-border-default/40">
+                                    <div className="w-12 h-12 flex items-center justify-center border-4 border-text-accent font-black text-2xl bg-text-accent/5 shadow-[0_0_30px_rgba(var(--text-accent),0.2)]">&gamma;</div>
+                                    <h3 className="text-[18px] font-black text-text-primary uppercase tracking-[0.8em]"># ADMIN_GOVERNANCE_PROTOCOL</h3>
                                 </div>
-                                <dl className="grid grid-cols-1 sm:grid-cols-2 gap-8">
+                                <dl className="grid grid-cols-1 sm:grid-cols-2 gap-10">
                                     <InfoItem label="Entidad Propietaria" value={activo.empresaPropietaria} />
                                     <InfoItem label="Unidad Dependencia" value={activo.dependencia} />
-                                    <InfoItem label="Stream Recurso" value={activo.fuenteRecurso} />
-                                    <InfoItem label="Tipo Recurso" value={activo.tipoRecurso} />
+                                    <InfoItem label="Stream Recurso TX" value={activo.fuenteRecurso} />
+                                    <InfoItem label="Tipo Recurso RX" value={activo.tipoRecurso} />
                                     <InfoItem label="Protocolo Control" value={activo.tipoControl} />
-                                    <InfoItem label="Estado Operativo" value={activo.estadoOperativo} />
-                                    <InfoItem label="Razón Status" value={activo.razonEstado} />
+                                    <InfoItem label="Estado Operativo RX" value={activo.estadoOperativo} />
+                                    <InfoItem label="Razón Status Manifest" value={activo.razonEstado} />
                                 </dl>
                              </div>
 
-                             <div className="bg-bg-surface border-2 border-border-default p-12 shadow-3xl group/holder relative overflow-hidden">
-                                <div className="absolute top-0 right-0 p-4 opacity-5 text-[8px] font-black uppercase tracking-tighter">SYS_IO_BLOCK_H</div>
-                                <div className="flex items-center gap-6 mb-12 pb-8 border-b-2 border-border-default">
-                                    <div className="w-8 h-8 flex items-center justify-center border-2 border-text-primary font-black text-sm">&delta;</div>
-                                    <h3 className="text-[14px] font-black text-text-primary uppercase tracking-[0.5em]"># HOLDER_ASSIGNMENT_ENCLAVE</h3>
+                             {/* DELTA BLOCK */}
+                             <div className="bg-bg-surface border-4 border-border-default p-16 shadow-[0_40px_120px_rgba(0,0,0,0.6)] group/holder relative overflow-hidden hover:border-text-accent/30 transition-colors duration-700">
+                                <div className="absolute top-0 right-0 p-8 opacity-5 text-[11px] font-black uppercase tracking-[1em] italic pointer-events-none">SYS_IO_BLOCK_DELTA</div>
+                                <div className="flex items-center gap-10 mb-16 pb-10 border-b-4 border-border-default/40">
+                                    <div className="w-12 h-12 flex items-center justify-center border-4 border-text-accent font-black text-2xl bg-text-accent/5 shadow-[0_0_30px_rgba(var(--text-accent),0.2)]">&delta;</div>
+                                    <h3 className="text-[18px] font-black text-text-primary uppercase tracking-[0.8em]"># HOLDER_ALLOCATION_ENCLAVE</h3>
                                 </div>
-                                <dl className="grid grid-cols-1 sm:grid-cols-2 gap-8">
+                                <dl className="grid grid-cols-1 sm:grid-cols-2 gap-10">
                                     <InfoItem label="Empresa Holder" value={activo.empresaFuncionario} />
-                                    <InfoItem label="Tipo Personal" value={activo.tipoPersonal} />
-                                    <InfoItem label="Ident UID" value={activo.cedulaFuncionario} />
-                                    <InfoItem label="Alias / Shortname" value={activo.shortname} />
+                                    <InfoItem label="Tipo Personal TX" value={activo.tipoPersonal} />
+                                    <InfoItem label="Ident UID Core" value={activo.cedulaFuncionario} />
+                                    <InfoItem label="Alias / RX_ID" value={activo.shortname} />
                                     <div className="sm:col-span-2">
-                                        <InfoItem label="Full Holder Identity" value={activo.nombreFuncionario} />
+                                        <InfoItem label="Full Holder Identity Manifest" value={activo.nombreFuncionario} />
                                     </div>
-                                    <InfoItem label="Geo Dept" value={activo.departamento} />
-                                    <InfoItem label="Geo Region" value={activo.ciudad} />
+                                    <InfoItem label="Geo Dept Tolima" value={activo.departamento} />
+                                    <InfoItem label="Geo Region RX" value={activo.ciudad} />
                                     <InfoItem label="Logical Role" value={activo.cargo} />
-                                    <InfoItem label="Area Core" value={activo.area} />
+                                    <InfoItem label="Area Core Block" value={activo.area} />
                                 </dl>
                              </div>
                         </div>
 
-                        {/* Tech Spec Layer */}
-                        <div className="bg-bg-surface border-2 border-border-default p-12 shadow-3xl group/tech relative overflow-hidden">
-                            <div className="absolute top-0 right-0 p-4 opacity-5 text-[8px] font-black uppercase tracking-tighter">SYS_IO_BLOCK_T</div>
-                            <div className="flex items-center gap-6 mb-12 pb-8 border-b-2 border-border-default">
-                                <div className="w-8 h-8 flex items-center justify-center border-2 border-text-primary font-black text-sm">&tau;</div>
-                                <h3 className="text-[14px] font-black text-text-primary uppercase tracking-[0.5em]"># TECHNICAL_HARDWARE_SPEC_MATRIX</h3>
+                        {/* Block TAU - Technical Matrix */}
+                        <div className="bg-bg-surface border-4 border-border-default p-16 shadow-[0_40px_120px_rgba(0,0,0,0.6)] group/tech relative overflow-hidden hover:border-text-accent/30 transition-colors duration-700">
+                            <div className="absolute top-0 right-0 p-8 opacity-5 text-[11px] font-black uppercase tracking-[1.5em] italic pointer-events-none">TECHNICAL_HARDWARE_SPEC_MATRIX_TAU</div>
+                            <div className="flex items-center gap-10 mb-16 pb-10 border-b-4 border-border-default/40">
+                                <div className="w-12 h-12 flex items-center justify-center border-4 border-text-accent font-black text-2xl bg-text-accent/5 shadow-[0_0_30px_rgba(var(--text-accent),0.2)]">&tau;</div>
+                                <h3 className="text-[18px] font-black text-text-primary uppercase tracking-[0.8em]"># TECHNICAL_HARDWARE_NODE_SPECS</h3>
                             </div>
-                            <dl className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
-                                <InfoItem label="Procesador Unit" value={activo.procesador} />
-                                <InfoItem label="RAM_Buffer" value={activo.memoriaRam} />
-                                <InfoItem label="Storage_Volume" value={activo.discoDuro} />
-                                <InfoItem label="System_Core_OS" value={activo.sistemaOperativo} />
+                            <dl className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-12">
+                                <InfoItem label="Procesador Core Unit" value={activo.procesador} />
+                                <InfoItem label="RAM_Buffer_RX" value={activo.memoriaRam} />
+                                <InfoItem label="Storage_Volume_TX" value={activo.discoDuro} />
+                                <InfoItem label="System_Core_OS_v4" value={activo.sistemaOperativo} />
                             </dl>
+                            {/* Inner graphical decoration */}
+                            <div className="mt-14 h-4 bg-bg-base/30 border-2 border-dashed border-border-default/40 opacity-30 group-hover:opacity-100 transition-opacity"></div>
                         </div>
                     </div>
                 )}
 
                 {activeTab === 'asignaciones' && (
-                    <div className="bg-bg-surface border-2 border-border-default shadow-3xl overflow-hidden group/alloc hover:border-border-strong transition-all relative">
-                        <div className="absolute top-0 right-0 p-8 opacity-10 pointer-events-none text-xs font-black uppercase tracking-[1em] group-hover/alloc:text-text-accent transition-colors">ALLOC_TX_LOG_STREAM</div>
-                        <div className="overflow-x-auto custom-scrollbar">
-                            <table className="w-full text-left border-collapse min-w-[900px] border-spacing-0">
+                    <div className="bg-bg-surface border-8 border-border-default shadow-[0_50px_150px_rgba(0,0,0,0.8)] overflow-hidden group/alloc hover:border-text-accent/20 transition-all duration-1000 relative animate-fadeIn">
+                        <div className="absolute top-0 right-0 p-12 opacity-10 pointer-events-none text-xl font-black uppercase tracking-[2em] group-hover/alloc:text-text-accent group-hover/alloc:opacity-20 transition-all italic italic">ALLOCATION_CHRONO_BUFFER_STREAM</div>
+                        <div className="absolute top-0 left-0 w-4 h-full bg-text-accent/10 opacity-30 group-hover/alloc:opacity-100 transition-opacity"></div>
+                        
+                        <div className="overflow-x-auto custom-scrollbar bg-bg-base/20">
+                            <table className="w-full text-left border-collapse min-w-[1000px] border-spacing-0">
                                 <thead>
-                                    <tr className="bg-bg-base border-b-2 border-border-default">
-                                        <th className="px-10 py-8 text-[11px] font-black uppercase tracking-[0.4em] text-text-muted border-r border-border-default/20">:: HOLDER_IDENTITY</th>
-                                        <th className="px-10 py-8 text-[11px] font-black uppercase tracking-[0.4em] text-text-muted border-r border-border-default/20">:: ALLOC_PROTOCOL</th>
-                                        <th className="px-10 py-8 text-[11px] font-black uppercase tracking-[0.4em] text-text-muted border-r border-border-default/20">:: START_TX_STAMP</th>
-                                        <th className="px-10 py-8 text-[11px] font-black uppercase tracking-[0.4em] text-text-muted border-r border-border-default/20">:: END_TX_STAMP</th>
-                                        <th className="px-10 py-8 text-[11px] font-black uppercase tracking-[0.4em] text-text-muted">:: LOG_METADATA_MANIFEST</th>
+                                    <tr className="bg-bg-base/95 backdrop-blur-md border-b-8 border-border-default shadow-2xl relative z-10">
+                                        <th className="px-12 py-10 text-[13px] font-black uppercase tracking-[0.6em] text-text-accent border-r-4 border-border-default/30 shadow-inner">:: NODE_HOLDER_ID</th>
+                                        <th className="px-12 py-10 text-[13px] font-black uppercase tracking-[0.6em] text-text-muted border-r-4 border-border-default/30 shadow-inner">:: ALLOC_PROTOCOL</th>
+                                        <th className="px-12 py-10 text-[13px] font-black uppercase tracking-[0.6em] text-text-muted border-r-4 border-border-default/30 shadow-inner">:: TX_STAMP_START</th>
+                                        <th className="px-12 py-10 text-[13px] font-black uppercase tracking-[0.6em] text-text-muted border-r-4 border-border-default/30 shadow-inner">:: TX_STAMP_END</th>
+                                        <th className="px-12 py-10 text-[13px] font-black uppercase tracking-[0.6em] text-text-muted shadow-inner bg-bg-surface/40">:: LOG_METADATA_MANIFEST</th>
                                     </tr>
                                 </thead>
-                                <tbody className="divide-y divide-border-default/10 bg-bg-surface/30">
+                                <tbody className="divide-y-4 divide-border-default/10">
                                     {activo.asignaciones?.map((asig) => (
-                                        <tr key={asig.id} className="hover:bg-bg-elevated transition-all group/row border-l-4 border-l-transparent hover:border-l-text-accent cursor-default">
-                                            <td className="px-10 py-8 text-[12px] font-black text-text-primary uppercase tracking-tight tabular-nums border-r border-border-default/10">{asig.funcionario.nombre.toUpperCase().replace(/ /g, '_')}</td>
-                                            <td className="px-10 py-8 border-r border-border-default/10">
-                                                <span className="inline-flex items-center border-2 border-border-default px-4 py-1 text-[10px] font-black uppercase tracking-widest text-text-muted bg-bg-base group-hover/row:border-text-accent group-hover/row:text-text-primary transition-all shadow-md">
+                                        <tr key={asig.id} className="hover:bg-text-accent/5 transition-all group/row border-l-8 border-l-transparent hover:border-l-text-accent cursor-default relative">
+                                            <td className="px-12 py-10 text-[14px] font-black text-text-primary uppercase tracking-widest tabular-nums border-r-4 border-border-default/10 group-hover:bg-bg-elevated/40 transition-colors italic group-hover:not-italic">{asig.funcionario.nombre.toUpperCase().replace(/ /g, '_')}</td>
+                                            <td className="px-12 py-10 border-r-4 border-border-default/10">
+                                                <span className="inline-flex items-center border-4 border-border-default px-6 py-2 text-[11px] font-black uppercase tracking-[0.4em] text-text-muted bg-bg-surface group-hover/row:border-text-accent group-hover/row:text-text-primary transition-all shadow-[0_10px_20px_rgba(0,0,0,0.4)] hover:scale-110 active:scale-95">
                                                     [{asig.tipo}]
                                                 </span>
                                             </td>
-                                            <td className="px-10 py-8 text-[12px] font-black text-text-primary uppercase tracking-tight tabular-nums border-r border-border-default/10">{formatDate(asig.fechaInicio)}</td>
-                                            <td className="px-10 py-8 text-[12px] font-black text-text-primary uppercase tracking-tight tabular-nums border-r border-border-default/10">
-                                                {asig.fechaFin ? formatDate(asig.fechaFin) : <span className="text-text-accent animate-pulse bg-text-accent/5 px-3 py-1 border border-text-accent/30">[ CURRENT_TX_ACTIVE ]</span>}
+                                            <td className="px-12 py-10 text-[14px] font-black text-text-primary uppercase tracking-[0.1em] tabular-nums border-r-4 border-border-default/10">{formatDate(asig.fechaInicio)}</td>
+                                            <td className="px-12 py-10 text-[14px] font-black text-text-primary uppercase tracking-[0.1em] tabular-nums border-r-4 border-border-default/10">
+                                                {asig.fechaFin ? formatDate(asig.fechaFin) : <span className="text-text-accent animate-pulse bg-text-accent/5 px-6 py-2 border-2 border-text-accent/40 shadow-xl tabular-nums tracking-[0.3em]">[ CURRENT_RX_ACTIVE ]</span>}
                                             </td>
-                                            <td className="px-10 py-8 text-[10px] text-text-muted font-black uppercase tracking-widest leading-relaxed max-w-sm" title={asig.observaciones}>
-                                                <div className="line-clamp-2">/ {asig.observaciones?.toUpperCase() || 'NO_METADATA_CAP_ACK'}</div>
+                                            <td className="px-12 py-10 text-[12px] text-text-muted font-black uppercase tracking-widest leading-relaxed max-w-md group-hover:text-text-primary transition-colors" title={asig.observaciones}>
+                                                <div className="line-clamp-3 italic p-4 bg-bg-base/30 border border-border-default/20 border-dashed group-hover:border-text-accent/40 transition-all font-mono">
+                                                    / {asig.observaciones?.toUpperCase() || 'NO_METADATA_CAP_ACK_RX'}
+                                                </div>
                                             </td>
                                         </tr>
                                     ))}
                                     {(!activo.asignaciones || activo.asignaciones.length === 0) && (
-                                        <tr><td colSpan="5" className="py-24 text-center text-text-muted text-[12px] font-black uppercase tracking-[0.5em] opacity-40 italic">! NO_ALLOCATION_HISTORY_LOGGED_IN_CORE</td></tr>
+                                        <tr><td colSpan="5" className="py-40 text-center text-text-muted text-[18px] font-black uppercase tracking-[1em] opacity-30 italic animate-pulse">! NO_ALLOCATION_TX_LOGGED_IN_BLOCK_REPOSITORY</td></tr>
                                     )}
                                 </tbody>
                             </table>
+                        </div>
+                        {/* Stream decoration */}
+                        <div className="mt-8 bg-bg-base px-12 py-6 border-t-8 border-border-default border-opacity-30 flex justify-between items-center opacity-40 shadow-inner italic">
+                             <span className="text-[10px] font-black uppercase tracking-[1em]">TX_STREAM_RX_v4.2 // TOLIMA_NODE</span>
+                             <span className="text-[10px] font-black uppercase tracking-[0.5em] text-text-accent animate-pulse"># READY_0xAF22_v4</span>
                         </div>
                     </div>
                 )}
 
                 {activeTab === 'hojadevida' && (
                     <div className="animate-fadeIn">
-                        <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-10 mb-12 px-6">
-                            <div className="flex items-center gap-6">
-                                 <div className="w-3 h-3 bg-text-accent animate-pulse"></div>
-                                 <h3 className="text-[16px] font-black text-text-primary uppercase tracking-[0.6em] relative">/ MAINTENANCE_AND_SYSTEM_EVENT_HISTORY</h3>
+                        <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-12 mb-16 px-10">
+                            <div className="flex items-center gap-10 group">
+                                 <div className="w-4 h-4 bg-text-accent animate-pulse shadow-[0_0_30px_rgba(var(--text-accent),0.6)] group-hover:rotate-180 transition-transform duration-1000"></div>
+                                 <h3 className="text-[20px] font-black text-text-primary uppercase tracking-[0.8em] relative leading-none">
+                                     / MAINTENANCE_AND_EVENT_TX_LOG
+                                     <div className="h-1 w-2/3 bg-text-accent/20 absolute bottom-[-16px] left-0">
+                                         <div className="h-full bg-text-accent w-1/4 animate-loadingBarSlow"></div>
+                                     </div>
+                                 </h3>
                             </div>
                             {canEdit && (
                                 <button
                                     onClick={() => setIsHVModalOpen(true)}
-                                    className="bg-bg-elevated border-2 border-border-strong px-12 py-4 text-[12px] font-black text-text-accent hover:text-text-primary uppercase tracking-[0.6em] transition-all shadow-3xl hover:scale-105 active:scale-95 group/btn"
+                                    className="bg-bg-elevated border-8 border-border-strong px-14 py-6 text-[14px] font-black text-text-accent hover:text-text-primary hover:border-text-accent uppercase tracking-[0.8em] transition-all shadow-[0_30px_80px_rgba(0,0,0,0.6)] hover:scale-105 active:scale-[0.9] group/btn relative overflow-hidden"
                                 >
-                                    <span className="relative z-10">[ + ] REGISTER_EVENT_IO_STAMP</span>
+                                    <span className="relative z-10 flex items-center gap-8">
+                                        [ + ] REGISTER_EVENT_STAMP
+                                        <span className="opacity-20 group-hover/btn:opacity-100 transition-opacity">&rsaquo;&rsaquo;</span>
+                                    </span>
+                                    <div className="absolute inset-0 bg-text-accent/5 opacity-0 group-hover/btn:opacity-100 transition-opacity"></div>
                                 </button>
                             )}
                         </div>
                         
-                        <div className="bg-bg-surface border-2 border-border-default shadow-3xl overflow-hidden group/maint hover:border-border-strong transition-all relative">
-                            <div className="absolute top-0 right-0 p-8 opacity-10 pointer-events-none text-xs font-black uppercase tracking-[1em] group-hover/maint:text-text-accent transition-colors">MAINT_PHYSICAL_CORE_STREAM</div>
-                            <div className="overflow-x-auto custom-scrollbar">
-                                <table className="w-full text-left border-collapse min-w-[1100px] border-spacing-0">
+                        <div className="bg-bg-surface border-8 border-border-default shadow-[0_60px_180px_rgba(0,0,0,0.9)] overflow-hidden group/maint hover:border-text-accent/10 transition-all duration-1000 relative">
+                            <div className="absolute top-0 right-0 p-12 opacity-10 pointer-events-none text-xl font-black uppercase tracking-[2em] group-hover/maint:text-text-accent transition-all italic italic pointer-events-none">MAINT_PHYSICAL_CORE_STREAM_RX_v4</div>
+                            <div className="absolute top-0 left-0 w-4 h-full bg-text-accent/10 opacity-30"></div>
+                            
+                            <div className="overflow-x-auto custom-scrollbar bg-bg-base/30">
+                                <table className="w-full text-left border-collapse min-w-[1200px] border-spacing-0">
                                     <thead>
-                                        <tr className="bg-bg-base border-b-2 border-border-default">
-                                            <th className="px-8 py-8 text-[11px] font-black uppercase tracking-[0.4em] text-text-muted border-r border-border-default/20">:: STAMP</th>
-                                            <th className="px-8 py-8 text-[11px] font-black uppercase tracking-[0.4em] text-text-muted border-r border-border-default/20">:: TYPE</th>
-                                            <th className="px-8 py-8 text-[11px] font-black uppercase tracking-[0.4em] text-text-muted border-r border-border-default/20">:: LOG_DESC_TX</th>
-                                            <th className="px-8 py-8 text-[11px] font-black uppercase tracking-[0.4em] text-text-muted border-r border-border-default/20">:: ANALYST_UID</th>
-                                            <th className="px-8 py-8 text-[11px] font-black uppercase tracking-[0.4em] text-text-muted border-r border-border-default/20">:: COST_UNIT</th>
-                                            <th className="px-8 py-8 text-[11px] font-black uppercase tracking-[0.4em] text-text-muted border-r border-border-default/20">:: EXT_IDENT</th>
-                                            <th className="px-8 py-8 text-[11px] font-black uppercase tracking-[0.4em] text-text-muted border-r border-border-default/20">:: STATE</th>
-                                            <th className="px-8 py-8 text-right text-[11px] font-black uppercase tracking-[0.5em] text-text-muted">_COMMAND_IO</th>
+                                        <tr className="bg-bg-base/95 backdrop-blur-md border-b-8 border-border-default shadow-2xl relative z-10">
+                                            <th className="px-10 py-10 text-[13px] font-black uppercase tracking-[0.6em] text-text-accent border-r-4 border-border-default/30 shadow-inner">:: TX_STAMP_ID</th>
+                                            <th className="px-10 py-10 text-[13px] font-black uppercase tracking-[0.6em] text-text-muted border-r-4 border-border-default/30 shadow-inner">:: PROC_TYPE</th>
+                                            <th className="px-10 py-10 text-[13px] font-black uppercase tracking-[0.6em] text-text-muted border-r-4 border-border-default/30 shadow-inner">:: LOG_DESC_TX_BLOCK</th>
+                                            <th className="px-10 py-10 text-[13px] font-black uppercase tracking-[0.6em] text-text-muted border-r-4 border-border-default/30 shadow-inner">:: ANALYST_UID_RX</th>
+                                            <th className="px-10 py-10 text-[13px] font-black uppercase tracking-[0.6em] text-text-muted border-r-4 border-border-default/30 shadow-inner">:: UNIT_COST_VAL</th>
+                                            <th className="px-10 py-10 text-[13px] font-black uppercase tracking-[0.6em] text-text-muted border-r-4 border-border-default/30 shadow-inner">:: EXT_0xIDENT</th>
+                                            <th className="px-10 py-10 text-[13px] font-black uppercase tracking-[0.6em] text-text-muted border-r-4 border-border-default/30 shadow-inner">:: OP_STATE_IO</th>
+                                            <th className="px-10 py-10 text-right text-[13px] font-black uppercase tracking-[0.8em] text-text-muted shadow-inner bg-bg-surface/50">_IO_CMD</th>
                                         </tr>
                                     </thead>
-                                    <tbody className="divide-y divide-border-default/10 bg-bg-surface/30">
+                                    <tbody className="divide-y-4 divide-border-default/10">
                                         {activo.hojaVida?.map((hv) => (
-                                            <tr key={hv.id} className="hover:bg-bg-elevated transition-all group/row border-l-4 border-l-transparent hover:border-l-text-accent cursor-default">
-                                                <td className="px-8 py-8 text-[12px] font-black text-text-primary uppercase tracking-tight tabular-nums border-r border-border-default/10">{formatDate(hv.fecha)}</td>
-                                                <td className="px-8 py-8 border-r border-border-default/10">
-                                                    <span className="text-[10px] font-black text-text-primary uppercase tracking-widest bg-bg-base border-2 border-border-default px-4 py-1 shadow-md group-hover/row:border-text-accent transition-colors">/{hv.tipo}</span>
+                                            <tr key={hv.id} className="hover:bg-text-accent/5 transition-all group/row border-l-8 border-l-transparent hover:border-l-text-accent cursor-default relative">
+                                                <td className="px-10 py-10 text-[14px] font-black text-text-primary uppercase tracking-widest tabular-nums border-r-4 border-border-default/10 group-hover:bg-bg-elevated/20 transition-colors italic">{formatDate(hv.fecha)}</td>
+                                                <td className="px-10 py-10 border-r-4 border-border-default/10 group-hover:bg-bg-base/40 transition-colors">
+                                                    <span className="text-[12px] font-black text-text-primary uppercase tracking-[0.3em] bg-bg-base border-4 border-border-default px-6 py-2 shadow-[0_10px_20px_rgba(0,0,0,0.3)] group-hover/row:border-text-accent transition-colors block text-center">/{hv.tipo}</span>
                                                 </td>
-                                                <td className="px-8 py-8 text-[11px] font-black text-text-muted uppercase tracking-tight max-w-sm border-r border-border-default/10" title={hv.description}>
-                                                     <div className="line-clamp-2">/ {hv.descripcion?.toUpperCase()}</div>
+                                                <td className="px-10 py-10 text-[12px] font-black text-text-muted uppercase tracking-tight max-w-md border-r-4 border-border-default/10 group-hover:text-text-primary transition-colors" title={hv.description}>
+                                                     <div className="line-clamp-4 italic border-l-4 border-border-default/20 pl-6 group-hover:border-text-accent transition-all">/ {hv.descripcion?.toUpperCase() || 'NO_LOG_CAPTURED'}</div>
                                                 </td>
-                                                <td className="px-8 py-8 text-[11px] font-black text-text-primary uppercase tracking-tight tabular-nums border-r border-border-default/10">{hv.responsable?.nombre?.toUpperCase().replace(/ /g, '_') || hv.tecnico?.toUpperCase().replace(/ /g, '_') || 'NULL_ANALYST_ACK'}</td>
-                                                <td className="px-8 py-8 text-[12px] font-black text-text-accent uppercase tracking-tight tabular-nums border-r border-border-default/10">{formatCurrency(hv.costo)}</td>
-                                                <td className="px-8 py-8 text-[11px] font-black text-text-muted uppercase tracking-[0.2em] font-mono opacity-60 border-r border-border-default/10">0x{hv.casoAranda?.toUpperCase() || 'NULL_IDENT'}</td>
-                                                <td className="px-8 py-8 border-r border-border-default/10">
+                                                <td className="px-10 py-10 text-[12px] font-black text-text-primary uppercase tracking-widest tabular-nums border-r-4 border-border-default/10 italic">{hv.responsable?.nombre?.toUpperCase().replace(/ /g, '_') || hv.tecnico?.toUpperCase().replace(/ /g, '_') || 'NULL_ANALYST_TX'}</td>
+                                                <td className="px-10 py-10 text-[14px] font-black text-text-accent uppercase tracking-tighter tabular-nums border-r-4 border-border-default/10 drop-shadow-sm">{formatCurrency(hv.costo)}</td>
+                                                <td className="px-10 py-10 text-[12px] font-black text-text-muted uppercase tracking-[0.3em] font-mono opacity-40 border-r-4 border-border-default/10 group-hover:opacity-100 transition-opacity">0x{hv.casoAranda?.toUpperCase() || 'NULL_ID'}</td>
+                                                <td className="px-10 py-10 border-r-4 border-border-default/10">
                                                     <span className={getHVStatusBadge(hv.estado)}>
-                                                        [ {hv.estado?.replace('_', ' ') || 'ACTIVE'} ]
+                                                        [ {hv.estado?.replace('_', ' ') || 'ACTIVE_PROC'} ]
                                                     </span>
                                                 </td>
-                                                <td className="px-8 py-8 text-right whitespace-nowrap">
+                                                <td className="px-10 py-10 text-right whitespace-nowrap bg-bg-surface/20 group-hover:bg-bg-base/40 transition-colors">
                                                     <button
                                                         onClick={() => { setSelectedHV(hv); setIsStatusModalOpen(true); }}
-                                                        className="inline-flex items-center justify-center text-[10px] font-black text-text-muted border-2 border-border-default bg-bg-base px-6 py-3 uppercase tracking-widest hover:text-text-primary hover:border-text-accent transition-all shadow-xl active:scale-95 group/btn"
+                                                        className="inline-flex items-center justify-center text-[11px] font-black text-text-muted border-4 border-border-default bg-bg-base px-8 py-5 uppercase tracking-[0.4em] hover:text-text-primary hover:border-text-accent transition-all shadow-3xl active:scale-95 group/btn relative overflow-hidden"
                                                     >
-                                                        <span className="opacity-40 group-hover/btn:translate-x-2 transition-transform mr-3">→</span>
-                                                        {(hv.estado === 'FINALIZADO' || hv.estado === 'CERRADO' || !canEdit) ? '[ VIEW_LOG_RD ]' : '[ MANAGE_SYNC ]'}
+                                                        <span className="relative z-10 flex items-center gap-4">
+                                                            <span className="opacity-40 group-hover/btn:translate-x-4 transition-transform">&rsaquo;</span>
+                                                            {(hv.estado === 'FINALIZADO' || hv.estado === 'CERRADO' || !canEdit) ? '[ VIEW_LOG_RD ]' : '[ MANAGE_SYNC ]'}
+                                                        </span>
+                                                        <div className="absolute inset-0 bg-text-accent/5 opacity-0 group-hover/btn:opacity-100 transition-opacity"></div>
                                                     </button>
                                                 </td>
                                             </tr>
                                         ))}
                                         {(!activo.hojaVida || activo.hojaVida.length === 0) && (
-                                            <tr><td colSpan="8" className="py-24 text-center text-text-muted text-[12px] font-black uppercase tracking-[0.5em] opacity-40 italic">! NO_MAINTENANCE_LOGS_DETECTED_IN_REPOSITORY_TX</td></tr>
+                                            <tr><td colSpan="8" className="py-40 text-center text-text-muted text-[18px] font-black uppercase tracking-[1em] opacity-30 italic animate-pulse">! NO_MAINTENANCE_LOGS_DET_IN_REPOSITORY_STREAM</td></tr>
                                         )}
                                     </tbody>
                                 </table>
+                            </div>
+                            {/* Inner graphical footer */}
+                            <div className="bg-bg-base/80 px-12 py-6 border-t-8 border-border-default border-opacity-30 flex justify-between items-center opacity-40 italic shadow-inner">
+                                <span className="text-[10px] font-black uppercase tracking-[1em]">SYSTEM_PROC_HISTORY_v4.2 // AF22_RX</span>
+                                <span className="text-[10px] font-black uppercase tracking-[0.5em] text-text-accent">0xFD42_CORE_READY</span>
                             </div>
                         </div>
                     </div>
@@ -391,18 +453,19 @@ const ActivoDetail = () => {
                 )}
             </div>
 
-            {/* Controller Footer Identification Area */}
-            <div className="mt-24 flex flex-col sm:flex-row justify-between items-center gap-10 p-12 bg-bg-surface/40 border-2 border-border-default opacity-40 shadow-inner group/footer">
-                <div className="text-[11px] font-black text-text-muted uppercase tracking-[0.8em] flex items-center gap-6">
-                     <div className="w-3 h-3 bg-text-accent rotate-45 animate-pulse shadow-[0_0_12px_rgba(251,97,7,0.6)]"></div>
-                     NODE_MANIFEST_STABLE // HASH: {id.substring(id.length - 8).toUpperCase()}
+            {/* Logical Ident Footer Core Repository Entry Point */}
+            <div className="mt-40 flex flex-col xl:flex-row justify-between items-center gap-16 p-20 bg-bg-surface/60 border-8 border-border-default opacity-40 shadow-[inner_0_20px_100px_rgba(0,0,0,0.8)] group/footer hover:opacity-100 hover:border-text-accent/20 transition-all duration-1000 group">
+                <div className="text-[14px] font-black text-text-muted uppercase tracking-[1.4em] flex items-center gap-12 group-hover:text-text-primary transition-all">
+                     <div className="w-8 h-8 bg-text-accent rotate-45 animate-pulse shadow-[0_0_40px_rgba(var(--text-accent),0.7)] group-hover:rotate-180 transition-transform duration-1000"></div>
+                     IDENT_MANIFEST_STABLE_v4.2 // HASH_0x{String(activo.id).substring(String(activo.id).length - 12).toUpperCase()}
                 </div>
-                <div className="text-[12px] font-black text-text-muted uppercase tracking-[0.4em] italic group-hover:text-text-primary transition-colors">
-                     FNC_IT_INFRASTRUCTURE_MONITOR // ACCESS_LVL: 7
+                <div className="text-[16px] font-black text-text-muted uppercase tracking-[0.6em] italic flex items-center gap-12">
+                     <div className="h-16 w-1 bg-border-default opacity-20"></div>
+                     FNC_IT_INFRA_CORE_STREAM // ACCESS_LVL_PROTOCOL: RO_ROOT
                 </div>
             </div>
 
-            {/* Modals Bridge Integration */}
+            {/* Portal Gateways Integration */}
             {isEditModalOpen && (
                 <ActivosForm
                     open={isEditModalOpen}

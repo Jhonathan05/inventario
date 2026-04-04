@@ -15,62 +15,72 @@ const CompraGarantiaSection = ({ formData, handleChange, handleImageChange, prev
     const tiempoUso = calcYearsOfUse(formData.fechaCompra);
 
     return (
-        <div className="bg-bg-surface border border-border-default p-10 shadow-3xl hover:border-border-strong transition-all relative overflow-hidden group/section">
-            <div className="absolute top-0 right-0 p-4 opacity-5 pointer-events-none text-[10px] font-black">PROCUREMENT_METADATA_STREAM</div>
-            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-6 mb-10 pb-6 border-b border-border-default/30">
-                <div className="flex items-center gap-4">
-                    <span className="text-xl font-black text-text-primary">[ &gt;TX ]</span>
-                    <h4 className="text-sm font-black text-text-primary uppercase tracking-[0.4em]">COMPRA_Y_GARANTIA</h4>
+        <div className="relative group/section transition-all duration-700">
+            <div className="absolute -left-12 top-0 h-full w-1.5 bg-text-accent/20 group-hover/section:bg-text-accent transition-colors duration-1000"></div>
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-8 mb-12 pb-10 border-b-4 border-border-default shadow-sm">
+                <div className="flex items-center gap-6">
+                    <span className="text-2xl font-black text-text-accent animate-pulse">[ &gt;TX ]</span>
+                    <h4 className="text-[14px] font-black text-text-primary uppercase tracking-[0.5em] leading-none">PROCUREMENT_AND_WARRANTY_LOG</h4>
                 </div>
                 <button 
                     type="button"
                     onClick={() => setShowCompraGarantia(!showCompraGarantia)}
-                    className="text-[10px] font-black uppercase tracking-[0.3em] border border-border-default px-6 py-2 hover:border-text-accent hover:text-text-accent transition-all bg-bg-base/30 shadow-xl"
+                    className="text-[11px] font-black uppercase tracking-[0.4em] border-2 border-border-strong px-8 py-3 hover:border-text-accent hover:text-text-accent transition-all bg-bg-base/50 shadow-xl active:scale-95 group/btn"
                 >
-                    {showCompraGarantia ? '[ - ] COLLAPSE_PROTO' : '[ + ] EXPAND_PROCUREMENT_DETAIL'}
+                    {showCompraGarantia ? '[ - ] COLLAPSE_PROC_PROTO' : '[ + ] EXPAND_PROCUREMENT_DETAIL_RX'}
                 </button>
             </div>
             
+            <div className="flex items-center gap-10 mb-12 border-l-8 border-border-default/40 pl-8 bg-bg-base/20 py-4 shadow-inner">
+                 <div className="w-12 h-12 flex items-center justify-center border-4 border-text-accent font-black text-2xl bg-text-accent/5">&omega;</div>
+                 <p className="text-[12px] text-text-muted font-black uppercase tracking-[0.5em] italic">FINAL_PAYLOAD_IMAGE_BUFFER_RX</p>
+            </div>
+            
             {showCompraGarantia && (
-                <div className="animate-fadeIn space-y-10">
-                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-10">
-                        <Field label="Fecha de Compra">
+                <div className="animate-fadeIn space-y-12">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-12">
+                        <Field label="TX_DATE_PURCHASE">
                             <input type="date" name="fechaCompra" value={formData.fechaCompra} onChange={handleChange} className={inputCls} />
                         </Field>
-                        <Field label="Fin de Garantía">
+                        <Field label="WARRANTY_EXP_RX">
                             <input type="date" name="garantiaHasta" value={formData.garantiaHasta} onChange={handleChange} className={inputCls} />
                         </Field>
-                        <Field label="Tiempo de Uso">
-                            <div className={`${inputCls} bg-bg-base/30 text-text-muted italic border-dashed opacity-70`}>
-                                &gt; {tiempoUso || 'NULL_BUFFER'}
+                        <Field label="TIME_IN_NODE_TX">
+                            <div className={`${inputCls} bg-bg-elevated/20 text-text-accent font-black italic border-dashed opacity-80 flex items-center gap-4`}>
+                                <span className="opacity-20">&gt;</span> {tiempoUso || 'NULL_BUFFER_ACK'}
                             </div>
                         </Field>
-                        <Field label="Valor de Compra">
-                            <input type="number" name="valorCompra" value={formData.valorCompra} onChange={handleChange} className={inputCls} placeholder="0x00..." />
+                        <Field label="ACQUISITION_VAL_0x">
+                            <input type="number" name="valorCompra" value={formData.valorCompra} onChange={handleChange} className={inputCls} placeholder="0.00..." />
                         </Field>
                     </div>
 
-                    <Field label="Observaciones">
-                        <textarea name="observaciones" rows="3" value={formData.observaciones} onChange={handleChange} className={`${inputCls} resize-none`} placeholder="LOG_EVENT_DETAILS..."></textarea>
+                    <Field label="LOG_OPS_MANIFEST_METADATA_NOTES">
+                        <textarea name="observaciones" rows="4" value={formData.observaciones} onChange={handleChange} className={`${inputCls} resize-none italic font-mono`} placeholder="CAPTURE_SYSTEM_LOG_DETAILS_RX..."></textarea>
                     </Field>
 
-                    <Field label="Imagen Principal">
-                        <div className="flex flex-wrap items-center gap-8 mt-4 bg-bg-base/30 p-6 border border-border-default/50">
+                    <Field label="VISUAL_NODE_TRACE_IMAGE_BUFF">
+                        <div className="flex flex-wrap items-center gap-10 mt-6 bg-bg-base/40 p-10 border-4 border-border-default/30 shadow-inner group/imgarea">
                             {preview && (
-                                <div className="relative group/img shadow-2xl">
-                                    <div className="absolute -top-3 -right-3 z-10 bg-text-accent text-bg-base text-[8px] px-2 py-0.5 font-black uppercase tracking-widest shadow-xl">LIVE_NODE</div>
-                                    <img src={preview} alt="Preview" className="h-28 w-28 object-cover border-2 border-border-default group-hover/img:border-text-accent transition-all" />
+                                <div className="relative group/img shadow-[0_30px_70px_rgba(0,0,0,0.7)] hover:scale-105 transition-transform duration-500">
+                                    <div className="absolute -top-4 -right-4 z-20 bg-text-accent text-bg-base text-[9px] px-3 py-1 font-black uppercase tracking-widest shadow-2xl animate-pulse">LIVE_BUFF_RX</div>
+                                    <img src={preview} alt="Preview" className="h-32 w-32 object-cover border-4 border-border-strong group-hover/img:border-text-accent transition-all duration-700" />
+                                    <div className="absolute inset-0 bg-text-accent/10 opacity-0 group-hover/img:opacity-100 transition-opacity pointer-events-none"></div>
                                 </div>
                             )}
-                            <div className="flex-1 min-w-[200px]">
-                                <input 
-                                    type="file" 
-                                    accept="image/*" 
-                                    onChange={handleImageChange} 
-                                    className="w-full text-[10px] text-text-muted font-black uppercase tracking-widest 
-                                        file:mr-8 file:py-3 file:px-8 file:border file:border-border-default file:bg-bg-elevated file:text-text-primary file:text-[10px] file:font-black file:uppercase file:cursor-pointer hover:file:border-text-accent hover:file:text-text-accent transition-all" 
-                                />
-                                <p className="text-[8px] text-text-muted mt-4 font-black uppercase tracking-[0.2em] opacity-40">SUPPORTED_FORMATS: .JPG .PNG .WEBP // MAX_SEGMENT_SIZE: 5.0MB</p>
+                            <div className="flex-1 min-w-[280px] space-y-6">
+                                <div className="relative overflow-hidden group/file">
+                                    <input 
+                                        type="file" 
+                                        accept="image/*" 
+                                        onChange={handleImageChange} 
+                                        className="w-full text-[11px] text-text-muted font-black uppercase tracking-[0.3em] 
+                                            file:mr-10 file:py-4 file:px-10 file:border-4 file:border-border-strong file:bg-bg-elevated file:text-text-primary file:text-[11px] file:font-black file:uppercase file:cursor-pointer hover:file:border-text-accent hover:file:text-text-accent file:transition-all active:file:scale-95" 
+                                    />
+                                </div>
+                                <div className="flex items-center gap-4 text-[9px] text-text-muted font-black uppercase tracking-[0.5em] opacity-40 italic border-t-2 border-border-default/20 pt-6">
+                                     <span className="text-text-accent opacity-50 font-black">::</span> SUPPORTED_NODE_TYPES: [.JPG, .PNG, .WEBP] // MAX_SEGMENT: 5MB
+                                </div>
                             </div>
                         </div>
                     </Field>
