@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import toast from 'react-hot-toast';
 import { ticketsService } from '../../api/tickets.service';
+import Pagination from '../../components/Pagination';
 import {
     MagnifyingGlassIcon,
     FunnelIcon,
@@ -13,7 +14,6 @@ import {
     QuestionMarkCircleIcon
 } from '@heroicons/react/24/outline';
 import { useAuth } from '../../context/AuthContext';
-
 const TicketsList = () => {
     const [searchTerm, setSearchTerm] = useState('');
     const [estadoFiltro, setEstadoFiltro] = useState('');
@@ -21,10 +21,33 @@ const TicketsList = () => {
     const { user } = useAuth();
     const canEdit = user?.rol === 'ADMIN' || user?.rol === 'ANALISTA_TIC';
 
-    const { data: tickets = [], isLoading: loading } = useQuery({
-        queryKey: ['tickets', { estado: estadoFiltro }],
-        queryFn: () => ticketsService.getAll(estadoFiltro ? { estado: estadoFiltro } : {}),
+    const [currentPage, setCurrentPage] = useState(1);
+    const itemsPerPage = 9;
+
+    const queryParams = {
+        page: currentPage,
+        limit: itemsPerPage,
+        ...(estadoFiltro && { estado: estadoFiltro }),
+        ...(searchTerm && { search: searchTerm })
+    };
+
+    const { data: responseData, isLoading: loading } = useQuery({
+        queryKey: ['tickets', queryParams],
+        queryFn: () => ticketsService.getAll(queryParams),
     });
+
+    const tickets = responseData?.data || [];
+    const pagination = responseData?.pagination || { page: 1, pages: 1, total: tickets.length };
+
+    const handleSearchChange = (val) => {
+        setSearchTerm(val);
+        setCurrentPage(1);
+    };
+
+    const handleEstadoChange = (val) => {
+        setEstadoFiltro(val);
+        setCurrentPage(1);
+    };
 
     const getEstadoBadge = (estado) => {
         const config = {
@@ -100,7 +123,7 @@ const TicketsList = () => {
                         type="text"
                         placeholder="Buscar por título, funcionario o ID..."
                         value={searchTerm}
-                        onChange={(e) => setSearchTerm(e.target.value)}
+                        onChange={(e) => handleSearchChange(e.target.value)}
                         className="w-full pl-10 pr-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
                     />
                 </div>
@@ -108,7 +131,7 @@ const TicketsList = () => {
                     <FunnelIcon className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-5 h-5" />
                     <select
                         value={estadoFiltro}
-                        onChange={(e) => setEstadoFiltro(e.target.value)}
+                        onChange={(e) => handleEstadoChange(e.target.value)}
                         className="w-full pl-10 pr-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 bg-white text-sm appearance-none"
                     >
                         <option value="">Todos los estados</option>
@@ -126,12 +149,12 @@ const TicketsList = () => {
                     <table className="min-w-full divide-y divide-gray-200">
                         <thead className="bg-gray-50">
                             <tr>
-                                <th className="px-6 py-4 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">ID</th>
-                                <th className="px-6 py-4 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Caso</th>
-                                <th className="px-6 py-4 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Funcionario</th>
-                                <th className="px-6 py-4 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Estado</th>
-                                <th className="px-6 py-4 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Asignado a</th>
-                                <th className="px-6 py-4 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Fecha</th>
+                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">ID</th>
+                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Caso</th>
+                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Funcionario</th>
+                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Estado</th>
+                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Asignado a</th>
+                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Fecha</th>
                             </tr>
                         </thead>
                         <tbody className="bg-white divide-y divide-gray-200">
@@ -183,6 +206,17 @@ const TicketsList = () => {
                     </table>
                 </div>
             </div>
+
+            {!loading && tickets.length > 0 && (
+                <Pagination
+                    currentPage={currentPage}
+                    totalPages={pagination.pages || 1}
+                    totalItems={pagination.total || tickets.length}
+                    itemsPerPage={itemsPerPage}
+                    currentCount={tickets.length}
+                    onPageChange={(p) => setCurrentPage(p)}
+                />
+            )}
         </div>
     );
 };

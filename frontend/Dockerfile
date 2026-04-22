@@ -3,11 +3,13 @@ FROM node:20-alpine AS builder
 
 WORKDIR /app
 
-COPY package*.json ./
-RUN npm ci
+# Copiamos solo el package.json para una instalación limpia
+COPY package.json ./
+RUN npm install --no-audit --no-fund --prefer-offline
 
 COPY . .
-RUN npm run build
+# Comentado para desarrollo - el contenedor usa Vite dev server
+# RUN npm run build
 
 # Etapa 2: Servidor Nginx
 FROM nginx:alpine

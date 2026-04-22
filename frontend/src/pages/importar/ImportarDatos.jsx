@@ -247,18 +247,19 @@ const ImportarDatos = () => {
                                 )}
 
                                 {/* Tabla de resultados por fila */}
-                                <div className="overflow-x-auto rounded-lg border border-gray-200 max-h-96 overflow-y-auto">
-                                    <table className="min-w-full divide-y divide-gray-200 text-sm">
-                                        <thead className="bg-gray-50 sticky top-0">
+                                <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden mt-4">
+                                    <div className="overflow-x-auto max-h-96">
+                                        <table className="min-w-full divide-y divide-gray-200">
+                                        <thead className="bg-gray-50">
                                             <tr>
-                                                <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase">Fila</th>
-                                                <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase">Estado</th>
-                                                <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase">Mensaje</th>
+                                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Fila</th>
+                                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Estado</th>
+                                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Mensaje</th>
                                             </tr>
                                         </thead>
-                                        <tbody className="divide-y divide-gray-100 bg-white">
+                                        <tbody className="bg-white divide-y divide-gray-200">
                                             {resultado.resultados.map((r, i) => (
-                                                <tr key={i} className="hover:bg-gray-50">
+                                                <tr key={i} className="hover:bg-gray-50 transition-colors">
                                                     <td className="px-3 py-2 text-gray-500">{r.fila}</td>
                                                     <td className="px-3 py-2">
                                                         <span className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-medium ${ESTADO_CLASSES[r.estado]}`}>
@@ -269,7 +270,8 @@ const ImportarDatos = () => {
                                                 </tr>
                                             ))}
                                         </tbody>
-                                    </table>
+                                        </table>
+                                    </div>
                                 </div>
                             </>
                         )}

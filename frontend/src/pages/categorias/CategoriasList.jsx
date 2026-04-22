@@ -3,6 +3,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { categoriasService } from '../../api/categorias.service';
 import { catalogosService } from '../../api/catalogos.service';
 import { useAuth } from '../../context/AuthContext';
+import Pagination from '../../components/Pagination';
 
 const MANAGEMENT_SECTIONS = [
     {
@@ -183,7 +184,7 @@ const Categorias = () => {
 
             {/* Main Content */}
             <div className="flex-1">
-                <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+                <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
                     <div className="p-6 border-b border-gray-100 bg-gray-50/50">
                         <div className="sm:flex sm:items-center justify-between">
                             <div>
@@ -280,31 +281,16 @@ const Categorias = () => {
                                                 )}
                                             </tbody>
                                         </table>
-                                        {totalPages > 1 && (
-                                            <div className="flex items-center justify-between border-t border-gray-100 px-6 py-3 bg-gray-50">
-                                                <p className="text-sm text-gray-500">
-                                                    Mostrando {startIdx + 1}–{Math.min(startIdx + ITEMS_PER_PAGE, data.length)} de {data.length}
-                                                </p>
-                                                <nav className="isolate inline-flex -space-x-px rounded-md shadow-sm">
-                                                    <button
-                                                        onClick={() => setCurrentPage(p => p - 1)}
-                                                        disabled={currentPage === 1}
-                                                        className="relative inline-flex items-center rounded-l-md px-2 py-2 text-gray-400 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 disabled:opacity-40"
-                                                    >
-                                                        <svg className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M12.79 5.23a.75.75 0 01-.02 1.06L8.832 10l3.938 3.71a.75.75 0 11-1.04 1.08l-4.5-4.25a.75.75 0 010-1.08l4.5-4.25a.75.75 0 011.06.02z" clipRule="evenodd" /></svg>
-                                                    </button>
-                                                    <span className="relative inline-flex items-center px-4 py-2 text-sm font-semibold text-gray-700 ring-1 ring-inset ring-gray-300">
-                                                        {currentPage} / {totalPages}
-                                                    </span>
-                                                    <button
-                                                        onClick={() => setCurrentPage(p => p + 1)}
-                                                        disabled={currentPage === totalPages}
-                                                        className="relative inline-flex items-center rounded-r-md px-2 py-2 text-gray-400 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 disabled:opacity-40"
-                                                    >
-                                                        <svg className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M7.21 14.77a.75.75 0 01.02-1.06L11.168 10 7.23 6.29a.75.75 0 111.04-1.08l4.5 4.25a.75.75 0 010 1.08l-4.5 4.25a.75.75 0 01-1.06-.02z" clipRule="evenodd" /></svg>
-                                                    </button>
-                                                </nav>
-                                            </div>
+                                        
+                                        {data.length > 0 && (
+                                            <Pagination
+                                                currentPage={currentPage}
+                                                totalPages={totalPages}
+                                                totalItems={data.length}
+                                                itemsPerPage={ITEMS_PER_PAGE}
+                                                currentCount={currentItems.length}
+                                                onPageChange={setCurrentPage}
+                                            />
                                         )}
                                     </>
                                 );

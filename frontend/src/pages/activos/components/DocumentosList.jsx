@@ -77,17 +77,18 @@ const DocumentosList = ({ activoId, documentos, onUpdate }) => {
 
             {error && <div className="text-red-600 text-sm mb-2">{error}</div>}
 
-            <div className="overflow-hidden shadow ring-1 ring-black ring-opacity-5 sm:rounded-lg">
-                <table className="min-w-full divide-y divide-gray-300">
+            <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+                <div className="overflow-x-auto">
+                    <table className="min-w-full divide-y divide-gray-200">
                     <thead className="bg-gray-50">
                         <tr>
-                            <th className="py-3.5 pl-4 pr-3 text-left text-sm font-semibold text-gray-900">Nombre</th>
-                            <th className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">Tipo</th>
-                            <th className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">Fecha</th>
-                            {canEdit && <th className="px-3 py-3.5 text-right text-sm font-semibold text-gray-900">Acciones</th>}
+                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Nombre</th>
+                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Tipo</th>
+                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Fecha</th>
+                            {canEdit && <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Acciones</th>}
                         </tr>
                     </thead>
-                    <tbody className="divide-y divide-gray-200 bg-white">
+                    <tbody className="bg-white divide-y divide-gray-200">
                         {documentos?.map((doc) => (
                             <tr key={doc.id}>
                                 <td className="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-medium text-gray-900 text-indigo-600 hover:text-indigo-900">
@@ -110,7 +111,8 @@ const DocumentosList = ({ activoId, documentos, onUpdate }) => {
                             <tr><td colSpan="4" className="py-4 text-center text-gray-500">No hay documentos adjuntos</td></tr>
                         )}
                     </tbody>
-                </table>
+                    </table>
+                </div>
             </div>
         </div>
     );

@@ -4,6 +4,7 @@ import { licenciasService } from '../../api/licencias.service';
 import { useAuth } from '../../context/AuthContext';
 import { formatCurrency, formatDate } from '../../lib/utils';
 import { toast } from 'react-hot-toast';
+import Pagination from '../../components/Pagination';
 
 const LicenciasList = () => {
     const { user } = useAuth();
@@ -35,7 +36,7 @@ const LicenciasList = () => {
         queryKey: ['licencias', page, search, tipoFiltro, asignadaFiltro],
         queryFn: () => licenciasService.getAll({ 
             page, 
-            limit: 10, 
+            limit: 9, 
             search, 
             tipoLicencia: tipoFiltro, 
             asignada: asignadaFiltro 
@@ -152,26 +153,26 @@ const LicenciasList = () => {
             </div>
 
             {/* Tabla */}
-            <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+            <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
                 <div className="overflow-x-auto">
                     <table className="min-w-full divide-y divide-gray-200">
-                        <thead className="bg-gray-50 text-xs font-medium text-gray-500 uppercase tracking-wider text-left">
+                        <thead className="bg-gray-50">
                             <tr>
-                                <th className="px-6 py-3 tracking-wider">Software</th>
-                                <th className="px-6 py-3 tracking-wider">Tipo</th>
-                                <th className="px-6 py-3 tracking-wider">Key / SN</th>
-                                <th className="px-6 py-3 tracking-wider">Vencimiento</th>
-                                <th className="px-6 py-3 tracking-wider">Asignación</th>
-                                {canEdit && <th className="px-6 py-3 text-right">Acciones</th>}
+                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Software</th>
+                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Tipo</th>
+                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Key / SN</th>
+                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Vencimiento</th>
+                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Asignación</th>
+                                {canEdit && <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Acciones</th>}
                             </tr>
                         </thead>
-                        <tbody className="bg-white divide-y divide-gray-200 text-sm">
+                        <tbody className="bg-white divide-y divide-gray-200">
                             {isLoading ? (
                                 <tr><td colSpan="6" className="px-6 py-12 text-center text-gray-500">Cargando...</td></tr>
                             ) : licencias.length === 0 ? (
                                 <tr><td colSpan="6" className="px-6 py-12 text-center text-gray-500">No se encontraron licencias.</td></tr>
                             ) : licencias.map(lic => (
-                                <tr key={lic.id} className="hover:bg-gray-50">
+                                <tr key={lic.id} className="hover:bg-gray-50 transition-colors">
                                     <td className="px-6 py-4">
                                         <p className="font-semibold text-gray-900">{lic.software} {lic.version}</p>
                                         <p className="text-xs text-gray-500">{formatCurrency(lic.costo)}</p>
@@ -212,15 +213,15 @@ const LicenciasList = () => {
                     </table>
                 </div>
                 
-                {/* Paginación */}
-                {pagination.pages > 1 && (
-                    <div className="px-6 py-3 bg-gray-50 border-t border-gray-200 flex justify-between items-center text-sm text-gray-500">
-                        Página {pagination.page} de {pagination.pages}
-                        <div className="flex gap-2">
-                            <button disabled={page === 1} onClick={() => setPage(page - 1)} className="px-3 py-1 bg-white border rounded hover:bg-gray-50 disabled:opacity-50">Ant</button>
-                            <button disabled={page >= pagination.pages} onClick={() => setPage(page + 1)} className="px-3 py-1 bg-white border rounded hover:bg-gray-50 disabled:opacity-50">Sig</button>
-                        </div>
-                    </div>
+                {!isLoading && licencias.length > 0 && (
+                    <Pagination
+                        currentPage={page}
+                        totalPages={pagination.pages || 1}
+                        totalItems={pagination.total || licencias.length}
+                        itemsPerPage={9}
+                        currentCount={licencias.length}
+                        onPageChange={setPage}
+                    />
                 )}
             </div>
 

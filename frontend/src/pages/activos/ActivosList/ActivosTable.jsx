@@ -42,42 +42,42 @@ const ActivosTable = ({ activos, canEdit, onEdit, sortBy, sortOrder, onSort }) =
 
     return (
         <div className="mt-6 hidden md:block">
-            <div className="glass overflow-hidden">
+            <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
                 <div className="overflow-x-auto">
-                    <table className="w-full text-left border-collapse min-w-[800px]">
-                        <thead className="bg-charcoal-50 border-b border-charcoal-100 text-[10px] uppercase tracking-widest text-charcoal-500">
+                    <table className="min-w-full divide-y divide-gray-200">
+                        <thead className="bg-gray-50">
                             <tr>
-                                <th scope="col" className="px-6 py-4">
+                                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                                     <button onClick={() => onSort('activo')} className="flex items-center font-black hover:text-fnc-600 transition-colors uppercase">
                                         Activo {renderSortIcon('activo')}
                                     </button>
                                 </th>
-                                <th scope="col" className="px-6 py-4">
+                                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                                     <button onClick={() => onSort('categoria')} className="flex items-center font-black hover:text-fnc-600 transition-colors uppercase">
                                         Categoría {renderSortIcon('categoria')}
                                     </button>
                                 </th>
-                                <th scope="col" className="px-6 py-4">
+                                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                                     <button onClick={() => onSort('estado')} className="flex items-center font-black hover:text-fnc-600 transition-colors uppercase">
                                         Estado {renderSortIcon('estado')}
                                     </button>
                                 </th>
-                                <th scope="col" className="px-6 py-4">
+                                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                                     <button onClick={() => onSort('ubicacion')} className="flex items-center font-black hover:text-fnc-600 transition-colors uppercase">
                                         Ubicación {renderSortIcon('ubicacion')}
                                     </button>
                                 </th>
-                                <th scope="col" className="px-6 py-4">
+                                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                                     <button onClick={() => onSort('funcionario')} className="flex items-center font-black hover:text-fnc-600 transition-colors uppercase">
                                         Asignado A {renderSortIcon('funcionario')}
                                     </button>
                                 </th>
-                                {canEdit && <th scope="col" className="px-6 py-4 font-black text-right">Acciones</th>}
+                                {canEdit && <th scope="col" className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Acciones</th>}
                             </tr>
                         </thead>
-                        <tbody className="divide-y divide-charcoal-100 bg-transparent">
+                        <tbody className="bg-white divide-y divide-gray-200">
                         {activos.map((activo) => (
-                            <tr key={activo.id} className="hover:bg-fnc-50/50 transition-colors">
+                            <tr key={activo.id} className="hover:bg-gray-50 transition-colors">
                                 <td className="px-6 py-4">
                                     <div className="flex items-center gap-4">
                                         <div className="h-12 w-12 flex-shrink-0 rounded-xl overflow-hidden bg-charcoal-50 border border-charcoal-100 shadow-sm">

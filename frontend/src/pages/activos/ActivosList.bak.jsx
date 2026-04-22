@@ -449,26 +449,26 @@ const ActivosList = () => {
             {/* Desktop Table (hidden on mobile) */}
             {!loading && (
                 <div className="mt-6 hidden md:block">
-                    <div className="glass overflow-hidden">
-                        <div className="overflow-x-auto">
-                            <table className="w-full text-left border-collapse min-w-[800px]">
-                                <thead className="bg-charcoal-50 border-b border-charcoal-100 text-sm uppercase tracking-wider text-charcoal-500">
+                    <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+                <div className="overflow-x-auto">
+                            <table className="min-w-full divide-y divide-gray-200">
+                                <thead className="bg-gray-50">
                                     <tr>
-                                        <th scope="col" className="px-6 py-4 font-bold">Activo</th>
-                                        <th scope="col" className="px-6 py-4 font-bold">Categoría</th>
-                                        <th scope="col" className="px-6 py-4 font-bold">Estado</th>
-                                        <th scope="col" className="px-6 py-4 font-bold">Ubicación y Piso</th>
-                                        <th scope="col" className="px-6 py-4 font-bold">Asignado A</th>
+                                        <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Activo</th>
+                                        <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Categoría</th>
+                                        <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Estado</th>
+                                        <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Ubicación y Piso</th>
+                                        <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Asignado A</th>
                                         {canEdit && (
-                                            <th scope="col" className="px-6 py-4 font-bold text-right">
+                                            <th scope="col" className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
                                                 Acciones
                                             </th>
                                         )}
                                     </tr>
                                 </thead>
-                                <tbody className="divide-y divide-charcoal-100 bg-transparent">
+                                <tbody className="bg-white divide-y divide-gray-200">
                                     {activos.map((activo) => (
-                                        <tr key={activo.id} className="hover:bg-fnc-50/50 transition-colors">
+                                        <tr key={activo.id} className="hover:bg-gray-50 transition-colors">
                                             <td className="px-6 py-4">
                                                 <div className="flex items-center gap-4">
                                                     <div className="h-12 w-12 flex-shrink-0 rounded-xl overflow-hidden bg-charcoal-50 border border-charcoal-100 shadow-sm">
@@ -694,17 +694,17 @@ const ActivosList = () => {
                                 <p className="text-center text-gray-500 py-10">El funcionario no tiene un historial de activos registrado.</p>
                             ) : (
                                 <div className="overflow-auto shadow ring-1 ring-black ring-opacity-5 rounded-lg max-h-96">
-                                    <table className="min-w-full divide-y divide-gray-300">
-                                        <thead className="bg-gray-50 sticky top-0">
+                                    <table className="min-w-full divide-y divide-gray-200">
+                                        <thead className="bg-gray-50">
                                             <tr>
-                                                <th className="py-3.5 pl-4 pr-3 text-left text-xs font-semibold text-gray-900">Fecha Inicio</th>
-                                                <th className="px-3 py-3.5 text-left text-xs font-semibold text-gray-900">Fecha Fin / Devolución</th>
-                                                <th className="px-3 py-3.5 text-left text-xs font-semibold text-gray-900">Movimiento</th>
-                                                <th className="px-3 py-3.5 text-left text-xs font-semibold text-gray-900">Equipo</th>
-                                                <th className="px-3 py-3.5 text-left text-xs font-semibold text-gray-900">Observaciones</th>
+                                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Fecha Inicio</th>
+                                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Fecha Fin / Devolución</th>
+                                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Movimiento</th>
+                                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Equipo</th>
+                                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Observaciones</th>
                                             </tr>
                                         </thead>
-                                        <tbody className="divide-y divide-gray-200 bg-white">
+                                        <tbody className="bg-white divide-y divide-gray-200">
                                             {historialData.map((asig) => (
                                                 <tr key={asig.id} className={!asig.fechaFin ? "bg-green-50/30" : ""}>
                                                     <td className="whitespace-nowrap py-3 pl-4 pr-3 text-sm text-gray-900">

@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { Link } from 'react-router-dom';
 import api from '../../lib/axios';
+import Pagination from '../../components/Pagination';
 
 const ESTADOS = ['CREADO', 'EN_PROCESO', 'SUSPENDIDO', 'FINALIZADO', 'CERRADO'];
 const TIPOS = ['MANTENIMIENTO', 'REPARACION', 'SUMINISTRO', 'INSPECCION', 'ACTUALIZACION'];
@@ -32,6 +33,8 @@ const MantenimientosList = () => {
     const [search, setSearch] = useState('');
     const [filterEstado, setFilterEstado] = useState('');
     const [filterTipo, setFilterTipo] = useState('');
+    const [currentPage, setCurrentPage] = useState(1);
+    const itemsPerPage = 9;
     const [debouncedSearch, setDebouncedSearch] = useState('');
 
     // Debounce search input
@@ -72,6 +75,10 @@ const MantenimientosList = () => {
         { label: 'Finalizados', estado: 'FINALIZADO', color: 'bg-green-500', light: 'bg-green-50 text-green-700', icon: '✅' },
     ];
 
+    const startIndex = (currentPage - 1) * itemsPerPage;
+    const paginatedRegistros = registros.slice(startIndex, startIndex + itemsPerPage);
+    const totalPages = Math.ceil(registros.length / itemsPerPage);
+
     return (
         <div className="px-2 sm:px-4 md:px-6 lg:px-8">
             {/* Header */}
@@ -87,7 +94,10 @@ const MantenimientosList = () => {
                 {cardConfig.map(c => (
                     <button
                         key={c.estado}
-                        onClick={() => setFilterEstado(prev => prev === c.estado ? '' : c.estado)}
+                        onClick={() => {
+                            setFilterEstado(prev => prev === c.estado ? '' : c.estado);
+                            setCurrentPage(1);
+                        }}
                         className={`rounded-lg p-4 text-left shadow-sm ring-1 ring-black/5 transition-all hover:shadow-md
                             ${filterEstado === c.estado ? `${c.light} ring-2` : 'bg-white'}`}
                     >
@@ -110,11 +120,11 @@ const MantenimientosList = () => {
                         placeholder="🔍 Buscar por placa, descripción, caso Aranda..."
                         className="flex-1 min-w-[200px] border border-gray-300 rounded-md px-3 py-2 text-sm focus:ring-indigo-500 focus:border-indigo-500"
                         value={search}
-                        onChange={e => setSearch(e.target.value)}
+                        onChange={e => { setSearch(e.target.value); setCurrentPage(1); }}
                     />
                     <select
                         value={filterEstado}
-                        onChange={e => setFilterEstado(e.target.value)}
+                        onChange={e => { setFilterEstado(e.target.value); setCurrentPage(1); }}
                         className="border border-gray-300 rounded-md px-3 py-2 text-sm focus:ring-indigo-500 focus:border-indigo-500"
                     >
                         <option value="">-- Estado --</option>
@@ -122,7 +132,7 @@ const MantenimientosList = () => {
                     </select>
                     <select
                         value={filterTipo}
-                        onChange={e => setFilterTipo(e.target.value)}
+                        onChange={e => { setFilterTipo(e.target.value); setCurrentPage(1); }}
                         className="border border-gray-300 rounded-md px-3 py-2 text-sm focus:ring-indigo-500 focus:border-indigo-500"
                     >
                         <option value="">-- Tipo --</option>
@@ -150,23 +160,24 @@ const MantenimientosList = () => {
             ) : (
                 <>
                     {/* Desktop */}
-                    <div className="hidden md:block overflow-x-auto shadow ring-1 ring-black ring-opacity-5 rounded-lg">
+                    <div className="hidden md:block bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+                        <div className="overflow-x-auto">
                         <table className="min-w-full divide-y divide-gray-200">
                             <thead className="bg-gray-50">
                                 <tr>
-                                    <th className="py-3.5 pl-4 pr-3 text-left text-xs font-semibold text-gray-900">Activo</th>
-                                    <th className="px-3 py-3.5 text-left text-xs font-semibold text-gray-900">Tipo</th>
-                                    <th className="px-3 py-3.5 text-left text-xs font-semibold text-gray-900">Estado</th>
-                                    <th className="px-3 py-3.5 text-left text-xs font-semibold text-gray-900">Descripción</th>
-                                    <th className="px-3 py-3.5 text-left text-xs font-semibold text-gray-900">Responsable</th>
-                                    <th className="px-3 py-3.5 text-left text-xs font-semibold text-gray-900">Caso Aranda</th>
-                                    <th className="px-3 py-3.5 text-left text-xs font-semibold text-gray-900">Fecha</th>
-                                    <th className="relative py-3.5 pl-3 pr-4"><span className="sr-only">Acción</span></th>
+                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Activo</th>
+                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Tipo</th>
+                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Estado</th>
+                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Descripción</th>
+                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Responsable</th>
+                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Caso Aranda</th>
+                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Fecha</th>
+                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"><span className="sr-only">Acción</span></th>
                                 </tr>
                             </thead>
-                            <tbody className="divide-y divide-gray-100 bg-white">
-                                {registros.map(reg => (
-                                    <tr key={reg.id} className="hover:bg-gray-50">
+                            <tbody className="bg-white divide-y divide-gray-200">
+                                {paginatedRegistros.map(reg => (
+                                    <tr key={reg.id} className="hover:bg-gray-50 transition-colors">
                                         <td className="whitespace-nowrap py-3 pl-4 pr-3 text-sm">
                                             <Link to={`/activos/${reg.activo?.id}`} className="font-medium text-indigo-700 hover:underline">
                                                 {reg.activo?.marca} {reg.activo?.modelo}
@@ -211,10 +222,11 @@ const MantenimientosList = () => {
                             </tbody>
                         </table>
                     </div>
+                </div>
 
                     {/* Mobile Cards */}
                     <div className="md:hidden space-y-3">
-                        {registros.map(reg => (
+                        {paginatedRegistros.map(reg => (
                             <div key={reg.id} className="bg-white rounded-lg shadow ring-1 ring-black/5 p-4">
                                 <div className="flex items-start justify-between gap-2 mb-2">
                                     <div>
@@ -249,6 +261,22 @@ const MantenimientosList = () => {
                             </div>
                         ))}
                     </div>
+
+                    {registros.length > 0 && (
+                        <div className="mt-6">
+                            <Pagination
+                                currentPage={currentPage}
+                                totalPages={totalPages}
+                                totalItems={registros.length}
+                                itemsPerPage={itemsPerPage}
+                                currentCount={paginatedRegistros.length}
+                                onPageChange={(p) => {
+                                    setCurrentPage(p);
+                                    window.scrollTo({ top: 0, behavior: 'smooth' });
+                                }}
+                            />
+                        </div>
+                    )}
                 </>
             )}
         </div>

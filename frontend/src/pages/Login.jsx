@@ -1,20 +1,21 @@
-import { useState } from 'react';
-import { useAuth } from '../context/AuthContext';
-import { useNavigate } from 'react-router-dom';
-import { ArrowRightEndOnRectangleIcon, UserIcon, LockClosedIcon } from '@heroicons/react/24/outline';
+import { useState } from "react";
+import { motion } from "framer-motion";
+import { useNavigate } from "react-router-dom";
+import { useAuth } from "../context/AuthContext";
+import logo from "../assets/logo2.png";
 
 const Login = () => {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [error, setError] = useState('');
-    const [isLoading, setIsLoading] = useState(false);
+    const [loading, setLoading] = useState(false);
     const { login } = useAuth();
     const navigate = useNavigate();
 
     const handleSubmit = async (e) => {
         e.preventDefault();
         setError('');
-        setIsLoading(true);
+        setLoading(true);
 
         const result = await login(email, password);
 
@@ -23,75 +24,139 @@ const Login = () => {
         } else {
             setError(result.message);
         }
-        setIsLoading(false);
+        setLoading(false);
     };
 
     return (
-        <div className="min-h-screen flex items-center justify-center p-4 relative overflow-hidden bg-fnc-50">
-            {/* Background elements */}
-            <div className="absolute top-0 left-0 w-full h-full overflow-hidden z-0">
-                <div className="absolute -top-[20%] -left-[10%] w-[50%] h-[50%] bg-fnc-200/40 rounded-full blur-3xl opacity-60 animate-pulse"></div>
-                <div className="absolute top-[60%] -right-[10%] w-[40%] h-[60%] bg-fnc-100/50 rounded-full blur-3xl opacity-60 animate-pulse" style={{ animationDelay: '2s' }}></div>
-            </div>
+        <div className="min-h-screen flex bg-surface">
+            {/* Panel izquierdo — Hero institucional */}
+            <div className="hidden lg:flex lg:w-[55%] relative overflow-hidden items-end p-12 gradient-primary">
+                {/* Patrón decorativo */}
+                <div className="absolute inset-0 opacity-10">
+                    <div className="absolute top-20 left-20 w-64 h-64 rounded-full bg-white/10" />
+                    <div className="absolute bottom-40 right-20 w-96 h-96 rounded-full bg-white/5" />
+                    <div className="absolute top-1/2 left-1/3 w-48 h-48 rounded-full bg-white/10" />
+                </div>
 
-            <div className="glass w-full max-w-md p-8 relative z-10 animate-slide-up bg-white/80">
-                <div className="text-center mb-8">
-                    <div className="inline-flex p-3 bg-fnc-50 rounded-xl mb-4 text-fnc-600 shadow-sm border border-fnc-100">
-                        <ArrowRightEndOnRectangleIcon className="w-8 h-8" />
+                <motion.div
+                    initial={{ opacity: 0, y: 30 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.8, ease: 'easeOut' }}
+                    className="relative z-10 mt-auto"
+                >
+                    <div className="mb-6">
+                        <span className="inline-block px-4 py-1.5 rounded-full text-sm font-medium bg-white/15 text-white/90 backdrop-blur-md">
+                            Sistema Institucional
+                        </span>
                     </div>
-                    <h1 className="text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-fnc-700 to-fnc-500">
+                    <h1 className="text-5xl font-bold leading-tight mb-4 text-white font-headline">
+                        Gestión de<br />
                         Inventario TIC
                     </h1>
-                    <p className="text-charcoal-500 mt-2 font-medium">Inicia sesión para continuar</p>
-                </div>
+                    <p className="text-lg max-w-md leading-relaxed text-white/75">
+                        Comité Departamental de Cafeteros del Tolima — Plataforma de control y seguimiento de activos tecnológicos.
+                    </p>
+                </motion.div>
+            </div>
 
-                {error && (
-                    <div className="p-3 mb-6 bg-red-500/10 text-red-600 rounded-lg text-sm text-center font-medium border border-red-500/20">
-                        {error}
-                    </div>
-                )}
-
-                <form onSubmit={handleSubmit} className="space-y-5">
-                    <div className="input-group">
-                        <label className="flex items-center gap-2 text-sm font-medium text-charcoal-700 mb-2">
-                            <UserIcon className="w-4 h-4" /> Correo Electrónico
-                        </label>
-                        <input
-                            type="email"
-                            placeholder="usuario@cafedecolombia.com"
-                            value={email}
-                            onChange={(e) => setEmail(e.target.value)}
-                            required
-                            className="w-full px-4 py-3 bg-white border border-charcoal-200 rounded-xl text-charcoal-800 text-base transition-colors duration-200 focus:outline-none focus:border-fnc-500 focus:ring-1 focus:ring-fnc-500"
+            {/* Panel derecho — Formulario */}
+            <div className="flex-1 flex items-center justify-center px-6 lg:px-16">
+                <motion.div
+                    initial={{ opacity: 0, x: 20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ duration: 0.6, delay: 0.2 }}
+                    className="w-full max-w-md"
+                >
+                    {/* Logo */}
+                    <div className="mb-10 text-center">
+                        <img
+                            src={logo}
+                            alt="Logo FNC"
+                            className="h-56 w-auto mx-auto mb-4 object-contain"
                         />
                     </div>
 
-                    <div className="input-group">
-                        <label className="flex items-center gap-2 text-sm font-medium text-charcoal-700 mb-2">
-                            <LockClosedIcon className="w-4 h-4" /> Contraseña
-                        </label>
-                        <input
-                            type="password"
-                            placeholder="••••••••"
-                            value={password}
-                            onChange={(e) => setPassword(e.target.value)}
-                            required
-                            className="w-full px-4 py-3 bg-white border border-charcoal-200 rounded-xl text-charcoal-800 text-base transition-colors duration-200 focus:outline-none focus:border-fnc-500 focus:ring-1 focus:ring-fnc-500"
-                        />
+                    <div className="mb-8 text-center">
+                        <h2 className="text-2xl font-bold mb-2 font-headline text-on-surface">
+                            Acceso Institucional
+                        </h2>
+                        <p className="text-[0.95rem] text-on-surface-variant">
+                            Ingresa tus credenciales para continuar
+                        </p>
                     </div>
 
-                    <button
-                        type="submit"
-                        disabled={isLoading}
-                        className="w-full flex items-center justify-center gap-2 bg-gradient-to-br from-fnc-600 to-fnc-700 text-white shadow-md shadow-fnc-600/30 hover:from-fnc-500 hover:to-fnc-600 py-3 rounded-xl font-semibold cursor-pointer transition-all duration-200 border-none active:scale-[0.97] mt-6 h-14"
-                    >
-                        {isLoading ? 'Verificando...' : 'Iniciar Sesión'}
-                    </button>
-                </form>
+                    <form onSubmit={handleSubmit} className="space-y-5">
+                        <div>
+                            <label
+                                htmlFor="email"
+                                className="block text-sm font-medium mb-2 text-on-surface-variant font-body"
+                            >
+                                Correo electrónico
+                            </label>
+                            <input
+                                id="email"
+                                type="email"
+                                value={email}
+                                onChange={(e) => setEmail(e.target.value)}
+                                placeholder="nombre@cafedecolombia.com"
+                                required
+                                className="w-full px-4 py-3 rounded-xl text-sm font-body border border-outline-variant bg-surface-container focus:outline-none focus:border-primary/50 focus:ring-2 focus:ring-primary/10 transition-all text-on-surface"
+                            />
+                        </div>
 
-                <div className="mt-8 text-center text-xs text-charcoal-400 font-medium">
-                    <p>Federación Nacional de Cafeteros de Colombia</p>
-                </div>
+                        <div>
+                            <label
+                                htmlFor="password"
+                                className="block text-sm font-medium mb-2 text-on-surface-variant font-body"
+                            >
+                                Contraseña
+                            </label>
+                            <input
+                                id="password"
+                                type="password"
+                                value={password}
+                                onChange={(e) => setPassword(e.target.value)}
+                                placeholder="••••••••"
+                                required
+                                className="w-full px-4 py-3 rounded-xl text-sm font-body border border-outline-variant bg-surface-container focus:outline-none focus:border-primary/50 focus:ring-2 focus:ring-primary/10 transition-all text-on-surface"
+                            />
+                        </div>
+
+                        {error && (
+                            <motion.div
+                                initial={{ opacity: 0, y: -8 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                className="px-4 py-3 rounded-xl text-sm bg-error-container text-error"
+                            >
+                                {error}
+                            </motion.div>
+                        )}
+
+                        <button
+                            type="submit"
+                            disabled={loading}
+                            className="w-full py-3.5 rounded-xl text-sm font-semibold gradient-primary text-on-primary font-headline cursor-pointer disabled:opacity-60 transition-all active:scale-[0.98] shadow-float hover:shadow-ambient"
+                        >
+                            {loading ? (
+                                <span className="flex items-center justify-center gap-2">
+                                    <svg className="animate-spin h-4 w-4" viewBox="0 0 24 24">
+                                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
+                                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+                                    </svg>
+                                    Ingresando...
+                                </span>
+                            ) : (
+                                'Ingresar al sistema'
+                            )}
+                        </button>
+                    </form>
+
+                    <div className="mt-10 text-center">
+                        <p className="text-xs text-outline">
+                            Federación Nacional de Cafeteros de Colombia
+                        </p>
+                    </div>
+                </motion.div>
             </div>
         </div>
     );

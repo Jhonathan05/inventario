@@ -205,18 +205,19 @@ const ActivoDetail = () => {
                     <div>
                         <h3 className="text-lg font-medium text-gray-900 mb-4">Historial de Asignaciones</h3>
                         {/* Desktop table */}
-                        <div className="hidden md:block overflow-x-auto shadow ring-1 ring-black ring-opacity-5 rounded-lg">
-                            <table className="min-w-full divide-y divide-gray-300">
+                        <div className="hidden md:block bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+                        <div className="overflow-x-auto">
+                            <table className="min-w-full divide-y divide-gray-200">
                                 <thead className="bg-gray-50">
                                     <tr>
-                                        <th className="py-3.5 pl-4 pr-3 text-left text-sm font-semibold text-gray-900">Funcionario</th>
-                                        <th className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">Tipo</th>
-                                        <th className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">Fecha Inicio</th>
-                                        <th className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">Fecha Fin</th>
-                                        <th className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">Obs</th>
+                                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Funcionario</th>
+                                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Tipo</th>
+                                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Fecha Inicio</th>
+                                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Fecha Fin</th>
+                                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Obs</th>
                                     </tr>
                                 </thead>
-                                <tbody className="divide-y divide-gray-200 bg-white">
+                                <tbody className="bg-white divide-y divide-gray-200">
                                     {activo.asignaciones?.map((asig) => (
                                         <tr key={asig.id}>
                                             <td className="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-medium text-gray-900">
@@ -234,6 +235,7 @@ const ActivoDetail = () => {
                                 </tbody>
                             </table>
                         </div>
+                    </div>
                         {/* Mobile cards */}
                         <div className="md:hidden space-y-3">
                             {(!activo.asignaciones || activo.asignaciones.length === 0) && (
@@ -270,21 +272,22 @@ const ActivoDetail = () => {
                             )}
                         </div>
                         {/* Desktop table */}
-                        <div className="hidden md:block overflow-x-auto shadow ring-1 ring-black ring-opacity-5 rounded-lg">
-                            <table className="min-w-full divide-y divide-gray-300">
+                        <div className="hidden md:block bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+                        <div className="overflow-x-auto">
+                            <table className="min-w-full divide-y divide-gray-200">
                                 <thead className="bg-gray-50">
                                     <tr>
-                                        <th className="py-3.5 pl-4 pr-3 text-left text-sm font-semibold text-gray-900">Fecha</th>
-                                        <th className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">Tipo</th>
-                                        <th className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">Descripción</th>
-                                        <th className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">Analista</th>
-                                        <th className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">Costo</th>
-                                        <th className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">Caso Aranda</th>
-                                        <th className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">Estado</th>
-                                        <th className="px-3 py-3.5 text-right text-sm font-semibold text-gray-900">Acciones</th>
+                                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Fecha</th>
+                                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Tipo</th>
+                                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Descripción</th>
+                                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Analista</th>
+                                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Costo</th>
+                                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Caso Aranda</th>
+                                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Estado</th>
+                                        <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Acciones</th>
                                     </tr>
                                 </thead>
-                                <tbody className="divide-y divide-gray-200 bg-white">
+                                <tbody className="bg-white divide-y divide-gray-200">
                                     {activo.hojaVida?.map((hv) => (
                                         <tr key={hv.id}>
                                             <td className="whitespace-nowrap py-4 pl-4 pr-3 text-sm text-gray-900">{formatDate(hv.fecha)}</td>
@@ -314,6 +317,7 @@ const ActivoDetail = () => {
                                 </tbody>
                             </table>
                         </div>
+                    </div>
                         {/* Mobile cards */}
                         <div className="md:hidden space-y-3">
                             {(!activo.hojaVida || activo.hojaVida.length === 0) && (

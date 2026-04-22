@@ -1,8 +1,8 @@
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, Navigate, Outlet } from 'react-router-dom';
 import { AuthProvider } from './context/AuthContext';
 import ProtectedRoute from './components/ProtectedRoute';
 import ErrorBoundary from './components/ErrorBoundary';
-import MainLayout from './layouts/MainLayout';
+import ClientLayout from './layouts/ClientLayout';
 import Login from './pages/Login';
 import Dashboard from './pages/Dashboard';
 import Usuarios from './pages/usuarios/UsuariosList';
@@ -42,7 +42,7 @@ function App() {
                         <Routes>
                             <Route path="/login" element={<Login />} />
 
-                            <Route element={<MainLayout />}>
+                            <Route element={<ClientLayout><Outlet /></ClientLayout>}>
                                 <Route element={<ProtectedRoute />}>
                                     <Route path="/" element={<Dashboard />} />
                                     <Route path="/activos" element={<Activos />} />

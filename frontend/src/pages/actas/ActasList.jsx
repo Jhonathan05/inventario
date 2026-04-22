@@ -106,20 +106,20 @@ const ActasList = () => {
                 </div>
             </div>
 
-            <div className="glass rounded-2xl border border-charcoal-100 overflow-hidden shadow-sm">
+            <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
                 <div className="overflow-x-auto">
-                    <table className="w-full text-left border-collapse min-w-[700px]">
-                        <thead className="bg-charcoal-50 border-b border-charcoal-100 text-xs uppercase tracking-wider text-charcoal-500">
+                    <table className="min-w-full divide-y divide-gray-200">
+                        <thead className="bg-gray-50">
                             <tr>
-                                <th className="px-6 py-4 font-bold">Fecha</th>
-                                <th className="px-6 py-4 font-bold">Tipo</th>
-                                <th className="px-6 py-4 font-bold">Activos (Placa)</th>
-                                <th className="px-6 py-4 font-bold">Entregado Por</th>
-                                <th className="px-6 py-4 font-bold">Recibido Por</th>
-                                <th className="px-6 py-4 font-bold text-right">Acciones</th>
+                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Fecha</th>
+                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Tipo</th>
+                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Activos (Placa)</th>
+                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Entregado Por</th>
+                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Recibido Por</th>
+                                <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Acciones</th>
                             </tr>
                         </thead>
-                        <tbody className="divide-y divide-charcoal-100">
+                        <tbody className="bg-white divide-y divide-gray-200">
                             {loading ? (
                                 <tr><td colSpan="6" className="px-6 py-4 text-center text-charcoal-400 font-medium">Cargando...</td></tr>
                             ) : filteredActas.length === 0 ? (
@@ -142,7 +142,7 @@ const ActasList = () => {
                                     }
 
                                     return (
-                                        <tr key={acta.id} className="hover:bg-fnc-50/50 transition-colors">
+                                        <tr key={acta.id} className="hover:bg-gray-50 transition-colors">
                                             <td className="px-6 py-4 whitespace-nowrap text-sm text-charcoal-500 font-medium">
                                                 {formatDate(acta.fecha)}
                                             </td>

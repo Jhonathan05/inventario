@@ -37,7 +37,7 @@ const FuncionariosList = () => {
 
     // Paginación
     const [currentPage, setCurrentPage] = useState(1);
-    const [itemsPerPage] = useState(10);
+    const [itemsPerPage] = useState(9);
 
     // Filtros avanzados
     const [filterArea, setFilterArea] = useState('');
@@ -248,27 +248,27 @@ const FuncionariosList = () => {
             {/* Desktop Table */}
             {!loading && (
                 <div className="mt-6 hidden md:block">
-                    <div className="glass overflow-hidden">
-                        <div className="overflow-x-auto">
-                            <table className="w-full text-left border-collapse min-w-[800px]">
-                                <thead className="bg-charcoal-50 border-b border-charcoal-100 text-sm uppercase tracking-wider text-charcoal-500">
+                    <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+                <div className="overflow-x-auto">
+                            <table className="min-w-full divide-y divide-gray-200">
+                                <thead className="bg-gray-50">
                                     <tr>
-                                        <th scope="col" className="px-6 py-4 font-bold">Nombre</th>
-                                        <th scope="col" className="px-6 py-4 font-bold">Cédula</th>
-                                        <th scope="col" className="px-6 py-4 font-bold">Cód. Personal</th>
-                                        <th scope="col" className="px-6 py-4 font-bold">Cargo / Área</th>
-                                        <th scope="col" className="px-6 py-4 font-bold">Vinculación</th>
-                                        <th scope="col" className="px-6 py-4 font-bold">Activos</th>
+                                        <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Nombre</th>
+                                        <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Cédula</th>
+                                        <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Cód. Personal</th>
+                                        <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Cargo / Área</th>
+                                        <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Vinculación</th>
+                                        <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Activos</th>
                                         {canEdit && (
-                                            <th scope="col" className="px-6 py-4 font-bold text-right">
+                                            <th scope="col" className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
                                                 Acciones
                                             </th>
                                         )}
                                     </tr>
                                 </thead>
-                                <tbody className="divide-y divide-charcoal-100 bg-transparent">
+                                <tbody className="bg-white divide-y divide-gray-200">
                                     {funcionarios.map((f) => (
-                                        <tr key={f.id} className="hover:bg-fnc-50/50 transition-colors">
+                                        <tr key={f.id} className="hover:bg-gray-50 transition-colors">
                                             <td className="px-6 py-4">
                                                 <div className="font-bold text-charcoal-800">{f.nombre}</div>
                                                 {f.shortname && <div className="text-xs text-charcoal-400 font-medium">{f.shortname}</div>}

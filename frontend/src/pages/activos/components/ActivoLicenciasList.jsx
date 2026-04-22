@@ -61,17 +61,18 @@ const ActivoLicenciasList = ({ activoId, licencias = [], onUpdate }) => {
                 )}
             </div>
 
-            <div className="overflow-hidden shadow ring-1 ring-black ring-opacity-5 rounded-lg bg-white">
-                <table className="min-w-full divide-y divide-gray-300">
+            <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+                <div className="overflow-x-auto">
+                    <table className="min-w-full divide-y divide-gray-200">
                     <thead className="bg-gray-50">
                         <tr>
-                            <th className="py-3.5 pl-4 pr-3 text-left text-sm font-semibold text-gray-900">Software</th>
-                            <th className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">Tipo</th>
-                            <th className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">Key / Serial</th>
-                            {canEdit && <th className="px-3 py-3.5 text-right text-sm font-semibold text-gray-900">Acciones</th>}
+                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Software</th>
+                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Tipo</th>
+                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Key / Serial</th>
+                            {canEdit && <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Acciones</th>}
                         </tr>
                     </thead>
-                    <tbody className="divide-y divide-gray-200">
+                    <tbody className="bg-white divide-y divide-gray-200">
                         {licencias.map((lic) => (
                             <tr key={lic.id}>
                                 <td className="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-medium text-gray-900">
@@ -105,7 +106,8 @@ const ActivoLicenciasList = ({ activoId, licencias = [], onUpdate }) => {
                             <tr><td colSpan="4" className="py-6 text-center text-gray-500">No hay software licenciado en este equipo.</td></tr>
                         )}
                     </tbody>
-                </table>
+                    </table>
+                </div>
             </div>
 
             {/* Modal de Asignación */}

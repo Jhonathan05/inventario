@@ -1,132 +1,135 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import "tailwindcss";
+
+@theme {
+  /* ── Primary (FNC Tinto) ── */
+  --color-primary: #8d1024;
+  --color-primary-container: #a5122a;
+  --color-on-primary: #ffffff;
+  --color-on-primary-container: #ffd9dc;
+
+  /* ── Secondary (FNC Verde Institucional) ── */
+  --color-secondary: #1b502d;
+  --color-secondary-container: #2e7d32;
+  --color-on-secondary: #ffffff;
+  --color-on-secondary-container: #c8e6c9;
+
+  /* ── Surfaces (The Institutional Vanguard) ── */
+  --color-background: var(--background);
+  --color-surface: var(--surface);
+  --color-surface-dim: var(--surface-dim);
+  --color-surface-container: var(--surface-container);
+  --color-surface-container-high: var(--surface-container-high);
+  --color-surface-container-highest: var(--surface-container-highest);
+  --color-surface-container-low: var(--surface-container-low);
+  --color-surface-container-lowest: var(--surface-container-lowest);
+
+  /* ── Text ── */
+  --color-on-surface: var(--on-surface);
+  --color-on-surface-variant: var(--on-surface-variant);
+  --color-on-background: var(--on-background);
+  --color-inverse-surface: var(--inverse-surface);
+  --color-inverse-on-surface: var(--inverse-on-surface);
+
+  /* ── Outline ── */
+  --color-outline: var(--outline);
+  --color-outline-variant: var(--outline-variant);
+
+  /* ── Error ── */
+  --color-error: #ba1a1a;
+  --color-error-container: #ffdad6;
+  --color-on-error: #ffffff;
+
+  /* ── Fonts ── */
+  --font-headline: "Public Sans", sans-serif;
+  --font-body: "Inter", sans-serif;
+
+  /* ── Shadows ── */
+  --shadow-ambient: 0px 8px 32px rgba(141, 16, 36, 0.05);
+  --shadow-float: 0px 16px 48px rgba(141, 16, 36, 0.08);
+
+  /* ── Radius ── */
+  --radius-sm: 0.375rem;
+  --radius-md: 0.5rem;
+  --radius-lg: 0.875rem;
+  --radius-xl: 1.25rem;
+}
 
 @layer base {
-    :root {
-        --safe-area-bottom: env(safe-area-inset-bottom);
-    }
+  :root {
+    --background: #fdfdfd;
+    --surface: #fdfdfd;
+    --surface-dim: #eef1ee;
+    --surface-container: #f0f4f0;
+    --surface-container-high: #e6ebe6;
+    --surface-container-highest: #dde2dd;
+    --surface-container-low: #f7faf7;
+    --surface-container-lowest: #ffffff;
 
-    body {
-        @apply font-sans bg-fnc-50 text-charcoal-700 min-h-screen overflow-x-hidden;
-        background-image:
-            radial-gradient(at 0% 0%, rgba(255, 255, 255, 0.8) 0px, transparent 50%),
-            radial-gradient(at 100% 100%, rgba(253, 230, 234, 0.8) 0px, transparent 50%);
-    }
+    --on-surface: #0a1a0d;
+    --on-surface-variant: #3a4a3d;
+    --on-background: #0a1a0d;
+    --inverse-surface: #2f332f;
+    --inverse-on-surface: #f0f4f0;
+
+    --outline: #717a6d;
+    --outline-variant: #c0c9bb;
+  }
+
+  [data-theme="dark"] {
+    --background: #0a0c0a;
+    --surface: #0a0c0a;
+    --surface-dim: #121512;
+    --surface-container: #1a1e1a;
+    --surface-container-high: #242a24;
+    --surface-container-highest: #2d342d;
+    --surface-container-low: #141814;
+    --surface-container-lowest: #050605;
+
+    --on-surface: #e1e3e1;
+    --on-surface-variant: #bfc9bc;
+    --on-background: #e1e3e1;
+
+    --outline: #8b9388;
+  }
+
+  * {
+    @apply border-outline-variant;
+  }
+
+  body {
+    @apply bg-background text-on-surface;
+    font-family: var(--font-body);
+  }
 }
 
-@layer components {
-
-    /* Glassmorphism utility */
-    .glass {
-        @apply bg-white/80 backdrop-blur-md border border-charcoal-100 shadow-sm rounded-2xl;
-    }
-
-    .app-layout {
-        display: flex;
-        flex-direction: column;
-        min-height: 100vh;
-    }
-
-    .main-content {
-        flex: 1;
-        width: 100%;
-        min-width: 0;
-        transition: padding-left 0.3s ease;
-    }
-
-    .container {
-        width: 100%;
-        /*max-width: 1200px;*/
-        margin: 0 auto;
-        padding: 1rem;
-        padding-bottom: calc(5rem + var(--safe-area-bottom));
-    }
-
-    @media (min-width: 768px) {
-        .app-layout {
-            flex-direction: row;
-        }
-
-        .container {
-            padding-bottom: 2rem;
-        }
-    }
-
-    /* Typography */
-    h1 {
-        font-size: 1.75rem;
-        font-weight: 700;
-        margin-bottom: 0.5rem;
-        background: linear-gradient(to right, theme('colors.fnc.700'), theme('colors.fnc.500'));
-        -webkit-background-clip: text;
-        background-clip: text;
-        -webkit-text-fill-color: transparent;
-    }
-
-    h2 {
-        font-size: 1.25rem;
-        font-weight: 600;
-        margin-bottom: 1rem;
-        color: theme('colors.charcoal.800');
-    }
-
-    /* Navigation Bar (Mobile & Desktop) */
-    .nav-bar {
-        @apply fixed bottom-0 left-0 right-0 h-[calc(4.5rem+var(--safe-area-bottom))] bg-white/90 backdrop-blur-xl border-t border-charcoal-100 flex justify-around items-center pb-[var(--safe-area-bottom)] z-40;
-    }
-
-    .nav-item {
-        @apply flex flex-col items-center text-charcoal-500 no-underline text-xs gap-1 transition-all duration-200 p-2 rounded-lg;
-    }
-
-    .nav-item:hover {
-        @apply bg-charcoal-50 text-fnc-600;
-    }
-
-    .nav-item.active {
-        @apply text-fnc-600 bg-fnc-50;
-    }
+@utility gradient-primary {
+  background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-container) 100%);
 }
 
-@layer utilities {
-    .animate-slide-up {
-        animation: slideUp 0.4s ease-out forwards;
-    }
+@utility glass {
+  background: rgba(255, 255, 255, 0.7);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
 }
 
-@keyframes slideUp {
-    from {
-        opacity: 0;
-        transform: translateY(20px);
-    }
-
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
+[data-theme="dark"] .glass {
+  background: rgba(10, 12, 10, 0.7);
+  border: 1px solid rgba(255, 255, 255, 0.05);
 }
 
-@media (min-width: 768px) {
-    .nav-bar {
-        position: sticky;
-        top: 0;
-        left: 0;
-        width: 250px;
-        height: 100vh;
-        flex-direction: column;
-        justify-content: flex-start;
-        padding: 2rem 1rem;
-        border-top: none;
-        border-right: 1px solid theme('colors.charcoal.100');
-        gap: 1rem;
-    }
+/* Animations from Agenda FNC */
+@keyframes slide-up {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
 
-    .nav-item {
-        flex-direction: row;
-        width: 100%;
-        font-size: 1rem;
-        padding: 1rem;
-        gap: 1rem;
-    }
+.animate-slide-up {
+  animation: slide-up 0.5s ease-out forwards;
 }

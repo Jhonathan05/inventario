@@ -23,7 +23,7 @@ export const useActivosList = () => {
     const [isExporting, setIsExporting] = useState(false);
     const [sortBy, setSortBy] = useState('creadoEn');
     const [sortOrder, setSortOrder] = useState('desc');
-    const itemsPerPage = 10;
+    const itemsPerPage = 9;
 
     // Advanced filters
     const [filterCategoria, setFilterCategoria] = useState('');

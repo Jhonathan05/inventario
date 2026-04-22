@@ -309,8 +309,9 @@ const GenerarActa = () => {
                                         onChange={(e) => setSearchTerm(e.target.value)}
                                     />
                                 </div>
-                                <div className="max-h-[400px] overflow-y-auto border rounded-md">
-                                    <table className="min-w-full divide-y divide-gray-200">
+                                <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+                                    <div className="overflow-x-auto max-h-[400px] overflow-y-auto">
+                                        <table className="min-w-full divide-y divide-gray-200">
                                         <thead className="bg-gray-50 sticky top-0">
                                             <tr>
                                                 <th className="px-4 py-2 w-10">
@@ -375,6 +376,7 @@ const GenerarActa = () => {
                                         </tbody>
                                     </table>
                                 </div>
+                            </div>
                             </>
                         )}
 
