@@ -12,6 +12,13 @@ import {
     exportHistorialExcel,
     exportHistorialPDF,
 } from './ActivosExport';
+import { 
+    ComputerDesktopIcon, 
+    PlusIcon, 
+    TableCellsIcon, 
+    DocumentTextIcon, 
+    ArrowDownTrayIcon 
+} from '@heroicons/react/24/outline';
 
 const ActivosList = () => {
     const { user } = useAuth();
@@ -45,89 +52,116 @@ const ActivosList = () => {
     const totalItems = pagination.total || activos.length;
 
     return (
-        <div className="px-2 sm:px-4 md:px-6 lg:px-8">
-            {/* Header */}
-            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-                <div>
-                    <h1 className="text-xl font-semibold text-gray-900">Activos Tecnológicos</h1>
-                    <p className="mt-1 text-sm text-gray-700">Inventario completo de equipos ({totalItems} resultados)</p>
-                </div>
-                <div className="flex flex-wrap gap-2">
-                    {activos.length > 0 && (
-                        <>
+        <div className="space-y-6">
+            {/* Sección de Encabezado: Título, Descripción y Acciones Globales */}
+            <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
+                <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+                    <div>
+                        <h1 className="text-2xl font-black text-charcoal-900 flex items-center gap-3">
+                            <div className="bg-fnc-50 p-2 rounded-lg border border-fnc-100">
+                                <ComputerDesktopIcon className="w-6 h-6 text-fnc-600" />
+                            </div>
+                            Activos Tecnológicos
+                        </h1>
+                        <p className="text-charcoal-500 text-sm mt-1 font-medium ml-11">
+                            Inventario completo de equipos y periféricos ({totalItems} registros)
+                        </p>
+                    </div>
+                    <div className="flex flex-wrap gap-2">
+                        {activos.length > 0 && (
+                            <>
+                                <button
+                                    onClick={async () => {
+                                        const allData = await getExportData();
+                                        exportActivosExcel(allData);
+                                    }}
+                                    disabled={isExporting}
+                                    className="bg-green-600 text-white px-4 py-2.5 rounded-lg text-xs font-black uppercase tracking-widest hover:bg-green-700 shadow-sm disabled:opacity-50 transition-all flex items-center gap-2"
+                                >
+                                    <TableCellsIcon className="w-4 h-4" />
+                                    Excel
+                                </button>
+                                <button
+                                    onClick={async () => {
+                                        const allData = await getExportData();
+                                        exportActivosPDF(allData, funcionarios, filterFuncionario);
+                                    }}
+                                    disabled={isExporting}
+                                    className="bg-red-600 text-white px-4 py-2.5 rounded-lg text-xs font-black uppercase tracking-widest hover:bg-red-700 shadow-sm disabled:opacity-50 transition-all flex items-center gap-2"
+                                >
+                                    <DocumentTextIcon className="w-4 h-4" />
+                                    PDF
+                                </button>
+                            </>
+                        )}
+                        {canEdit && (
                             <button
-                                onClick={async () => {
-                                    const allData = await getExportData();
-                                    exportActivosExcel(allData);
-                                }}
-                                disabled={isExporting}
-                                className="rounded-md bg-green-600 px-3 py-2 text-sm font-semibold text-white hover:bg-green-500 shadow-sm disabled:opacity-50"
+                                type="button"
+                                onClick={handleCreate}
+                                className="bg-fnc-600 text-white px-5 py-2.5 rounded-lg hover:bg-fnc-700 flex items-center gap-2 shrink-0 shadow-sm transition-all font-black text-xs uppercase tracking-widest"
                             >
-                                {isExporting ? '⏳...' : '📊 Excel'}
+                                <PlusIcon className="w-5 h-5" />
+                                Nuevo Activo
                             </button>
-                            <button
-                                onClick={async () => {
-                                    const allData = await getExportData();
-                                    exportActivosPDF(allData, funcionarios, filterFuncionario);
-                                }}
-                                disabled={isExporting}
-                                className="rounded-md bg-red-600 px-3 py-2 text-sm font-semibold text-white hover:bg-red-500 shadow-sm disabled:opacity-50"
-                            >
-                                {isExporting ? '⏳...' : '📄 PDF'}
-                            </button>
-                        </>
-                    )}
-                    {canEdit && (
-                        <button type="button" onClick={handleCreate} className="rounded-md bg-indigo-600 px-3 py-2 text-center text-sm font-semibold text-white shadow-sm hover:bg-indigo-500">
-                            + Nuevo
-                        </button>
-                    )}
+                        )}
+                    </div>
                 </div>
             </div>
 
-            <ActivosFilters
-                search={search} setSearch={setSearch}
-                showFilters={showFilters} setShowFilters={setShowFilters}
-                activeFilterCount={activeFilterCount}
-                filterCategoria={filterCategoria} setFilterCategoria={setFilterCategoria}
-                filterEstado={filterEstado} setFilterEstado={setFilterEstado}
-                filterEmpresa={filterEmpresa} setFilterEmpresa={setFilterEmpresa}
-                filterEstadoOp={filterEstadoOp} setFilterEstadoOp={setFilterEstadoOp}
-                filterCiudad={filterCiudad} setFilterCiudad={setFilterCiudad}
-                filterFuncionario={filterFuncionario} setFilterFuncionario={setFilterFuncionario}
-                searchFuncionarioText={searchFuncionarioText} setSearchFuncionarioText={setSearchFuncionarioText}
-                showFuncionarioDropdown={showFuncionarioDropdown} setShowFuncionarioDropdown={setShowFuncionarioDropdown}
-                catalogs={catalogs} funcionarios={funcionarios} categorias={categorias}
-                clearFilters={clearFilters}
-                onViewHistorial={handleViewHistorial}
-            />
-
-            {loading && <div className="mt-8 text-center text-gray-500 py-10">Cargando activos...</div>}
-
-            {!loading && (
-                <>
-                    <ActivosTable 
-                        activos={activos} 
-                        canEdit={canEdit} 
-                        onEdit={handleEdit} 
-                        sortBy={sortBy}
-                        sortOrder={sortOrder}
-                        onSort={handleSort}
+            {/* Seccion de Contenido: Filtros y Datos */}
+            <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+                <div className="p-4 border-b border-gray-100 bg-gray-50/50">
+                    <ActivosFilters
+                        search={search} setSearch={setSearch}
+                        showFilters={showFilters} setShowFilters={setShowFilters}
+                        activeFilterCount={activeFilterCount}
+                        filterCategoria={filterCategoria} setFilterCategoria={setFilterCategoria}
+                        filterEstado={filterEstado} setFilterEstado={setFilterEstado}
+                        filterEmpresa={filterEmpresa} setFilterEmpresa={setFilterEmpresa}
+                        filterEstadoOp={filterEstadoOp} setFilterEstadoOp={setFilterEstadoOp}
+                        filterCiudad={filterCiudad} setFilterCiudad={setFilterCiudad}
+                        filterFuncionario={filterFuncionario} setFilterFuncionario={setFilterFuncionario}
+                        searchFuncionarioText={searchFuncionarioText} setSearchFuncionarioText={setSearchFuncionarioText}
+                        showFuncionarioDropdown={showFuncionarioDropdown} setShowFuncionarioDropdown={setShowFuncionarioDropdown}
+                        catalogs={catalogs} funcionarios={funcionarios} categorias={categorias}
+                        clearFilters={clearFilters}
+                        onViewHistorial={handleViewHistorial}
                     />
-                    <ActivosCards activos={activos} canEdit={canEdit} onEdit={handleEdit} />
-                </>
-            )}
+                </div>
 
-            {!loading && activos.length > 0 && (
-                <Pagination
-                    currentPage={currentPage}
-                    totalPages={totalPages}
-                    totalItems={totalItems}
-                    itemsPerPage={itemsPerPage}
-                    currentCount={activos.length}
-                    onPageChange={changePage}
-                />
-            )}
+                <div className="p-0">
+                    {loading && <div className="text-center text-gray-500 py-20">Cargando activos...</div>}
+
+                    {!loading && (
+                        <div className="divide-y divide-gray-100">
+                            <ActivosTable 
+                                activos={activos} 
+                                canEdit={canEdit} 
+                                onEdit={handleEdit} 
+                                sortBy={sortBy}
+                                sortOrder={sortOrder}
+                                onSort={handleSort}
+                            />
+                            <div className="p-4 md:hidden">
+                                <ActivosCards activos={activos} canEdit={canEdit} onEdit={handleEdit} />
+                            </div>
+                        </div>
+                    )}
+
+                    {!loading && activos.length > 0 && (
+                        <div className="p-4 border-t border-gray-100">
+                            <Pagination
+                                currentPage={currentPage}
+                                totalPages={totalPages}
+                                totalItems={totalItems}
+                                itemsPerPage={itemsPerPage}
+                                currentCount={activos.length}
+                                onPageChange={changePage}
+                            />
+                        </div>
+                    )}
+                </div>
+            </div>
 
             {isModalOpen && (
                 <ActivosForm open={isModalOpen} onClose={handleCloseModal} activo={selectedActivo} />

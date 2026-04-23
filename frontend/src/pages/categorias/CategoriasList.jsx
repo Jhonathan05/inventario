@@ -3,6 +3,17 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { categoriasService } from '../../api/categorias.service';
 import { catalogosService } from '../../api/catalogos.service';
 import { useAuth } from '../../context/AuthContext';
+import { 
+    TagIcon, 
+    PlusIcon, 
+    PencilSquareIcon, 
+    TrashIcon, 
+    XMarkIcon,
+    Bars3Icon,
+    BriefcaseIcon,
+    CpuChipIcon,
+    ShieldCheckIcon
+} from '@heroicons/react/24/outline';
 import Pagination from '../../components/Pagination';
 
 const MANAGEMENT_SECTIONS = [
@@ -166,64 +177,75 @@ const Categorias = () => {
     return (
         <div className="flex flex-col lg:flex-row gap-8">
             {/* Sidebar / Tabs */}
-            <div className="lg:w-64 flex-none space-y-1">
-                <h2 className="text-xs font-bold text-gray-400 uppercase tracking-widest px-3 mb-2">Secciones</h2>
-                {MANAGEMENT_SECTIONS.map(section => (
-                    <button
-                        key={section.id}
-                        onClick={() => handleSectionChange(section)}
-                        className={`w-full text-left px-3 py-2 rounded-lg text-sm font-medium transition-all ${activeSection.id === section.id
-                            ? 'bg-indigo-600 text-white shadow-md'
-                            : 'text-gray-600 hover:bg-gray-100'
-                            }`}
-                    >
-                        {section.title}
-                    </button>
-                ))}
+            <div className="lg:w-64 flex-none space-y-4">
+                <h2 className="text-[10px] font-black text-gray-400 uppercase tracking-widest px-3 mb-2 flex items-center gap-2">
+                    <Bars3Icon className="w-3 h-3" />
+                    Catálogos del Sistema
+                </h2>
+                <div className="space-y-1">
+                    {MANAGEMENT_SECTIONS.map(section => (
+                        <button
+                            key={section.id}
+                            onClick={() => handleSectionChange(section)}
+                            className={`w-full text-left px-4 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all duration-200 border ${activeSection.id === section.id
+                                ? 'bg-fnc-600 text-white shadow-lg border-fnc-700'
+                                : 'text-charcoal-500 hover:bg-gray-50 border-transparent'
+                                }`}
+                        >
+                            {section.title}
+                        </button>
+                    ))}
+                </div>
             </div>
 
             {/* Main Content */}
-            <div className="flex-1">
-                <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
-                    <div className="p-6 border-b border-gray-100 bg-gray-50/50">
-                        <div className="sm:flex sm:items-center justify-between">
-                            <div>
-                                <h1 className="text-xl font-bold text-gray-900">{activeSection.title}</h1>
-                                <p className="mt-1 text-sm text-gray-500">{activeSection.description}</p>
-                            </div>
-                            {canEdit && (
-                                <button
-                                    type="button"
-                                    onClick={handleOpenNew}
-                                    className="inline-flex items-center px-4 py-2 bg-indigo-600 text-white text-sm font-semibold rounded-lg shadow-sm hover:bg-indigo-500 transition-colors"
-                                >
-                                    <svg className="w-5 h-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-                                    </svg>
-                                    Nuevo Valor
-                                </button>
-                            )}
+            <div className="flex-1 space-y-6">
+                {/* Sección de Encabezado: Título y Descripción */}
+                <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
+                    <div className="sm:flex sm:items-center justify-between gap-4">
+                        <div className="flex-1">
+                            <h1 className="text-2xl font-black text-charcoal-900 flex items-center gap-3">
+                                <div className="bg-fnc-50 p-2 rounded-lg border border-fnc-100">
+                                    <TagIcon className="w-6 h-6 text-fnc-600" />
+                                </div>
+                                {activeSection.title}
+                            </h1>
+                            <p className="text-charcoal-500 text-sm mt-1 font-medium ml-11">
+                                {activeSection.description}
+                            </p>
                         </div>
-
-                        {/* Domain Tabs within sections */}
-                        {activeSection.domains && (
-                            <div className="flex flex-wrap gap-2 mt-6">
-                                {activeSection.domains.map(domain => (
-                                    <button
-                                        key={domain}
-                                        onClick={() => handleDomainChange(domain)}
-                                        className={`px-3 py-1.5 rounded-full text-xs font-semibold border transition-all ${activeDomain === domain
-                                            ? 'bg-indigo-50 border-indigo-200 text-indigo-700'
-                                            : 'bg-white border-gray-200 text-gray-500 hover:border-indigo-200 hover:text-indigo-600'
-                                            }`}
-                                    >
-                                        {domain.replace(/_/g, ' ')}
-                                    </button>
-                                ))}
-                            </div>
+                        {canEdit && (
+                            <button
+                                type="button"
+                                onClick={handleOpenNew}
+                                className="bg-fnc-600 text-white px-5 py-2.5 rounded-lg hover:bg-fnc-700 flex items-center gap-2 shrink-0 shadow-sm transition-all font-black text-xs uppercase tracking-widest"
+                            >
+                                <PlusIcon className="w-5 h-5" />
+                                Nuevo Registro
+                            </button>
                         )}
                     </div>
 
+                    {/* Domain Tabs within header card */}
+                    {activeSection.domains && (
+                        <div className="flex flex-wrap gap-2 mt-6 ml-11">
+                            {activeSection.domains.map(domain => (
+                                <button
+                                    key={domain}
+                                    onClick={() => handleDomainChange(domain)}
+                                    className={`px-3 py-1.5 rounded-full text-[10px] font-black uppercase tracking-wider border transition-all ${activeDomain === domain
+                                        ? 'bg-fnc-50 border-fnc-200 text-fnc-700 shadow-sm'
+                                        : 'bg-white border-gray-200 text-gray-400 hover:border-fnc-200 hover:text-fnc-600'
+                                        }`}
+                                >
+                                    {domain.replace(/_/g, ' ')}
+                                </button>
+                            ))}
+                        </div>
+                    )}
+                </div>
+
+                <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
                     <div className="overflow-x-auto">
                         {loading ? (
                             <div className="p-12 text-center text-gray-500">Cargando datos...</div>
@@ -236,61 +258,130 @@ const Categorias = () => {
                                 const totalPages = Math.ceil(data.length / ITEMS_PER_PAGE);
                                 return (
                                     <>
-                                        <table className="min-w-full divide-y divide-gray-200">
-                                            <thead className="bg-gray-50">
-                                                <tr>
-                                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">ID</th>
-                                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Valor / Nombre</th>
-                                                    {!activeSection.isCategory && (
-                                                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Estado</th>
-                                                    )}
-                                                    {activeSection.isCategory && (
-                                                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Activos</th>
-                                                    )}
-                                                    {canEdit && <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Acciones</th>}
-                                                </tr>
-                                            </thead>
-                                            <tbody className="bg-white divide-y divide-gray-200">
-                                                {currentItems.map((item) => (
-                                                    <tr key={item.id} className="hover:bg-gray-50 transition-colors">
-                                                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{item.id}</td>
-                                                        <td className="px-6 py-4 whitespace-nowrap">
-                                                            <div className="text-sm font-medium text-gray-900">{item.valor}</div>
-                                                            {item.descripcion && <div className="text-xs text-gray-400">{item.descripcion}</div>}
-                                                        </td>
+                                        {/* Desktop View */}
+                                        <div className="hidden md:block">
+                                            <table className="min-w-full divide-y divide-gray-200">
+                                                <thead className="bg-gray-50">
+                                                    <tr>
+                                                        <th className="px-6 py-3 text-left text-[10px] font-black text-gray-500 uppercase tracking-widest">ID Ref</th>
+                                                        <th className="px-6 py-3 text-left text-[10px] font-black text-gray-500 uppercase tracking-widest">Valor / Nombre</th>
                                                         {!activeSection.isCategory && (
-                                                            <td className="px-6 py-4 whitespace-nowrap">
-                                                                <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${item.activo ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
-                                                                    {item.activo ? 'Activo' : 'Inactivo'}
-                                                                </span>
-                                                            </td>
+                                                            <th className="px-6 py-3 text-left text-[10px] font-black text-gray-500 uppercase tracking-widest">Estado</th>
                                                         )}
                                                         {activeSection.isCategory && (
-                                                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{item.count || 0}</td>
+                                                            <th className="px-6 py-3 text-left text-[10px] font-black text-gray-500 uppercase tracking-widest">Recurso</th>
                                                         )}
-                                                        {canEdit && (
-                                                            <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                                                                <button onClick={() => handleOpenEdit(item)} className="text-indigo-600 hover:text-indigo-900 mr-4">Editar</button>
-                                                                <button onClick={() => handleDelete(item.id, item.valor)} className="text-red-600 hover:text-red-900">Eliminar</button>
-                                                            </td>
-                                                        )}
+                                                        {canEdit && <th className="px-6 py-3 text-right text-[10px] font-black text-gray-500 uppercase tracking-widest">Acción</th>}
                                                     </tr>
-                                                ))}
-                                                {currentItems.length === 0 && (
-                                                    <tr><td colSpan="4" className="px-6 py-12 text-center text-gray-500">No hay registros</td></tr>
-                                                )}
-                                            </tbody>
-                                        </table>
+                                                </thead>
+                                                <tbody className="bg-white divide-y divide-gray-100">
+                                                    {currentItems.map((item) => (
+                                                        <tr key={item.id} className="hover:bg-gray-50/50 transition-colors">
+                                                            <td className="px-6 py-4 whitespace-nowrap text-xs font-mono text-charcoal-400">#{item.id}</td>
+                                                            <td className="px-6 py-4 whitespace-nowrap">
+                                                                <div className="text-sm font-bold text-charcoal-900">{item.valor}</div>
+                                                                {item.descripcion && <div className="text-[10px] font-bold text-charcoal-400 uppercase tracking-wider">{item.descripcion}</div>}
+                                                            </td>
+                                                            {!activeSection.isCategory && (
+                                                                <td className="px-6 py-4 whitespace-nowrap">
+                                                                    {item.activo ? (
+                                                                        <span className="inline-flex items-center px-2 py-0.5 rounded-lg text-[10px] font-black uppercase bg-green-50 text-green-700 border border-green-100 tracking-widest">Inscrito/Activo</span>
+                                                                    ) : (
+                                                                        <span className="inline-flex items-center px-2 py-0.5 rounded-lg text-[10px] font-black uppercase bg-red-50 text-red-700 border border-red-100 tracking-widest">Desactivado</span>
+                                                                    )}
+                                                                </td>
+                                                            )}
+                                                            {activeSection.isCategory && (
+                                                                <td className="px-6 py-4 whitespace-nowrap">
+                                                                    <span className="text-[10px] font-black text-fnc-600 bg-fnc-50 px-2 py-1 rounded-lg border border-fnc-100 uppercase tracking-widest">
+                                                                        {item.count || 0} Activos
+                                                                    </span>
+                                                                </td>
+                                                            )}
+                                                            {canEdit && (
+                                                                <td className="px-6 py-4 whitespace-nowrap text-right">
+                                                                    <div className="flex justify-end gap-1">
+                                                                        <button onClick={() => handleOpenEdit(item)} className="p-2 text-charcoal-400 hover:text-fnc-600 rounded-lg transition-all" title="Editar">
+                                                                            <PencilSquareIcon className="w-4 h-4" />
+                                                                        </button>
+                                                                        <button onClick={() => handleDelete(item.id, item.valor)} className="p-2 text-charcoal-400 hover:text-red-600 rounded-lg transition-all" title="Eliminar">
+                                                                            <TrashIcon className="w-4 h-4" />
+                                                                        </button>
+                                                                    </div>
+                                                                </td>
+                                                            )}
+                                                        </tr>
+                                                    ))}
+                                                </tbody>
+                                            </table>
+                                        </div>
+
+                                        {/* Mobile View */}
+                                        <div className="md:hidden space-y-3 p-4 bg-gray-50/30">
+                                            {currentItems.map((item) => (
+                                                <div key={item.id} className="bg-white p-4 rounded-xl border border-gray-100 shadow-sm space-y-3 hover:border-fnc-200 transition-all">
+                                                    <div className="flex justify-between items-start">
+                                                        <div className="min-w-0">
+                                                            <h3 className="font-bold text-charcoal-900 text-sm truncate">{item.valor}</h3>
+                                                            <p className="text-[10px] text-charcoal-400 font-mono">ID: #{item.id}</p>
+                                                        </div>
+                                                        {!activeSection.isCategory && (
+                                                            <span className={`px-2 py-0.5 rounded-lg text-[10px] font-black uppercase tracking-widest border ${item.activo ? 'bg-green-50 text-green-700 border-green-100' : 'bg-red-50 text-red-700 border-red-100'}`}>
+                                                                {item.activo ? 'ACTIVO' : 'INACTIVO'}
+                                                            </span>
+                                                        )}
+                                                        {activeSection.isCategory && (
+                                                            <span className="text-[10px] font-black text-fnc-600 bg-fnc-50 px-2 py-0.5 rounded-lg border border-fnc-100 uppercase tracking-widest">
+                                                                {item.count || 0} ACTIVOS
+                                                            </span>
+                                                        )}
+                                                    </div>
+                                                    {item.descripcion && (
+                                                        <p className="text-[10px] font-bold text-charcoal-500 bg-gray-50 p-2 rounded-lg border border-gray-100 uppercase tracking-widest">{item.descripcion}</p>
+                                                    )}
+                                                    {canEdit && (
+                                                        <div className="grid grid-cols-2 gap-2 pt-2 border-t border-gray-50">
+                                                            <button
+                                                                onClick={() => handleOpenEdit(item)}
+                                                                className="flex items-center justify-center gap-1.5 py-2 text-[10px] font-black text-fnc-600 bg-fnc-50 rounded-lg uppercase tracking-widest hover:bg-fnc-100 transition-all"
+                                                            >
+                                                                <PencilSquareIcon className="w-3.5 h-3.5" />
+                                                                Editar
+                                                            </button>
+                                                            <button
+                                                                onClick={() => handleDelete(item.id, item.valor)}
+                                                                className="flex items-center justify-center gap-1.5 py-2 text-[10px] font-black text-red-600 bg-red-50 rounded-lg uppercase tracking-widest hover:bg-red-100 transition-all"
+                                                            >
+                                                                <TrashIcon className="w-3.5 h-3.5" />
+                                                                Borrar
+                                                            </button>
+                                                        </div>
+                                                    )}
+                                                </div>
+                                            ))}
+                                        </div>
+
+                                        {currentItems.length === 0 && (
+                                            <div className="p-12 text-center bg-gray-50/20">
+                                                <TagIcon className="mx-auto h-12 w-12 text-gray-200 mb-3" />
+                                                <p className="text-charcoal-400 font-bold italic text-sm uppercase tracking-widest">No se encontraron registros</p>
+                                            </div>
+                                        )}
                                         
                                         {data.length > 0 && (
-                                            <Pagination
-                                                currentPage={currentPage}
-                                                totalPages={totalPages}
-                                                totalItems={data.length}
-                                                itemsPerPage={ITEMS_PER_PAGE}
-                                                currentCount={currentItems.length}
-                                                onPageChange={setCurrentPage}
-                                            />
+                                            <div className="p-4 border-t border-gray-100 bg-gray-50/30">
+                                                <Pagination
+                                                    currentPage={currentPage}
+                                                    totalPages={totalPages}
+                                                    totalItems={data.length}
+                                                    itemsPerPage={ITEMS_PER_PAGE}
+                                                    currentCount={currentItems.length}
+                                                    onPageChange={(p) => {
+                                                        setCurrentPage(p);
+                                                        window.scrollTo({ top: 0, behavior: 'smooth' });
+                                                    }}
+                                                />
+                                            </div>
                                         )}
                                     </>
                                 );
@@ -302,69 +393,81 @@ const Categorias = () => {
 
             {/* Modal de Crear/Editar */}
             {showModal && (
-                <div className="fixed inset-0 z-[10001] overflow-y-auto" role="dialog" aria-modal="true">
-                    <div className="flex items-center justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:p-0">
-                        <div className="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity" onClick={handleCloseModal}></div>
-                        <div className="relative inline-block align-middle bg-white rounded-xl px-6 pt-6 pb-6 text-left overflow-hidden shadow-2xl transform transition-all sm:my-8 sm:w-full sm:max-w-lg">
-                            <h3 className="text-xl font-bold text-gray-900 mb-6">
-                                {isEditing ? '✏️ Editar Registro' : '➕ Nuevo Registro'}
-                            </h3>
-
-                            <form onSubmit={handleSave} className="space-y-4">
-                                <div>
-                                    <label className="block text-sm font-medium text-gray-700">Nombre / Valor *</label>
-                                    <input
-                                        type="text"
-                                        required
-                                        className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm border p-2"
-                                        value={formData.valor}
-                                        onChange={e => setFormData({ ...formData, valor: e.target.value })}
-                                        placeholder="EJ: MONITOR"
-                                    />
-                                </div>
-
-                                {!activeSection.isCategory && (
-                                    <>
-                                        <div>
-                                            <label className="block text-sm font-medium text-gray-700">Descripción (Opcional)</label>
-                                            <textarea
-                                                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm border p-2"
-                                                rows="2"
-                                                value={formData.descripcion}
-                                                onChange={e => setFormData({ ...formData, descripcion: e.target.value })}
-                                            />
-                                        </div>
-                                        <div className="flex items-center gap-2">
-                                            <input
-                                                type="checkbox"
-                                                id="activo"
-                                                checked={formData.activo}
-                                                onChange={e => setFormData({ ...formData, activo: e.target.checked })}
-                                                className="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded"
-                                            />
-                                            <label htmlFor="activo" className="text-sm text-gray-700">Habilitado para uso</label>
-                                        </div>
-                                    </>
-                                )}
-
-                                <div className="mt-8 flex gap-3">
-                                    <button
-                                        type="submit"
-                                        disabled={saving}
-                                        className="flex-1 rounded-lg bg-indigo-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 disabled:opacity-70"
-                                    >
-                                        {saving ? 'Guardando...' : 'Guardar Cambios'}
-                                    </button>
-                                    <button
-                                        type="button"
-                                        onClick={handleCloseModal}
-                                        className="flex-1 rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 shadow-sm hover:bg-gray-50"
-                                    >
-                                        Cancelar
-                                    </button>
-                                </div>
-                            </form>
+                <div className="fixed inset-0 z-[10001] flex items-center justify-center p-4">
+                    <div className="absolute inset-0 bg-charcoal-900/40 backdrop-blur-sm" onClick={handleCloseModal}></div>
+                    <div className="relative bg-white rounded-2xl shadow-2xl w-full max-w-lg overflow-hidden transform transition-all">
+                        <div className="px-6 py-5 border-b border-gray-100 flex justify-between items-center bg-gray-50/50">
+                            <div>
+                                <h3 className="text-lg font-black text-charcoal-900 uppercase tracking-widest flex items-center gap-2">
+                                    <TagIcon className="w-5 h-5 text-fnc-600" />
+                                    {isEditing ? 'Editar Registro' : 'Nuevo Registro'}
+                                </h3>
+                                <p className="text-[10px] font-black text-charcoal-400 uppercase tracking-widest mt-0.5">Gestión de catálogos y taxonomías</p>
+                            </div>
+                            <button 
+                                onClick={handleCloseModal} 
+                                className="p-2 hover:bg-white rounded-full transition-colors text-charcoal-400 shadow-sm border border-transparent hover:border-gray-100"
+                            >
+                                <XMarkIcon className="w-6 h-6" />
+                            </button>
                         </div>
+
+                        <form onSubmit={handleSave} className="p-6 space-y-4">
+                            <div>
+                                <label className="block text-[10px] font-black text-charcoal-400 uppercase tracking-widest mb-1.5">Nombre / Valor *</label>
+                                <input
+                                    type="text"
+                                    required
+                                    className="block w-full border border-gray-200 rounded-lg p-2.5 text-sm font-bold bg-white focus:ring-2 focus:ring-fnc-500 focus:border-fnc-500 transition-all outline-none"
+                                    value={formData.valor}
+                                    onChange={e => setFormData({ ...formData, valor: e.target.value })}
+                                    placeholder="EJ: MONITOR"
+                                />
+                            </div>
+
+                            {!activeSection.isCategory && (
+                                <>
+                                    <div>
+                                        <label className="block text-[10px] font-black text-charcoal-400 uppercase tracking-widest mb-1.5">Descripción (Opcional)</label>
+                                        <textarea
+                                            className="block w-full border border-gray-200 rounded-lg p-2.5 text-sm font-medium bg-white focus:ring-2 focus:ring-fnc-500 outline-none transition-all"
+                                            rows="2"
+                                            value={formData.descripcion}
+                                            onChange={e => setFormData({ ...formData, descripcion: e.target.value })}
+                                            placeholder="..."
+                                        />
+                                    </div>
+                                    <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-xl border border-gray-100">
+                                        <input
+                                            type="checkbox"
+                                            id="activo"
+                                            checked={formData.activo}
+                                            onChange={e => setFormData({ ...formData, activo: e.target.checked })}
+                                            className="h-5 w-5 text-fnc-600 focus:ring-fnc-500 border-gray-300 rounded-md transition-all cursor-pointer"
+                                        />
+                                        <label htmlFor="activo" className="text-[10px] font-black text-charcoal-600 uppercase tracking-widest cursor-pointer">Habilitado para uso en el sistema</label>
+                                    </div>
+                                </>
+                            )}
+
+                            <div className="pt-6 flex gap-3">
+                                <button
+                                    type="submit"
+                                    disabled={saving}
+                                    className="flex-1 bg-fnc-600 text-white rounded-xl py-3 text-xs font-black uppercase tracking-widest shadow-lg hover:bg-fnc-700 disabled:opacity-50 transition-all flex items-center justify-center gap-2"
+                                >
+                                    {saving && <ArrowPathIcon className="w-4 h-4 animate-spin" />}
+                                    {isEditing ? 'Actualizar' : 'Registrar'}
+                                </button>
+                                <button
+                                    type="button"
+                                    onClick={handleCloseModal}
+                                    className="flex-1 bg-white border border-gray-200 text-charcoal-600 rounded-xl py-3 text-xs font-black uppercase tracking-widest hover:bg-gray-50 transition-all shadow-sm"
+                                >
+                                    Cancelar
+                                </button>
+                            </div>
+                        </form>
                     </div>
                 </div>
             )}

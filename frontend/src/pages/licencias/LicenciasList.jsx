@@ -4,6 +4,21 @@ import { licenciasService } from '../../api/licencias.service';
 import { useAuth } from '../../context/AuthContext';
 import { formatCurrency, formatDate } from '../../lib/utils';
 import { toast } from 'react-hot-toast';
+import { 
+    PlusIcon, 
+    MagnifyingGlassIcon, 
+    KeyIcon, 
+    FunnelIcon, 
+    CalendarIcon, 
+    ComputerDesktopIcon, 
+    CheckBadgeIcon, 
+    PencilSquareIcon, 
+    TrashIcon,
+    XMarkIcon,
+    ArrowPathIcon,
+    ChevronLeftIcon,
+    ChevronRightIcon
+} from '@heroicons/react/24/outline';
 import Pagination from '../../components/Pagination';
 
 const LicenciasList = () => {
@@ -106,181 +121,311 @@ const LicenciasList = () => {
 
     return (
         <div className="space-y-6">
-            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-                <div>
-                    <h1 className="text-2xl font-bold text-gray-900">Licencias de Software</h1>
-                    <p className="mt-1 text-sm text-gray-500">Gestión de suscripciones, claves OEM y software por volumen.</p>
+            {/* Sección de Encabezado: Título y Descripción */}
+            <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
+                <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+                    <div>
+                        <h1 className="text-2xl font-black text-charcoal-900 flex items-center gap-3">
+                            <div className="bg-fnc-50 p-2 rounded-lg border border-fnc-100">
+                                <KeyIcon className="w-6 h-6 text-fnc-600" />
+                            </div>
+                            Licencias de Software
+                        </h1>
+                        <p className="text-charcoal-500 text-sm mt-1 font-medium ml-11">
+                            Gestión de suscripciones, claves OEM y software por volumen institucional
+                        </p>
+                    </div>
+                    {canEdit && (
+                        <button
+                            onClick={handleOpenNew}
+                            className="bg-fnc-600 text-white px-5 py-2.5 rounded-lg hover:bg-fnc-700 flex items-center gap-2 shrink-0 shadow-sm transition-all font-bold text-sm uppercase tracking-widest"
+                        >
+                            <PlusIcon className="w-5 h-5" />
+                            Registrar Licencia
+                        </button>
+                    )}
                 </div>
-                {canEdit && (
-                    <button
-                        onClick={handleOpenNew}
-                        className="bg-indigo-600 text-white px-4 py-2 rounded-lg font-medium hover:bg-indigo-500 shadow-sm transition-colors"
-                    >
-                        + Registrar Licencia
-                    </button>
-                )}
             </div>
 
-            {/* Filtros */}
-            <div className="bg-white p-4 rounded-xl shadow-sm border border-gray-200 flex flex-col sm:flex-row gap-4">
-                <input
-                    type="text"
-                    placeholder="Buscar software, key o placa..."
-                    value={search}
-                    onChange={e => { setSearch(e.target.value); setPage(1); }}
-                    className="flex-1 rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm border p-2"
-                />
-                <select
-                    value={tipoFiltro}
-                    onChange={e => { setTipoFiltro(e.target.value); setPage(1); }}
-                    className="rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm border p-2"
-                >
-                    <option value="">Todos los tipos</option>
-                    <option value="PERPETUA">Perpetua</option>
-                    <option value="SUSCRIPCION">Suscripción</option>
-                    <option value="OEM">OEM</option>
-                    <option value="OPEN">Volume/Open</option>
-                </select>
-                <select
-                    value={asignadaFiltro}
-                    onChange={e => { setAsignadaFiltro(e.target.value); setPage(1); }}
-                    className="rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm border p-2"
-                >
-                    <option value="">Disponibilidad</option>
-                    <option value="false">Disponibles (Sin asignar)</option>
-                    <option value="true">En Uso (Asignadas)</option>
-                </select>
-            </div>
-
-            {/* Tabla */}
+            {/* Sección de Contenido: Filtros y Tabla */}
             <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
-                <div className="overflow-x-auto">
-                    <table className="min-w-full divide-y divide-gray-200">
-                        <thead className="bg-gray-50">
-                            <tr>
-                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Software</th>
-                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Tipo</th>
-                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Key / SN</th>
-                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Vencimiento</th>
-                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Asignación</th>
-                                {canEdit && <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Acciones</th>}
-                            </tr>
-                        </thead>
-                        <tbody className="bg-white divide-y divide-gray-200">
-                            {isLoading ? (
-                                <tr><td colSpan="6" className="px-6 py-12 text-center text-gray-500">Cargando...</td></tr>
-                            ) : licencias.length === 0 ? (
-                                <tr><td colSpan="6" className="px-6 py-12 text-center text-gray-500">No se encontraron licencias.</td></tr>
-                            ) : licencias.map(lic => (
-                                <tr key={lic.id} className="hover:bg-gray-50 transition-colors">
-                                    <td className="px-6 py-4">
-                                        <p className="font-semibold text-gray-900">{lic.software} {lic.version}</p>
-                                        <p className="text-xs text-gray-500">{formatCurrency(lic.costo)}</p>
-                                    </td>
-                                    <td className="px-6 py-4">
-                                        <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-100 text-blue-800">
-                                            {lic.tipoLicencia}
-                                        </span>
-                                    </td>
-                                    <td className="px-6 py-4">
-                                        <p className="font-mono text-xs text-gray-600 truncate max-w-[150px]">{lic.llaveLicencia || 'N/A'}</p>
-                                    </td>
-                                    <td className="px-6 py-4 whitespace-nowrap">
-                                        {lic.tipoLicencia === 'SUSCRIPCION' ? (
-                                            <span className={lic.vencimiento && new Date(lic.vencimiento) < new Date() ? 'text-red-600 font-semibold' : 'text-gray-900'}>
-                                                {formatDate(lic.vencimiento) || '-'}
-                                            </span>
-                                        ) : <span className="text-gray-400">N/A</span>}
-                                    </td>
-                                    <td className="px-6 py-4">
-                                        {lic.activo ? (
-                                            <a href={`/activos/${lic.activoId}`} className="text-indigo-600 hover:text-indigo-900 font-medium text-xs">
-                                                {lic.activo.placa} ({lic.activo.marca})
-                                            </a>
-                                        ) : (
-                                            <span className="text-green-600 text-xs font-semibold bg-green-50 px-2 py-1 rounded">Disponible</span>
-                                        )}
-                                    </td>
-                                    {canEdit && (
-                                        <td className="px-6 py-4 text-right font-medium">
-                                            <button onClick={() => handleOpenEdit(lic)} className="text-indigo-600 hover:text-indigo-900 mr-3 text-xs">Editar</button>
-                                            <button onClick={() => handleDelete(lic.id, lic.software)} className="text-red-600 hover:text-red-900 text-xs">Cerrar</button>
-                                        </td>
-                                    )}
-                                </tr>
-                            ))}
-                        </tbody>
-                    </table>
+                <div className="p-4 border-b border-gray-100 bg-gray-50/50">
+                    <div className="flex flex-col sm:flex-row gap-4 items-center">
+                        <div className="flex-1 w-full relative">
+                            <MagnifyingGlassIcon className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-5 h-5 pointer-events-none" />
+                            <input
+                                type="text"
+                                placeholder="Buscar software, key o placa..."
+                                value={search}
+                                onChange={e => { setSearch(e.target.value); setPage(1); }}
+                                className="w-full pl-10 pr-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-fnc-500 focus:border-fnc-500 text-sm bg-white transition-all shadow-sm font-medium"
+                            />
+                        </div>
+                        <div className="flex gap-4 w-full sm:w-auto">
+                            <div className="relative flex-1 sm:flex-none">
+                                <FunnelIcon className="absolute left-2.5 top-1/2 -translate-y-1/2 text-gray-400 w-4 h-4 pointer-events-none" />
+                                <select
+                                    value={tipoFiltro}
+                                    onChange={e => { setTipoFiltro(e.target.value); setPage(1); }}
+                                    className="w-full pl-8 pr-8 py-2 rounded-lg border border-gray-200 shadow-sm focus:ring-2 focus:ring-fnc-500 text-[10px] uppercase font-black tracking-widest bg-white appearance-none transition-all cursor-pointer"
+                                >
+                                    <option value="">TODOS LOS TIPOS</option>
+                                    <option value="PERPETUA">PERPETUA</option>
+                                    <option value="SUSCRIPCION">SUSCRIPCIÓN</option>
+                                    <option value="OEM">OEM</option>
+                                    <option value="OPEN">VOLUME/OPEN</option>
+                                </select>
+                            </div>
+                            <div className="relative flex-1 sm:flex-none">
+                                <CheckBadgeIcon className="absolute left-2.5 top-1/2 -translate-y-1/2 text-gray-400 w-4 h-4 pointer-events-none" />
+                                <select
+                                    value={asignadaFiltro}
+                                    onChange={e => { setAsignadaFiltro(e.target.value); setPage(1); }}
+                                    className="w-full pl-8 pr-8 py-2 rounded-lg border border-gray-200 shadow-sm focus:ring-2 focus:ring-fnc-500 text-[10px] uppercase font-black tracking-widest bg-white appearance-none transition-all cursor-pointer"
+                                >
+                                    <option value="">DISPONIBILIDAD</option>
+                                    <option value="false">DISPONIBLES</option>
+                                    <option value="true">EN USO</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
                 </div>
-                
+
+                <div className="p-0">
+                    {isLoading ? (
+                        <div className="text-center py-16 text-charcoal-400 font-medium">Cargando licencias...</div>
+                    ) : licencias.length === 0 ? (
+                        <div className="text-center py-16 text-charcoal-400 font-bold italic">
+                            No se encontraron licencias con los criterios de búsqueda.
+                        </div>
+                    ) : (
+                        <>
+                            {/* Desktop View */}
+                            <div className="hidden md:block">
+                                <div className="overflow-x-auto">
+                                    <table className="min-w-full divide-y divide-gray-200">
+                                        <thead className="bg-gray-50">
+                                            <tr>
+                                                <th className="px-6 py-3 text-left text-[10px] font-black text-gray-500 uppercase tracking-widest">Software</th>
+                                                <th className="px-6 py-3 text-left text-[10px] font-black text-gray-500 uppercase tracking-widest">Tipo</th>
+                                                <th className="px-6 py-3 text-left text-[10px] font-black text-gray-500 uppercase tracking-widest">Key / SN</th>
+                                                <th className="px-6 py-3 text-left text-[10px] font-black text-gray-500 uppercase tracking-widest">Vencimiento</th>
+                                                <th className="px-6 py-3 text-left text-[10px] font-black text-gray-500 uppercase tracking-widest">Asignación</th>
+                                                {canEdit && <th className="px-6 py-3 text-right text-[10px] font-black text-gray-500 uppercase tracking-widest">Acciones</th>}
+                                            </tr>
+                                        </thead>
+                                        <tbody className="bg-white divide-y divide-gray-100">
+                                            {licencias.map(lic => (
+                                                 <tr key={lic.id} className="hover:bg-gray-50/50 transition-colors">
+                                                     <td className="px-6 py-4">
+                                                         <p className="font-bold text-charcoal-900 text-sm">{lic.software} {lic.version}</p>
+                                                         <p className="text-[10px] text-fnc-500 font-black uppercase tracking-widest mt-0.5">{formatCurrency(lic.costo)}</p>
+                                                     </td>
+                                                     <td className="px-6 py-4">
+                                                         <span className="inline-flex items-center px-2 py-0.5 rounded-lg text-[10px] font-black uppercase border border-blue-100 bg-blue-50 text-blue-700">
+                                                             {lic.tipoLicencia}
+                                                         </span>
+                                                     </td>
+                                                     <td className="px-6 py-4">
+                                                         <p className="font-mono text-xs font-bold text-charcoal-500 truncate max-w-[150px]">{lic.llaveLicencia || 'N/A'}</p>
+                                                     </td>
+                                                     <td className="px-6 py-4 whitespace-nowrap text-xs font-bold">
+                                                         {lic.tipoLicencia === 'SUSCRIPCION' ? (
+                                                             <div className="flex items-center gap-1.5">
+                                                                 <CalendarIcon className="w-3.5 h-3.5 text-charcoal-400" />
+                                                                 <span className={lic.vencimiento && new Date(lic.vencimiento) < new Date() ? 'text-red-600' : 'text-charcoal-600'}>
+                                                                     {formatDate(lic.vencimiento) || '-'}
+                                                                 </span>
+                                                             </div>
+                                                         ) : <span className="text-charcoal-300 italic font-medium">N/A</span>}
+                                                     </td>
+                                                     <td className="px-6 py-4">
+                                                         {lic.activo ? (
+                                                             <button 
+                                                                 onClick={() => window.location.href = `/activos/${lic.activoId}`}
+                                                                 className="text-fnc-600 hover:text-fnc-700 font-black text-[10px] uppercase tracking-widest flex items-center gap-2 bg-fnc-50 px-2 py-1 rounded-lg border border-fnc-100 shadow-sm transition-all"
+                                                             >
+                                                                 <ComputerDesktopIcon className="w-3.5 h-3.5" />
+                                                                 {lic.activo.placa}
+                                                             </button>
+                                                         ) : (
+                                                             <span className="text-green-700 text-[10px] font-black bg-green-50 px-2.5 py-1 rounded-lg border border-green-100 uppercase tracking-widest">Disponible</span>
+                                                         )}
+                                                     </td>
+                                                     {canEdit && (
+                                                         <td className="px-6 py-4 text-right">
+                                                             <div className="flex justify-end gap-1">
+                                                                 <button 
+                                                                     onClick={() => handleOpenEdit(lic)} 
+                                                                     className="text-charcoal-400 hover:text-fnc-600 p-2 rounded-lg transition-all"
+                                                                     title="Editar"
+                                                                 >
+                                                                     <PencilSquareIcon className="w-4 h-4" />
+                                                                 </button>
+                                                                 <button 
+                                                                     onClick={() => handleDelete(lic.id, lic.software)} 
+                                                                     className="text-charcoal-400 hover:text-red-600 p-2 rounded-lg transition-all"
+                                                                     title="Eliminar"
+                                                                 >
+                                                                     <TrashIcon className="w-4 h-4" />
+                                                                 </button>
+                                                             </div>
+                                                         </td>
+                                                     )}
+                                                 </tr>
+                                             ))}
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+
+                            {/* Mobile View */}
+                            <div className="md:hidden space-y-3 p-4 bg-gray-50/30">
+                                {licencias.map(lic => (
+                                    <div key={lic.id} className="bg-white p-4 rounded-xl border border-gray-100 shadow-sm space-y-4 hover:border-fnc-200 transition-all">
+                                        <div className="flex justify-between items-start">
+                                            <div className="min-w-0">
+                                                <h3 className="font-bold text-charcoal-900 text-sm truncate">{lic.software} {lic.version}</h3>
+                                                <p className="text-[10px] text-fnc-500 font-black uppercase tracking-widest mt-0.5">{formatCurrency(lic.costo)}</p>
+                                            </div>
+                                            <span className="inline-flex items-center px-2 py-0.5 rounded-lg text-[10px] font-black uppercase border border-blue-100 bg-blue-50 text-blue-700 shadow-sm">
+                                                {lic.tipoLicencia}
+                                            </span>
+                                        </div>
+
+                                        <div className="grid grid-cols-2 gap-3 text-[10px] font-bold">
+                                            <div className="space-y-1">
+                                                <p className="text-charcoal-400 uppercase tracking-widest">Key / ID</p>
+                                                <p className="font-mono text-charcoal-600 truncate">{lic.llaveLicencia || 'N/A'}</p>
+                                            </div>
+                                            <div className="space-y-1 text-right">
+                                                <p className="text-charcoal-400 uppercase tracking-widest text-right">Estado</p>
+                                                <div className="mt-1 flex justify-end">
+                                                    {lic.activo ? (
+                                                        <span className="text-fnc-600 bg-fnc-50 px-2 py-0.5 rounded border border-fnc-100 uppercase tracking-widest">Asignada a {lic.activo.placa}</span>
+                                                    ) : (
+                                                        <span className="text-green-700 bg-green-50 px-2 py-0.5 rounded border border-green-100 uppercase tracking-widest">Disponible</span>
+                                                    )}
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        {canEdit && (
+                                            <div className="grid grid-cols-2 gap-2 pt-3 border-t border-gray-50">
+                                                <button
+                                                    onClick={() => handleOpenEdit(lic)}
+                                                    className="flex items-center justify-center gap-1.5 py-2 text-[10px] font-black text-fnc-600 bg-fnc-50 rounded-lg uppercase tracking-widest hover:bg-fnc-100 transition-all shadow-sm"
+                                                >
+                                                    <PencilSquareIcon className="w-3.5 h-3.5" />
+                                                    Editar
+                                                </button>
+                                                <button
+                                                    onClick={() => handleDelete(lic.id, lic.software)}
+                                                    className="flex items-center justify-center gap-1.5 py-2 text-[10px] font-black text-red-600 bg-red-50 rounded-lg uppercase tracking-widest hover:bg-red-100 transition-all shadow-sm"
+                                                >
+                                                    <TrashIcon className="w-3.5 h-3.5" />
+                                                    Borrar
+                                                </button>
+                                            </div>
+                                        )}
+                                    </div>
+                                ))}
+                            </div>
+                        </>
+                    )}
+                </div>
+
                 {!isLoading && licencias.length > 0 && (
-                    <Pagination
-                        currentPage={page}
-                        totalPages={pagination.pages || 1}
-                        totalItems={pagination.total || licencias.length}
-                        itemsPerPage={9}
-                        currentCount={licencias.length}
-                        onPageChange={setPage}
-                    />
+                    <div className="p-4 border-t border-gray-100 bg-gray-50/30">
+                        <Pagination
+                            currentPage={page}
+                            totalPages={pagination.pages || 1}
+                            totalItems={pagination.total || licencias.length}
+                            itemsPerPage={9}
+                            currentCount={licencias.length}
+                            onPageChange={setPage}
+                        />
+                    </div>
                 )}
             </div>
 
-            {/* Modal de Crear/Editar */}
             {showModal && (
-                <div className="fixed inset-0 z-[10001] flex items-center justify-center bg-black bg-opacity-50 p-4">
-                    <div className="bg-white rounded-xl shadow-xl w-full max-w-lg overflow-hidden">
-                        <div className="px-6 py-4 border-b border-gray-200 flex justify-between items-center">
-                            <h3 className="text-lg font-bold text-gray-900">{isEditing ? 'Editar Licencia' : 'Registrar Software'}</h3>
-                            <button onClick={() => setShowModal(false)} className="text-gray-400 hover:text-gray-500">&times;</button>
+                <div className="fixed inset-0 z-[10001] flex items-center justify-center p-4">
+                    <div className="absolute inset-0 bg-charcoal-900/40 backdrop-blur-sm" onClick={() => setShowModal(false)}></div>
+                    <div className="relative bg-white rounded-2xl shadow-2xl w-full max-w-lg overflow-hidden transform transition-all">
+                        <div className="px-6 py-5 border-b border-gray-100 flex justify-between items-center bg-gray-50/50">
+                            <div>
+                                <h3 className="text-lg font-black text-charcoal-900 uppercase tracking-widest flex items-center gap-2">
+                                    <KeyIcon className="w-5 h-5 text-fnc-600" />
+                                    {isEditing ? 'Editar Licencia' : 'Registrar Software'}
+                                </h3>
+                                <p className="text-[10px] font-black text-charcoal-400 uppercase tracking-widest mt-0.5">Gestión de activos digitales</p>
+                            </div>
+                            <button 
+                                onClick={() => setShowModal(false)} 
+                                className="p-2 hover:bg-white rounded-full transition-colors text-charcoal-400 shadow-sm border border-transparent hover:border-gray-100"
+                            >
+                                <XMarkIcon className="w-6 h-6" />
+                            </button>
                         </div>
                         <form onSubmit={handleSave} className="p-6 space-y-4">
                             <div className="grid grid-cols-2 gap-4">
                                 <div className="col-span-2">
-                                    <label className="block text-sm font-medium text-gray-700">Software *</label>
-                                    <input required type="text" className="mt-1 block w-full border rounded-md p-2 text-sm" value={formData.software} onChange={e => setFormData({...formData, software: e.target.value})} placeholder="Ej: Microsoft Office LTSC" />
+                                    <label className="block text-[10px] font-black text-charcoal-400 uppercase tracking-widest mb-1.5">Nombre del Software *</label>
+                                    <input required type="text" className="block w-full border border-gray-200 rounded-lg p-2.5 text-sm font-bold bg-white focus:ring-2 focus:ring-fnc-500 focus:border-fnc-500 transition-all outline-none" value={formData.software} onChange={e => setFormData({...formData, software: e.target.value})} placeholder="Ej: Microsoft Office LTSC" />
                                 </div>
                                 <div className="col-span-1">
-                                    <label className="block text-sm font-medium text-gray-700">Versión</label>
-                                    <input type="text" className="mt-1 block w-full border rounded-md p-2 text-sm" value={formData.version} onChange={e => setFormData({...formData, version: e.target.value})} placeholder="Ej: 2021" />
+                                    <label className="block text-[10px] font-black text-charcoal-400 uppercase tracking-widest mb-1.5">Versión/Edición</label>
+                                    <input type="text" className="block w-full border border-gray-200 rounded-lg p-2.5 text-sm font-bold bg-white focus:ring-2 focus:ring-fnc-500 outline-none" value={formData.version} onChange={e => setFormData({...formData, version: e.target.value})} placeholder="Ej: 2021 Pro Plus" />
                                 </div>
                                 <div className="col-span-1">
-                                    <label className="block text-sm font-medium text-gray-700">Tipo *</label>
-                                    <select required className="mt-1 block w-full border rounded-md p-2 text-sm" value={formData.tipoLicencia} onChange={e => setFormData({...formData, tipoLicencia: e.target.value})}>
-                                        <option value="PERPETUA">Perpetua</option>
-                                        <option value="SUSCRIPCION">Suscripción</option>
+                                    <label className="block text-[10px] font-black text-charcoal-400 uppercase tracking-widest mb-1.5">Tipo de Licencia *</label>
+                                    <select required className="block w-full border border-gray-200 rounded-lg p-2.5 text-sm font-bold bg-white focus:ring-2 focus:ring-fnc-500 outline-none appearance-none" value={formData.tipoLicencia} onChange={e => setFormData({...formData, tipoLicencia: e.target.value})}>
+                                        <option value="PERPETUA">PERPETUA</option>
+                                        <option value="SUSCRIPCION">SUSCRIPCIÓN</option>
                                         <option value="OEM">OEM</option>
-                                        <option value="OPEN">Open/Volumen</option>
+                                        <option value="OPEN">OPEN/VOLUMEN</option>
                                     </select>
                                 </div>
                                 <div className="col-span-2">
-                                    <label className="block text-sm font-medium text-gray-700">Llave / Product Key</label>
-                                    <input type="text" className="mt-1 block w-full border rounded-md p-2 text-sm font-mono" value={formData.llaveLicencia} onChange={e => setFormData({...formData, llaveLicencia: e.target.value})} />
+                                    <label className="block text-[10px] font-black text-charcoal-400 uppercase tracking-widest mb-1.5">Llave de Activación / SN</label>
+                                    <input type="text" className="block w-full border border-gray-200 rounded-lg p-2.5 text-sm font-mono font-bold bg-gray-50 focus:ring-2 focus:ring-fnc-500 outline-none" value={formData.llaveLicencia} onChange={e => setFormData({...formData, llaveLicencia: e.target.value})} placeholder="XXXXX-XXXXX-XXXXX" />
                                 </div>
                                 <div className="col-span-1">
-                                    <label className="block text-sm font-medium text-gray-700">Fecha Compra</label>
-                                    <input type="date" className="mt-1 block w-full border rounded-md p-2 text-sm" value={formData.fechaCompra} onChange={e => setFormData({...formData, fechaCompra: e.target.value})} />
+                                    <label className="block text-[10px] font-black text-charcoal-400 uppercase tracking-widest mb-1.5">Fecha de Compra</label>
+                                    <input type="date" className="block w-full border border-gray-200 rounded-lg p-2.5 text-sm font-bold bg-white focus:ring-2 focus:ring-fnc-500 outline-none" value={formData.fechaCompra} onChange={e => setFormData({...formData, fechaCompra: e.target.value})} />
                                 </div>
                                 <div className="col-span-1">
-                                    <label className="block text-sm font-medium text-gray-700">Costo</label>
-                                    <input type="number" step="0.01" className="mt-1 block w-full border rounded-md p-2 text-sm" value={formData.costo} onChange={e => setFormData({...formData, costo: e.target.value})} />
+                                    <label className="block text-[10px] font-black text-charcoal-400 uppercase tracking-widest mb-1.5">Valor Unitario</label>
+                                    <input type="number" step="0.01" className="block w-full border border-gray-200 rounded-lg p-2.5 text-sm font-bold bg-white focus:ring-2 focus:ring-fnc-500 outline-none" value={formData.costo} onChange={e => setFormData({...formData, costo: e.target.value})} placeholder="0.00" />
                                 </div>
                                 {formData.tipoLicencia === 'SUSCRIPCION' && (
-                                    <div className="col-span-2">
-                                        <label className="block text-sm font-medium text-gray-700 text-red-600">Fecha Vencimiento *</label>
-                                        <input required type="date" className="mt-1 block w-full border rounded-md p-2 text-sm border-red-200 bg-red-50" value={formData.vencimiento} onChange={e => setFormData({...formData, vencimiento: e.target.value})} />
+                                    <div className="col-span-2 p-3 bg-red-50 border border-red-100 rounded-xl">
+                                        <label className="block text-[10px] font-black text-red-600 uppercase tracking-widest mb-1.5">Fecha de Vencimiento *</label>
+                                        <input required type="date" className="block w-full border border-red-200 rounded-lg p-2.5 text-sm font-bold bg-white focus:ring-2 focus:ring-red-500 outline-none" value={formData.vencimiento} onChange={e => setFormData({...formData, vencimiento: e.target.value})} />
                                     </div>
                                 )}
                                 <div className="col-span-2">
-                                    <label className="block text-sm font-medium text-gray-700">Observaciones</label>
-                                    <textarea rows={2} className="mt-1 block w-full border rounded-md p-2 text-sm" value={formData.observaciones} onChange={e => setFormData({...formData, observaciones: e.target.value})} />
+                                    <label className="block text-[10px] font-black text-charcoal-400 uppercase tracking-widest mb-1.5">Observaciones Adicionales</label>
+                                    <textarea rows={2} className="block w-full border border-gray-200 rounded-lg p-2.5 text-sm font-medium bg-white focus:ring-2 focus:ring-fnc-500 outline-none" value={formData.observaciones} onChange={e => setFormData({...formData, observaciones: e.target.value})} placeholder="..." />
                                 </div>
                             </div>
-                            <div className="pt-4 flex gap-3">
-                                <button type="submit" disabled={saveMutation.isLoading} className="flex-1 bg-indigo-600 text-white rounded-md py-2 text-sm font-semibold hover:bg-indigo-500">
-                                    {saveMutation.isLoading ? 'Guardando...' : 'Guardar y Cerrar'}
+                            <div className="pt-6 flex gap-3">
+                                <button 
+                                    type="submit" 
+                                    disabled={saveMutation.isLoading} 
+                                    className="flex-1 bg-fnc-600 text-white rounded-xl py-3 text-xs font-black uppercase tracking-widest shadow-lg hover:bg-fnc-700 disabled:opacity-50 transition-all flex items-center justify-center gap-2"
+                                >
+                                    {saveMutation.isLoading && <ArrowPathIcon className="w-4 h-4 animate-spin" />}
+                                    {isEditing ? 'Actualizar Datos' : 'Registrar Software'}
                                 </button>
-                                <button type="button" onClick={() => setShowModal(false)} className="flex-1 bg-white border border-gray-300 text-gray-700 rounded-md py-2 text-sm font-semibold hover:bg-gray-50">
-                                    Cancelar
+                                <button 
+                                    type="button" 
+                                    onClick={() => setShowModal(false)} 
+                                    className="flex-1 bg-white border border-gray-200 text-charcoal-600 rounded-xl py-3 text-xs font-black uppercase tracking-widest hover:bg-gray-50 transition-all shadow-sm"
+                                >
+                                    Descartar
                                 </button>
                             </div>
                         </form>

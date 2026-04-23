@@ -303,11 +303,11 @@ const ClientLayout = ({ children }) => {
             {/* Main Content Desktop */}
             <motion.main
                 initial={false}
-                animate={{ marginLeft: sidebarOpen ? 280 : 80 }}
+                animate={{ paddingLeft: sidebarOpen ? 280 : 80 }}
                 transition={{ type: 'spring', stiffness: 300, damping: 30 }}
-                className="flex-1 min-h-screen hidden lg:block"
+                className="flex-1 min-h-screen hidden lg:block w-full"
             >
-                <div className="p-8 max-w-7xl mx-auto">
+                <div className="p-4 md:p-6">
                     {children}
                 </div>
             </motion.main>

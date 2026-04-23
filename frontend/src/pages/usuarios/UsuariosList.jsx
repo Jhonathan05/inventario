@@ -1,10 +1,19 @@
 import { useState } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { 
+    UserGroupIcon, 
+    UserPlusIcon, 
+    MagnifyingGlassIcon, 
+    EnvelopeIcon, 
+    ShieldCheckIcon, 
+    CheckCircleIcon, 
+    XCircleIcon 
+} from '@heroicons/react/24/outline';
 import { usuariosService } from '../../api/usuarios.service';
 import UsuarioForm from './components/UsuarioForm';
 import Pagination from '../../components/Pagination';
 
-const Usuarios = () => {
+const UsuariosList = () => {
     const queryClient = useQueryClient();
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [selectedUsuario, setSelectedUsuario] = useState(null);
@@ -39,69 +48,120 @@ const Usuarios = () => {
         }
     };
 
-    if (loading && usuarios.length === 0) return <div className="p-4">Cargando usuarios...</div>;
-
-
     return (
-        <div>
-            <div className="sm:flex sm:items-center">
-                <div className="sm:flex-auto">
-                    <h1 className="text-base font-semibold leading-6 text-gray-900">Usuarios</h1>
-                    <p className="text-sm text-gray-500">Lista de todos los usuarios del sistema con acceso administrativo o de analista.</p>
-                </div>
-                <div className="mt-4 sm:ml-16 sm:mt-0 sm:flex-none">
-                    <button
-                        type="button"
-                        onClick={handleCreate}
-                        className="block rounded-md bg-indigo-600 px-3 py-2 text-center text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"
-                    >
-                        Agregar Usuario
-                    </button>
+        <div className="space-y-6">
+            <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
+                <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+                    <div>
+                        <h1 className="text-2xl font-black text-charcoal-900 flex items-center gap-3">
+                            <div className="bg-fnc-50 p-2 rounded-lg border border-fnc-100">
+                                <UserGroupIcon className="w-6 h-6 text-fnc-600" />
+                            </div>
+                            Usuarios
+                        </h1>
+                        <p className="text-charcoal-500 text-sm mt-1 font-medium ml-11">
+                            Control de acceso y gestión de perfiles de usuario
+                        </p>
+                    </div>
+                    <div>
+                        <button
+                            type="button"
+                            onClick={handleCreate}
+                            className="bg-fnc-600 text-white px-5 py-2.5 rounded-lg hover:bg-fnc-700 flex items-center gap-2 shrink-0 shadow-sm transition-all font-bold text-sm uppercase tracking-wider"
+                        >
+                            <UserPlusIcon className="w-4 h-4" />
+                            Agregar Usuario
+                        </button>
+                    </div>
                 </div>
             </div>
 
-            {error && <div className="mt-4 p-4 text-red-500 bg-red-50 rounded-md border border-red-200">{error}</div>}
+            <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+                <div className="p-0">
+                    {loading ? (
+                        <div className="text-center py-20">
+                            <p className="text-charcoal-400 font-bold italic text-sm uppercase tracking-widest">Cargando usuarios...</p>
+                        </div>
+                    ) : (
+                        <>
+                            {/* Desktop View */}
+                            <div className="hidden md:block">
+                                <div className="overflow-x-auto">
+                                    <table className="min-w-full divide-y divide-gray-200">
+                                        <thead className="bg-gray-50">
+                                            <tr>
+                                                <th className="px-6 py-3 text-left text-[10px] font-black text-gray-500 uppercase tracking-widest">Nombre</th>
+                                                <th className="px-6 py-3 text-left text-[10px] font-black text-gray-500 uppercase tracking-widest">Email</th>
+                                                <th className="px-6 py-3 text-left text-[10px] font-black text-gray-500 uppercase tracking-widest">Rol</th>
+                                                <th className="px-6 py-3 text-left text-[10px] font-black text-gray-500 uppercase tracking-widest">Estado</th>
+                                                <th className="px-6 py-3 text-right text-[10px] font-black text-gray-500 uppercase tracking-widest">Acción</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody className="bg-white divide-y divide-gray-100">
+                                            {currentItems.map((usuario) => (
+                                                <tr key={usuario.id} className="hover:bg-gray-50/50 transition-colors">
+                                                    <td className="whitespace-nowrap px-6 py-4 text-sm font-bold text-charcoal-900">{usuario.nombre}</td>
+                                                    <td className="whitespace-nowrap px-6 py-4 text-xs font-medium text-charcoal-500">{usuario.email}</td>
+                                                    <td className="whitespace-nowrap px-6 py-4">
+                                                        <span className={`inline-flex items-center rounded-lg px-2 py-0.5 text-[10px] font-black uppercase border ${usuario.rol === 'ADMIN' ? 'bg-purple-50 text-purple-700 border-purple-100' : 'bg-blue-50 text-blue-700 border-blue-100'}`}>
+                                                            {usuario.rol === 'ANALISTA_TIC' ? 'Analista TIC' : usuario.rol}
+                                                        </span>
+                                                    </td>
+                                                    <td className="whitespace-nowrap px-6 py-4">
+                                                        <span className={`inline-flex items-center rounded-lg px-2 py-0.5 text-[10px] font-black uppercase border ${usuario.activo ? 'bg-green-50 text-green-700 border-green-100' : 'bg-red-50 text-red-700 border-red-100'}`}>
+                                                            {usuario.activo ? 'Activo' : 'Inactivo'}
+                                                        </span>
+                                                    </td>
+                                                    <td className="whitespace-nowrap px-6 py-4 text-right">
+                                                        <button 
+                                                            onClick={() => handleEdit(usuario)} 
+                                                            className="text-[10px] font-black text-fnc-600 hover:bg-fnc-50 px-3 py-1.5 rounded-lg transition-all uppercase"
+                                                        >
+                                                            Editar
+                                                        </button>
+                                                    </td>
+                                                </tr>
+                                            ))}
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
 
-            <div className="mt-8">
-                <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
-                    <div className="overflow-x-auto">
-                        <table className="min-w-full divide-y divide-gray-200">
-                            <thead className="bg-gray-50">
-                                <tr>
-                                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Nombre</th>
-                                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Email</th>
-                                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Rol</th>
-                                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Estado</th>
-                                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"><span className="sr-only">Editar</span></th>
-                                </tr>
-                            </thead>
-                            <tbody className="bg-white divide-y divide-gray-200">
+                            {/* Mobile View */}
+                            <div className="md:hidden space-y-3 p-4 bg-gray-50/30">
                                 {currentItems.map((usuario) => (
-                                    <tr key={usuario.id}>
-                                        <td className="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-medium text-gray-900 sm:pl-6">{usuario.nombre}</td>
-                                        <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500">{usuario.email}</td>
-                                        <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
-                                            <span className={`inline-flex items-center rounded-md px-2 py-1 text-xs font-medium ring-1 ring-inset ${usuario.rol === 'ADMIN' ? 'bg-purple-50 text-purple-700 ring-purple-700/10' : 'bg-blue-50 text-blue-700 ring-blue-700/10'}`}>
-                                                {usuario.rol === 'ANALISTA_TIC' ? 'Analista TIC' : usuario.rol}
-                                            </span>
-                                        </td>
-                                        <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
-                                            <span className={`inline-flex items-center rounded-md px-2 py-1 text-xs font-medium ring-1 ring-inset ${usuario.activo ? 'bg-green-50 text-green-700 ring-green-600/20' : 'bg-red-50 text-red-700 ring-red-600/10'}`}>
+                                    <div key={usuario.id} className="bg-white p-4 rounded-xl border border-gray-100 shadow-sm space-y-3">
+                                        <div className="flex justify-between items-start">
+                                            <div>
+                                                <p className="font-bold text-charcoal-900 text-sm">{usuario.nombre}</p>
+                                                <p className="text-[10px] text-charcoal-400 font-bold uppercase tracking-wider">{usuario.email}</p>
+                                            </div>
+                                            <span className={`inline-flex items-center rounded-lg px-2 py-0.5 text-[10px] font-black uppercase border ${usuario.activo ? 'bg-green-50 text-green-700 border-green-100' : 'bg-red-50 text-red-700 border-red-100'}`}>
                                                 {usuario.activo ? 'Activo' : 'Inactivo'}
                                             </span>
-                                        </td>
-                                        <td className="whitespace-nowrap py-4 pl-3 pr-4 text-right text-sm font-medium sm:pr-6">
-                                            <button onClick={() => handleEdit(usuario)} className="text-indigo-600 hover:text-indigo-900">Editar</button>
-                                        </td>
-                                    </tr>
+                                        </div>
+                                        <div className="flex justify-between items-center text-[10px] font-bold border-t border-gray-50 pt-3">
+                                            <span className="text-charcoal-400 uppercase tracking-widest flex items-center gap-1">
+                                                <ShieldCheckIcon className="w-3 h-3" /> {usuario.rol}
+                                            </span>
+                                            <button 
+                                                onClick={() => handleEdit(usuario)} 
+                                                className="text-fnc-600 font-black uppercase"
+                                            >
+                                                Editar
+                                            </button>
+                                        </div>
+                                    </div>
                                 ))}
-                            </tbody>
-                        </table>
-                    </div>
+                            </div>
+                        </>
+                    )}
                 </div>
 
+                {error && <div className="p-4 text-red-600 bg-red-50 border-t border-red-100 font-bold text-xs uppercase tracking-widest">{error}</div>}
+
                 {!loading && usuarios.length > 0 && (
-                    <div className="mt-6">
+                    <div className="p-4 border-t border-gray-100 bg-gray-50/30">
                         <Pagination
                             currentPage={currentPage}
                             totalPages={totalPages}
@@ -128,4 +188,4 @@ const Usuarios = () => {
     );
 };
 
-export default Usuarios;
+export default UsuariosList;
