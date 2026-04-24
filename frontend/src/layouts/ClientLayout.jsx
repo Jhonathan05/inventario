@@ -66,47 +66,48 @@ const ClientLayout = ({ children }) => {
             {/* Sidebar Desktop */}
             <motion.aside
                 initial={false}
-                animate={{ width: sidebarOpen ? 280 : 80 }}
-                transition={{ type: 'spring', stiffness: 300, damping: 30 }}
-                className="hidden lg:flex flex-col fixed h-screen z-30 bg-surface-container-lowest border-r border-outline-variant shadow-ambient overflow-hidden"
+                animate={{ width: sidebarOpen ? 280 : 72 }}
+                transition={{ duration: 0.3, ease: 'easeInOut' }}
+                className="hidden lg:flex flex-col fixed h-screen z-30 bg-surface-container-lowest border-r border-outline-variant shadow-ambient"
             >
-                {/* Header Sidebar */}
+                {/* Header */}
                 <div className="p-4 flex items-center gap-3">
                     <button
                         onClick={() => setSidebarOpen(!sidebarOpen)}
-                        className="w-10 h-10 rounded-xl flex items-center justify-center cursor-pointer bg-surface-container-low hover:bg-surface-container-high transition-colors shrink-0"
+                        className="w-10 h-10 rounded-xl flex items-center justify-center cursor-pointer bg-surface-container-low transition-colors shrink-0"
                     >
-                        <Menu size={20} className="text-on-surface" />
+                        <Menu size={18} className="text-on-surface" />
                     </button>
                     
-                    <button
-                        onClick={toggleTheme}
-                        className="w-10 h-10 rounded-xl flex items-center justify-center cursor-pointer bg-surface-container-low hover:bg-surface-container-high transition-colors shrink-0"
-                    >
-                        {theme === 'light' ? <Moon size={18} /> : <Sun size={18} />}
-                    </button>
-
                     <AnimatePresence>
                         {sidebarOpen && (
                             <motion.div
                                 initial={{ opacity: 0, x: -10 }}
                                 animate={{ opacity: 1, x: 0 }}
                                 exit={{ opacity: 0, x: -10 }}
-                                className="overflow-hidden"
+                                className="flex items-center gap-3 overflow-hidden"
                             >
-                                <h1 className="text-sm font-bold whitespace-nowrap font-headline text-on-surface">
-                                    Inventario TIC
-                                </h1>
-                                <p className="text-[10px] whitespace-nowrap text-on-surface-variant font-medium">
-                                    FNC Tolima
-                                </p>
+                                <button
+                                    onClick={toggleTheme}
+                                    className="w-10 h-10 rounded-xl flex items-center justify-center cursor-pointer bg-surface-container-low transition-colors shrink-0"
+                                >
+                                    {theme === 'light' ? <Moon size={18} /> : <Sun size={18} />}
+                                </button>
+                                <div className="overflow-hidden">
+                                    <h1 className="text-sm font-bold whitespace-nowrap font-headline text-on-surface">
+                                        Inventario TIC
+                                    </h1>
+                                    <p className="text-[10px] whitespace-nowrap text-on-surface-variant font-medium">
+                                        FNC Tolima
+                                    </p>
+                                </div>
                             </motion.div>
                         )}
                     </AnimatePresence>
                 </div>
 
                 {/* Navigation */}
-                <nav className="flex-1 px-3 py-4 space-y-1 overflow-y-auto">
+                <nav className="flex-1 px-3 py-2 space-y-1">
                     {filteredNav.map((item) => (
                         <NavLink
                             key={item.href}
@@ -119,12 +120,12 @@ const ClientLayout = ({ children }) => {
                             `}
                         >
                             <item.icon size={20} className="shrink-0" />
-                            <AnimatePresence mode="wait">
+                            <AnimatePresence>
                                 {sidebarOpen && (
                                     <motion.span
-                                        initial={{ opacity: 0, x: -10 }}
-                                        animate={{ opacity: 1, x: 0 }}
-                                        exit={{ opacity: 0, x: -10 }}
+                                        initial={{ opacity: 0 }}
+                                        animate={{ opacity: 1 }}
+                                        exit={{ opacity: 0 }}
                                         className="whitespace-nowrap"
                                     >
                                         {item.name}
@@ -133,14 +134,13 @@ const ClientLayout = ({ children }) => {
                             </AnimatePresence>
 
                             {!sidebarOpen && (
-                                <span className="pointer-events-none absolute left-full ml-4 px-2.5 py-1.5 rounded-lg text-xs font-semibold whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity bg-inverse-surface text-inverse-on-surface shadow-float z-50">
+                                <span className="pointer-events-none absolute left-full ml-3 px-2.5 py-1.5 rounded-lg text-xs font-semibold whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity bg-inverse-surface text-inverse-on-surface shadow-float z-50">
                                     {item.name}
                                 </span>
                             )}
                         </NavLink>
                     ))}
 
-                    {/* Link Externo a Viáticos */}
                     <a
                         href="/viaticos"
                         target="_blank"
@@ -150,9 +150,9 @@ const ClientLayout = ({ children }) => {
                         <AnimatePresence>
                             {sidebarOpen && (
                                 <motion.span
-                                    initial={{ opacity: 0, x: -10 }}
-                                    animate={{ opacity: 1, x: 0 }}
-                                    exit={{ opacity: 0, x: -10 }}
+                                    initial={{ opacity: 0 }}
+                                    animate={{ opacity: 1 }}
+                                    exit={{ opacity: 0 }}
                                     className="flex items-center gap-2 whitespace-nowrap"
                                 >
                                     Sistema Viáticos
@@ -161,7 +161,7 @@ const ClientLayout = ({ children }) => {
                             )}
                         </AnimatePresence>
                         {!sidebarOpen && (
-                            <span className="pointer-events-none absolute left-full ml-4 px-2.5 py-1.5 rounded-lg text-xs font-semibold whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity bg-secondary text-on-secondary shadow-float z-50">
+                            <span className="pointer-events-none absolute left-full ml-3 px-2.5 py-1.5 rounded-lg text-xs font-semibold whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity bg-secondary text-on-secondary shadow-float z-50">
                                 Sistema Viáticos
                             </span>
                         )}
@@ -170,7 +170,7 @@ const ClientLayout = ({ children }) => {
 
                 {/* User Card */}
                 <div className="p-3">
-                    <div className="p-3 rounded-2xl bg-surface-container-low border border-outline-variant/30 overflow-hidden">
+                    <div className="p-3 rounded-xl bg-surface-container-low border border-outline-variant/30">
                         <AnimatePresence mode="wait">
                             {sidebarOpen ? (
                                 <motion.div
@@ -179,54 +179,72 @@ const ClientLayout = ({ children }) => {
                                     animate={{ opacity: 1 }}
                                     exit={{ opacity: 0 }}
                                 >
-                                    <div className="flex items-center gap-3 mb-3">
-                                        <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold text-xs shrink-0">
-                                            {user?.nombre?.[0]}
-                                        </div>
-                                        <div className="overflow-hidden">
-                                            <p className="text-xs font-bold truncate text-on-surface">{user?.nombre}</p>
-                                            <p className="text-[10px] text-on-surface-variant truncate">{ROLE_LABELS[user?.rol]}</p>
-                                        </div>
-                                    </div>
-                                    <div className="grid grid-cols-2 gap-2 mt-2">
-                                        <button className="flex items-center justify-center gap-2 py-1.5 rounded-lg bg-surface-container-high hover:bg-surface-container-highest text-[10px] font-bold text-on-surface-variant transition-colors">
+                                    <p className="text-sm font-bold truncate text-on-surface">
+                                        {user?.nombre}
+                                    </p>
+                                    <p className="text-xs text-on-surface-variant truncate mt-0.5">
+                                        {ROLE_LABELS[user?.rol] || user?.rol}
+                                    </p>
+                                    
+                                    <div className="mt-3 space-y-1">
+                                        <button className="w-full text-[11px] py-1.5 rounded-lg border border-outline-variant/30 hover:bg-surface-container-high transition-colors font-bold text-on-surface-variant flex items-center justify-center gap-2">
                                             <Lock size={12} />
-                                            Clave
+                                            Cambiar clave
                                         </button>
                                         <button 
                                             onClick={handleLogout}
-                                            className="flex items-center justify-center gap-2 py-1.5 rounded-lg bg-primary/5 hover:bg-primary/10 text-[10px] font-bold text-primary transition-colors"
+                                            className="w-full text-[11px] py-1.5 rounded-lg bg-surface-container-high hover:bg-surface-container-highest transition-colors font-bold text-on-surface-variant flex items-center justify-center gap-2"
                                         >
                                             <LogOut size={12} />
-                                            Salir
+                                            Cerrar sesión
                                         </button>
                                     </div>
                                 </motion.div>
                             ) : (
-                                <motion.div
-                                    key="collapsed"
-                                    initial={{ opacity: 0 }}
-                                    animate={{ opacity: 1 }}
-                                    exit={{ opacity: 0 }}
-                                    className="flex flex-col items-center gap-4 py-2"
-                                >
-                                    <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold text-xs">
-                                        {user?.nombre?.[0]}
-                                    </div>
-                                    <button 
+                                <div className="space-y-4 py-1">
+                                    <motion.button
+                                        initial={{ opacity: 0 }}
+                                        animate={{ opacity: 1 }}
+                                        exit={{ opacity: 0 }}
+                                        className="group relative w-full flex justify-center text-on-surface-variant hover:text-primary transition-colors focus:outline-none"
+                                    >
+                                        <Lock size={18} />
+                                        <span className="pointer-events-none absolute left-full ml-3 px-2.5 py-1.5 rounded-lg text-xs font-semibold whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity bg-inverse-surface text-inverse-on-surface shadow-float z-50">
+                                            Cambiar clave
+                                        </span>
+                                    </motion.button>
+                                    <motion.button
+                                        initial={{ opacity: 0 }}
+                                        animate={{ opacity: 1 }}
+                                        exit={{ opacity: 0 }}
                                         onClick={handleLogout}
-                                        className="text-on-surface-variant hover:text-primary transition-colors"
+                                        className="group relative w-full flex justify-center text-on-surface-variant hover:text-primary transition-colors focus:outline-none"
                                     >
                                         <LogOut size={18} />
-                                    </button>
-                                </motion.div>
+                                        <span className="pointer-events-none absolute left-full ml-3 px-2.5 py-1.5 rounded-lg text-xs font-semibold whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity bg-inverse-surface text-inverse-on-surface shadow-float z-50">
+                                            Cerrar sesión
+                                        </span>
+                                    </motion.button>
+                                </div>
                             )}
                         </AnimatePresence>
                     </div>
                 </div>
             </motion.aside>
 
-            {/* Mobile Header */}
+            {/* Main Content Desktop */}
+            <motion.main
+                initial={false}
+                animate={{ paddingLeft: sidebarOpen ? 280 : 72 }}
+                transition={{ duration: 0.3, ease: 'easeInOut' }}
+                className="flex-1 min-h-screen hidden lg:block w-full"
+            >
+                <div className="p-6 lg:p-8 max-w-[1600px] mx-auto">
+                    {children}
+                </div>
+            </motion.main>
+
+            {/* Mobile Header, Overlay and Sidebar remain similar but with updated styling */}
             <div className="lg:hidden fixed top-0 left-0 right-0 z-30 h-14 glass border-b border-outline-variant/30 flex items-center justify-between px-4">
                 <div className="flex items-center gap-3">
                     <button
@@ -242,7 +260,6 @@ const ClientLayout = ({ children }) => {
                 </button>
             </div>
 
-            {/* Mobile Menu Overlay */}
             <AnimatePresence>
                 {mobileMenuOpen && (
                     <>
@@ -299,18 +316,6 @@ const ClientLayout = ({ children }) => {
                     </>
                 )}
             </AnimatePresence>
-
-            {/* Main Content Desktop */}
-            <motion.main
-                initial={false}
-                animate={{ paddingLeft: sidebarOpen ? 280 : 80 }}
-                transition={{ type: 'spring', stiffness: 300, damping: 30 }}
-                className="flex-1 min-h-screen hidden lg:block w-full"
-            >
-                <div className="p-4 md:p-6">
-                    {children}
-                </div>
-            </motion.main>
 
             {/* Mobile Content */}
             <main className="lg:hidden flex-1 mt-14 p-4 min-h-screen">

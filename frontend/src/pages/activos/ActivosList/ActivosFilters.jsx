@@ -1,7 +1,67 @@
+import Select from 'react-select';
 import { MUNICIPIOS_TOLIMA } from '../../../lib/constants';
+import { MagnifyingGlassIcon, FunnelIcon, XMarkIcon, ClockIcon } from '@heroicons/react/24/outline';
+
+const customSelectStyles = {
+    control: (base, state) => ({
+        ...base,
+        borderRadius: '9999px',
+        padding: '2px 8px',
+        fontSize: '12px',
+        fontWeight: '600',
+        borderColor: state.isFocused ? '#8d1024' : '#f3f4f6',
+        boxShadow: 'none',
+        backgroundColor: '#ffffff',
+        '&:hover': {
+            borderColor: '#8d1024'
+        },
+        transition: 'all 0.2s ease',
+        textTransform: 'capitalize'
+    }),
+    option: (base, state) => ({
+        ...base,
+        fontSize: '12px',
+        fontWeight: state.isSelected ? '700' : '600',
+        backgroundColor: state.isSelected ? '#f3f4f6' : state.isFocused ? '#f9fafb' : 'transparent',
+        color: state.isSelected ? '#111827' : '#4b5563',
+        cursor: 'pointer',
+        padding: '10px 16px',
+        textTransform: 'capitalize',
+        '&:active': {
+            backgroundColor: '#f3f4f6'
+        }
+    }),
+    valueContainer: (base) => ({
+        ...base,
+        textTransform: 'capitalize'
+    }),
+    menu: (base) => ({
+        ...base,
+        borderRadius: '16px',
+        overflow: 'hidden',
+        boxShadow: '0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1)',
+        border: '1px solid #f3f4f6',
+        padding: '4px',
+        zIndex: 50
+    }),
+    groupHeading: (base) => ({
+        ...base,
+        fontSize: '10px',
+        fontWeight: 'bold',
+        textTransform: 'uppercase',
+        letterSpacing: '0.05em',
+        color: '#9ca3af',
+        padding: '8px 16px'
+    }),
+    placeholder: (base) => ({
+        ...base,
+        color: '#9ca3af',
+        textTransform: 'none'
+    })
+};
 
 /**
- * ActivosFilters — Panel de búsqueda y filtros avanzados para la lista de activos.
+ * ActivosFilters — Panel de búsqueda y filtros avanzados con estética sobria / Acme.
  */
 const ActivosFilters = ({
     search, setSearch,
@@ -20,154 +80,170 @@ const ActivosFilters = ({
     funcionarios,
     clearFilters,
     onViewHistorial,
-}) => (
-    <>
-        {/* Buscador + Toggle Filtros */}
-        <div className="mt-4 flex flex-col sm:flex-row gap-3">
-            <div className="relative flex-1">
-                <input
-                    type="text"
-                    placeholder="Buscar por placa, serial, marca, modelo, funcionario..."
-                    className="block w-full rounded-md border-0 py-2 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 text-sm px-3"
-                    value={search}
-                    onChange={(e) => setSearch(e.target.value)}
-                />
-            </div>
-            <button
-                type="button"
-                onClick={() => setShowFilters(!showFilters)}
-                className={`rounded-md px-3 py-2 text-sm font-medium shadow-sm ring-1 ring-inset transition-colors ${activeFilterCount > 0
-                    ? 'bg-indigo-50 text-indigo-700 ring-indigo-300'
-                    : 'bg-white text-gray-700 ring-gray-300 hover:bg-gray-50'
-                    }`}
-            >
-                🔽 Filtros{activeFilterCount > 0 ? ` (${activeFilterCount})` : ''}
-            </button>
-        </div>
+}) => {
 
-        {/* Panel de Filtros Avanzados */}
-        {showFilters && (
-            <div className="mt-3 p-4 bg-gray-50 rounded-lg border border-gray-200">
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-3">
-                    {/* Funcionario con autocomplete */}
-                    <div className="relative">
-                        <label className="block text-xs font-medium text-gray-600 mb-1">Funcionario Asignado</label>
-                        <input
-                            type="text"
-                            placeholder="Buscar funcionario..."
-                            className="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-indigo-600 text-sm px-2"
-                            value={searchFuncionarioText}
-                            onChange={(e) => {
-                                setSearchFuncionarioText(e.target.value);
-                                setShowFuncionarioDropdown(true);
-                                if (!e.target.value) setFilterFuncionario('');
+    // Preparar opciones para Categoría
+    const categoriaOptions = [
+        { value: '', label: 'Cualquier Categoría' },
+        ...categorias.map(c => ({ value: c.id.toString(), label: c.nombre }))
+    ];
+
+    // Preparar opciones para Estado
+    const estadoOptions = [
+        { value: '', label: 'Cualquier Estado' },
+        { value: 'DISPONIBLE', label: 'Disponible' },
+        { value: 'ASIGNADO', label: 'Asignado' },
+        { value: 'EN_MANTENIMIENTO', label: 'En Mantenimiento' },
+        { value: 'DADO_DE_BAJA', label: 'Dado de Baja' }
+    ];
+
+    // Opciones para Empresa Propietaria
+    const empresaOptions = [
+        { value: '', label: 'Cualquier Empresa' },
+        ...catalogs.EMPRESA_PROPIETARIA.map(e => ({ value: e, label: e }))
+    ];
+
+    // Opciones para Ciudad
+    const ciudadOptions = [
+        { value: '', label: 'Cualquier Municipio' },
+        ...MUNICIPIOS_TOLIMA.map(m => ({ value: m, label: m }))
+    ];
+
+    // Opciones para Funcionario (Agrupado)
+    const funcionarioOptions = [
+        { value: '', label: 'Sin filtrar funcionario' },
+        ...funcionarios.map(f => ({
+            value: f.id.toString(),
+            label: f.nombre,
+            sub: `CC: ${f.cedula || 'N/A'}`
+        }))
+    ];
+
+    const formatOptionWithSub = ({ label, sub }) => (
+        <div className="flex flex-col">
+            <span className="font-semibold">{label}</span>
+            {sub && <span className="text-[10px] opacity-50">{sub}</span>}
+        </div>
+    );
+
+    return (
+        <div className="space-y-4">
+            {/* Header: Buscador principal y Toggle */}
+            <div className="flex flex-col md:flex-row items-center gap-4 py-2">
+                <div className="relative flex-1 w-full group">
+                    <MagnifyingGlassIcon className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-charcoal-400 group-focus-within:text-fnc-600 transition-colors" />
+                    <input
+                        type="text"
+                        placeholder="Busca por marca, modelo, placa o serial..."
+                        className="w-full bg-white border border-gray-100 rounded-full py-3 pl-11 pr-4 text-[13px] font-medium text-charcoal-800 placeholder:text-gray-300 focus:outline-none focus:ring-2 focus:ring-fnc-500/20 focus:border-fnc-500 transition-all shadow-sm group-hover:border-gray-200"
+                        value={search}
+                        onChange={(e) => setSearch(e.target.value)}
+                    />
+                </div>
+                
+                <div className="flex items-center gap-2 shrink-0">
+                    <button
+                        onClick={() => setShowFilters(!showFilters)}
+                        className={`flex items-center gap-2 px-5 py-3 rounded-full text-[12px] font-bold transition-all border ${
+                            activeFilterCount > 0 
+                            ? 'bg-fnc-50 border-fnc-200 text-fnc-700' 
+                            : 'bg-white border-gray-100 text-charcoal-500 hover:bg-gray-50'
+                        }`}
+                    >
+                        <FunnelIcon className="w-4 h-4" />
+                        {showFilters ? 'Ocultar Filtros' : 'Mostrar Filtros'}
+                        {activeFilterCount > 0 && (
+                            <span className="bg-fnc-600 text-white w-5 h-5 rounded-full flex items-center justify-center text-[10px]">
+                                {activeFilterCount}
+                            </span>
+                        )}
+                    </button>
+
+                    {activeFilterCount > 0 && (
+                        <button
+                            onClick={clearFilters}
+                            className="p-3 text-charcoal-400 hover:text-rose-500 hover:bg-rose-50 rounded-full transition-all"
+                            title="Limpiar filtros"
+                        >
+                            <XMarkIcon className="w-5 h-5" />
+                        </button>
+                    )}
+                </div>
+            </div>
+
+            {/* Panel Desplegable de Filtros */}
+            {showFilters && (
+                <div className="p-6 bg-gray-50/50 rounded-3xl border border-gray-100/50 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 animate-slide-up">
+                    
+                    {/* Funcionario */}
+                    <div className="space-y-1.5">
+                        <label className="text-[11px] font-bold text-charcoal-400 uppercase tracking-widest ml-1">Asignado A</label>
+                        <Select
+                            styles={customSelectStyles}
+                            options={funcionarioOptions}
+                            value={funcionarioOptions.find(o => o.value === filterFuncionario)}
+                            onChange={(o) => {
+                                setFilterFuncionario(o?.value || '');
+                                if (o?.label) setSearchFuncionarioText(o.label);
                             }}
-                            onFocus={() => setShowFuncionarioDropdown(true)}
-                            onBlur={() => setTimeout(() => setShowFuncionarioDropdown(false), 200)}
+                            placeholder="Buscar Funcionario..."
+                            isClearable
+                            formatOptionLabel={formatOptionWithSub}
                         />
-                        {showFuncionarioDropdown && (() => {
-                            const searchTerm = searchFuncionarioText.toLowerCase();
-                            const filtered = funcionarios.filter(f =>
-                                f.nombre.toLowerCase().includes(searchTerm) ||
-                                f.cedula?.includes(searchTerm)
-                            );
-                            return (
-                                <ul className="absolute z-10 mt-1 max-h-48 w-full overflow-auto rounded-md bg-white py-1 text-sm shadow-lg ring-1 ring-black ring-opacity-5">
-                                    {filtered.map(f => (
-                                        <li
-                                            key={f.id}
-                                            className="cursor-pointer select-none py-2 pl-3 pr-4 hover:bg-indigo-50 text-gray-900 border-b border-gray-100 last:border-0"
-                                            onClick={() => {
-                                                setFilterFuncionario(f.id.toString());
-                                                setSearchFuncionarioText(f.nombre);
-                                                setShowFuncionarioDropdown(false);
-                                            }}
-                                        >
-                                            <span className="block truncate font-medium">{f.nombre}</span>
-                                            <span className="block truncate text-xs text-gray-500">CC: {f.cedula}</span>
-                                        </li>
-                                    ))}
-                                    {filtered.length === 0 && (
-                                        <li className="cursor-default select-none py-2 pl-3 pr-4 text-gray-500">Sin resultados</li>
-                                    )}
-                                </ul>
-                            );
-                        })()}
                     </div>
 
                     {/* Categoría */}
-                    <div>
-                        <label className="block text-xs font-medium text-gray-600 mb-1">Categoría</label>
-                        <select value={filterCategoria} onChange={e => setFilterCategoria(e.target.value)}
-                            className="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-indigo-600 text-sm px-2">
-                            <option value="">Todas</option>
-                            {categorias.map(c => <option key={c.id} value={c.id}>{c.nombre}</option>)}
-                        </select>
+                    <div className="space-y-1.5">
+                        <label className="text-[11px] font-bold text-charcoal-400 uppercase tracking-widest ml-1">Categoría</label>
+                        <Select
+                            styles={customSelectStyles}
+                            options={categoriaOptions}
+                            value={categoriaOptions.find(o => o.value === filterCategoria)}
+                            onChange={(o) => setFilterCategoria(o?.value || '')}
+                            placeholder="Todas"
+                        />
                     </div>
 
                     {/* Estado */}
-                    <div>
-                        <label className="block text-xs font-medium text-gray-600 mb-1">Estado</label>
-                        <select value={filterEstado} onChange={e => setFilterEstado(e.target.value)}
-                            className="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-indigo-600 text-sm px-2">
-                            <option value="">Todos</option>
-                            <option value="DISPONIBLE">Disponible</option>
-                            <option value="ASIGNADO">Asignado</option>
-                            <option value="EN_MANTENIMIENTO">En Mantenimiento</option>
-                            <option value="DADO_DE_BAJA">Dado de Baja</option>
-                        </select>
+                    <div className="space-y-1.5">
+                        <label className="text-[11px] font-bold text-charcoal-400 uppercase tracking-widest ml-1">Estado de Activo</label>
+                        <Select
+                            styles={customSelectStyles}
+                            options={estadoOptions}
+                            value={estadoOptions.find(o => o.value === filterEstado)}
+                            onChange={(o) => setFilterEstado(o?.value || '')}
+                            placeholder="Todos"
+                        />
                     </div>
 
-                    {/* Empresa */}
-                    <div>
-                        <label className="block text-xs font-medium text-gray-600 mb-1">Empresa Propietaria</label>
-                        <select value={filterEmpresa} onChange={e => setFilterEmpresa(e.target.value)}
-                            className="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-indigo-600 text-sm px-2">
-                            <option value="">Todas</option>
-                            {catalogs.EMPRESA_PROPIETARIA.map(e => <option key={e} value={e}>{e}</option>)}
-                        </select>
+                    {/* Municipio */}
+                    <div className="space-y-1.5">
+                        <label className="text-[11px] font-bold text-charcoal-400 uppercase tracking-widest ml-1">Ubicación</label>
+                        <Select
+                            styles={customSelectStyles}
+                            options={ciudadOptions}
+                            value={ciudadOptions.find(o => o.value === filterCiudad)}
+                            onChange={(o) => setFilterCiudad(o?.value || '')}
+                            placeholder="Cualquier Ciudad"
+                        />
                     </div>
 
-                    {/* Estado Operativo */}
-                    <div>
-                        <label className="block text-xs font-medium text-gray-600 mb-1">Estado Operativo</label>
-                        <select value={filterEstadoOp} onChange={e => setFilterEstadoOp(e.target.value)}
-                            className="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-indigo-600 text-sm px-2">
-                            <option value="">Todos</option>
-                            {catalogs.ESTADO_OPERATIVO.map(e => <option key={e} value={e}>{e}</option>)}
-                        </select>
-                    </div>
-
-                    {/* Ciudad / Municipio */}
-                    <div>
-                        <label className="block text-xs font-medium text-gray-600 mb-1">Ciudad / Municipio</label>
-                        <select value={filterCiudad} onChange={e => setFilterCiudad(e.target.value)}
-                            className="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-indigo-600 text-sm px-2">
-                            <option value="">Cualquier municipio</option>
-                            {MUNICIPIOS_TOLIMA.map(m => <option key={m} value={m}>{m}</option>)}
-                        </select>
-                    </div>
-
+                    {/* Botón de Historial si hay funcionario seleccionado */}
+                    {filterFuncionario && (
+                        <div className="col-span-full pt-2">
+                            <button 
+                                onClick={onViewHistorial} 
+                                className="flex items-center gap-2 text-[11px] font-bold text-fnc-600 bg-fnc-50 hover:bg-fnc-100 px-4 py-2 rounded-full border border-fnc-100 transition-all uppercase tracking-widest"
+                            >
+                                <ClockIcon className="w-4 h-4" />
+                                Consultar Historial del Funcionario
+                            </button>
+                        </div>
+                    )}
                 </div>
-
-                {filterFuncionario && (
-                    <div className="mt-4 pt-3 border-t border-gray-200">
-                        <button onClick={onViewHistorial} className="text-sm rounded-md bg-blue-50 text-blue-700 px-4 py-2 ring-1 ring-blue-600/20 hover:bg-blue-100 font-medium">
-                            🕒 Ver Historial General del Funcionario
-                        </button>
-                    </div>
-                )}
-
-                {activeFilterCount > 0 && (
-                    <div className="mt-3 flex justify-end">
-                        <button onClick={clearFilters} className="text-sm text-indigo-600 hover:text-indigo-800 font-medium">
-                            ✕ Limpiar filtros
-                        </button>
-                    </div>
-                )}
-            </div>
-        )}
-    </>
-);
+            )}
+        </div>
+    );
+};
 
 export default ActivosFilters;

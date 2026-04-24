@@ -31,7 +31,7 @@ const Dashboard = () => {
             </p>
         </div>
     );
-    
+
     if (!data) return (
         <div className="p-12 text-center bg-error-container/20 rounded-3xl border border-error/10">
             <AlertTriangle className="w-12 h-12 text-error mx-auto mb-4" />
@@ -73,7 +73,7 @@ const Dashboard = () => {
             value: maintenanceCount,
             Icon: Wrench,
             color: 'amber',
-            description: 'En taller/soporte'
+            description: 'Diagnostico'
         },
         {
             title: 'MTTR Promedio',
@@ -106,7 +106,7 @@ const Dashboard = () => {
     ];
 
     return (
-        <motion.div 
+        <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6 }}
@@ -114,8 +114,8 @@ const Dashboard = () => {
         >
             <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
                 <div>
-                    <h1 className="text-3xl font-bold text-on-surface font-headline leading-tight">Tablero de Control</h1>
-                    <p className="text-on-surface-variant font-medium">Resumen estratégico de infraestructura y activos TIC.</p>
+                    <h1 className="page-header-title">Tablero de Control</h1>
+                    <p className="page-header-subtitle">Resumen estratégico de infraestructura y activos TIC.</p>
                 </div>
                 <div className="flex items-center gap-2 px-4 py-2 rounded-xl bg-surface-container-high text-xs font-bold text-on-surface-variant border border-outline-variant/30">
                     <span className="w-2 h-2 rounded-full bg-secondary animate-pulse" />
@@ -142,7 +142,7 @@ const Dashboard = () => {
             </div>
 
             {/* Activity Feed */}
-            <motion.div 
+            <motion.div
                 initial={{ opacity: 0, scale: 0.98 }}
                 animate={{ opacity: 1, scale: 1 }}
                 transition={{ delay: 0.4 }}
@@ -188,13 +188,13 @@ const KpiCard = ({ title, value, Icon, color, description, index = 0 }) => {
                 <div className={`w-12 h-12 rounded-2xl flex items-center justify-center text-white shadow-lg transition-transform duration-500 group-hover:scale-110 ${iconBgMap[color] || 'bg-primary'}`}>
                     <Icon size={24} strokeWidth={2} />
                 </div>
-                <div className={`text-[10px] font-black uppercase tracking-widest px-2 py-1 rounded-lg ${colorMap[color] || ''}`}>
+                <div className={`text-[10px] font-black px-2 py-1 rounded-lg ${colorMap[color] || ''}`}>
                     {description}
                 </div>
             </div>
-            
+
             <div>
-                <p className="text-xs font-bold text-on-surface-variant mb-1 uppercase tracking-wider">{title}</p>
+                <p className="text-xs font-bold text-on-surface-variant mb-1">{title}</p>
                 <p className="text-3xl font-black text-on-surface leading-tight font-headline">
                     {value}
                 </p>

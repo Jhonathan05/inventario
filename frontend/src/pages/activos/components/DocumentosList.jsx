@@ -55,11 +55,11 @@ const DocumentosList = ({ activoId, documentos, onUpdate }) => {
 
     return (
         <div>
-            <div className="flex justify-between items-center mb-4">
-                <h3 className="text-lg font-medium leading-6 text-gray-900">Documentos Adjuntos</h3>
+            <div className="flex justify-between items-center mb-6">
+                <h3 className="text-xl font-black text-charcoal-900 capitalize tracking-tight">Documentos Adjuntos</h3>
                 {canEdit && (
                     <div>
-                        <label htmlFor="file-upload" className={`cursor-pointer inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 ${uploading ? 'opacity-50 cursor-not-allowed' : ''}`}>
+                        <label htmlFor="file-upload" className={`btn-primary cursor-pointer ${uploading ? 'opacity-50 cursor-not-allowed' : ''}`}>
                             {uploading ? 'Subiendo...' : '+ Subir Documento'}
                         </label>
                         <input
@@ -75,32 +75,39 @@ const DocumentosList = ({ activoId, documentos, onUpdate }) => {
                 )}
             </div>
 
-            {error && <div className="text-red-600 text-sm mb-2">{error}</div>}
+            {error && <div className="text-rose-600 font-bold text-xs mb-3 italic">! {error}</div>}
 
-            <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+            <div className="bg-white rounded-3xl shadow-sm border border-gray-100 overflow-hidden">
                 <div className="overflow-x-auto">
-                    <table className="min-w-full divide-y divide-gray-200">
-                    <thead className="bg-gray-50">
+                    <table className="min-w-full divide-y divide-gray-50">
+                    <thead className="bg-transparent border-b border-gray-50">
                         <tr>
-                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Nombre</th>
-                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Tipo</th>
-                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Fecha</th>
-                            {canEdit && <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Acciones</th>}
+                            <th className="px-6 py-4 text-left text-[11px] font-semibold text-charcoal-400 capitalize">Nombre del archivo</th>
+                            <th className="px-6 py-4 text-left text-[11px] font-semibold text-charcoal-400 capitalize">Tipo</th>
+                            <th className="px-6 py-4 text-left text-[11px] font-semibold text-charcoal-400 capitalize">Fecha registro</th>
+                            {canEdit && <th className="px-6 py-4 text-right text-[11px] font-semibold text-charcoal-400 capitalize">Acción</th>}
                         </tr>
                     </thead>
-                    <tbody className="bg-white divide-y divide-gray-200">
+                    <tbody className="bg-white divide-y divide-gray-50">
                         {documentos?.map((doc) => (
-                            <tr key={doc.id}>
-                                <td className="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-medium text-gray-900 text-indigo-600 hover:text-indigo-900">
+                            <tr key={doc.id} className="hover:bg-gray-50/50 transition-colors group">
+                                <td className="whitespace-nowrap px-6 py-4 text-[13px] font-semibold text-primary hover:underline">
                                     <a href={doc.ruta.startsWith('/') ? doc.ruta : `/${doc.ruta}`} target="_blank" rel="noopener noreferrer">
-                                        {doc.nombre}
+                                        {doc.nombre?.toLowerCase()}
                                     </a>
                                 </td>
-                                <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500">{doc.tipo.split('/')[1]}</td>
-                                <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500">{new Date(doc.creadoEn).toLocaleDateString()}</td>
+                                <td className="whitespace-nowrap px-6 py-4">
+                                    <span className="bg-charcoal-50 text-charcoal-600 px-2.5 py-1 rounded-full text-[10px] font-bold border border-charcoal-100 uppercase">
+                                        {doc.tipo?.split('/')[1] || 'Doc'}
+                                    </span>
+                                </td>
+                                <td className="whitespace-nowrap px-6 py-4 text-[12px] text-charcoal-500 font-medium">{new Date(doc.creadoEn).toLocaleDateString()}</td>
                                 {canEdit && (
-                                    <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500 text-right">
-                                        <button onClick={() => handleDelete(doc.id)} className="text-red-600 hover:text-red-900 ml-4">
+                                    <td className="whitespace-nowrap px-6 py-4 text-right">
+                                        <button 
+                                            onClick={() => handleDelete(doc.id)} 
+                                            className="text-rose-600 hover:text-rose-800 font-bold text-[11px] hover:underline"
+                                        >
                                             Eliminar
                                         </button>
                                     </td>
@@ -108,7 +115,7 @@ const DocumentosList = ({ activoId, documentos, onUpdate }) => {
                             </tr>
                         ))}
                         {(!documentos || documentos.length === 0) && (
-                            <tr><td colSpan="4" className="py-4 text-center text-gray-500">No hay documentos adjuntos</td></tr>
+                            <tr><td colSpan="4" className="py-12 text-center text-charcoal-300 italic font-bold text-[11px]">No hay documentos adjuntos en este expediente.</td></tr>
                         )}
                     </tbody>
                     </table>

@@ -1,13 +1,14 @@
 @import "tailwindcss";
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Outfit:wght@300;400;500;600;700;800;900&display=swap');
 
 @theme {
-  /* ── Primary (FNC Tinto) ── */
+  /* ── Primary (FNC Tinto Agenda Style) ── */
   --color-primary: #8d1024;
-  --color-primary-container: #a5122a;
+  --color-primary-container: #7a0e20;
   --color-on-primary: #ffffff;
   --color-on-primary-container: #ffd9dc;
 
-  /* ── Secondary (FNC Verde Institucional) ── */
+  /* ── Secondary ── */
   --color-secondary: #1b502d;
   --color-secondary-container: #2e7d32;
   --color-on-secondary: #ffffff;
@@ -40,25 +41,26 @@
   --color-on-error: #ffffff;
 
   /* ── Fonts ── */
-  --font-headline: "Public Sans", sans-serif;
+  --font-headline: "Outfit", sans-serif;
   --font-body: "Inter", sans-serif;
 
-  /* ── Shadows ── */
-  --shadow-ambient: 0px 8px 32px rgba(141, 16, 36, 0.05);
-  --shadow-float: 0px 16px 48px rgba(141, 16, 36, 0.08);
+  /* ── Shadows (Agenda Style: Minimalist) ── */
+  --shadow-ambient: 0px 2px 8px rgba(0, 0, 0, 0.04);
+  --shadow-float: 0px 10px 25px rgba(0, 0, 0, 0.08);
 
   /* ── Radius ── */
   --radius-sm: 0.375rem;
   --radius-md: 0.5rem;
-  --radius-lg: 0.875rem;
-  --radius-xl: 1.25rem;
+  --radius-lg: 1rem;
+  --radius-xl: 1.5rem;
+  --radius-2xl: 2rem;
 }
 
 @layer base {
   :root {
     --background: #fdfdfd;
     --surface: #fdfdfd;
-    --surface-dim: #eef1ee;
+    --surface-dim: #f3f5f3;
     --surface-container: #f0f4f0;
     --surface-container-high: #e6ebe6;
     --surface-container-highest: #dde2dd;
@@ -66,13 +68,13 @@
     --surface-container-lowest: #ffffff;
 
     --on-surface: #0a1a0d;
-    --on-surface-variant: #3a4a3d;
+    --on-surface-variant: #6b7280; /* Gray 500 for subtitles */
     --on-background: #0a1a0d;
     --inverse-surface: #2f332f;
     --inverse-on-surface: #f0f4f0;
 
-    --outline: #717a6d;
-    --outline-variant: #c0c9bb;
+    --outline: #e5e7eb;
+    --outline-variant: #f3f4f6;
   }
 
   [data-theme="dark"] {
@@ -86,10 +88,10 @@
     --surface-container-lowest: #050605;
 
     --on-surface: #e1e3e1;
-    --on-surface-variant: #bfc9bc;
+    --on-surface-variant: #9ca3af;
     --on-background: #e1e3e1;
 
-    --outline: #8b9388;
+    --outline: #374151;
   }
 
   * {
@@ -97,9 +99,53 @@
   }
 
   body {
-    @apply bg-background text-on-surface;
+    @apply bg-background text-on-surface antialiased;
     font-family: var(--font-body);
   }
+
+  h1, h2, h3, h4, h5, h6, .font-headline {
+    font-family: var(--font-headline);
+    letter-spacing: -0.05em; /* Tighter tracking to reduce horizontal stretch */
+    line-height: 1.1;
+  }
+}
+
+/* ── Global Agenda Components ── */
+
+@utility btn-primary {
+  @apply flex items-center justify-center gap-2 px-6 py-2.5 bg-primary text-white text-sm font-bold rounded-full hover:bg-primary-container transition-all shadow-sm hover:shadow-md active:scale-95;
+  text-transform: none; /* No more forced uppercase from agenda style */
+}
+
+@utility btn-secondary {
+  @apply flex items-center justify-center gap-2 px-6 py-2.5 bg-surface-container-low text-on-surface-variant text-sm font-bold rounded-full hover:bg-surface-container-high transition-all active:scale-95 border border-outline;
+  text-transform: none;
+}
+
+@utility page-header-title {
+  @apply text-3xl font-extrabold text-on-surface tracking-tight;
+  font-family: var(--font-headline);
+}
+
+@utility page-header-subtitle {
+  @apply text-sm font-medium text-on-surface-variant mt-1;
+}
+
+/* Agenda Switcher / Tabs */
+@utility switcher-container {
+  @apply flex p-1 bg-surface-container rounded-full border border-outline-variant/50;
+}
+
+@utility switcher-item {
+  @apply px-5 py-1.5 rounded-full text-xs font-bold transition-all;
+}
+
+@utility switcher-item-active {
+  @apply bg-white text-primary shadow-sm;
+}
+
+@utility switcher-item-inactive {
+  @apply text-on-surface-variant hover:text-on-surface;
 }
 
 @utility gradient-primary {
@@ -118,18 +164,11 @@
   border: 1px solid rgba(255, 255, 255, 0.05);
 }
 
-/* Animations from Agenda FNC */
 @keyframes slide-up {
-  from {
-    opacity: 0;
-    transform: translateY(20px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
+  from { opacity: 0; transform: translateY(15px); }
+  to { opacity: 1; transform: translateY(0); }
 }
 
 .animate-slide-up {
-  animation: slide-up 0.5s ease-out forwards;
+  animation: slide-up 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }

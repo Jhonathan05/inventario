@@ -20,6 +20,8 @@ import TicketsList from './pages/tickets/TicketsList';
 import TicketForm from './pages/tickets/TicketForm';
 import TicketDetail from './pages/tickets/TicketDetail';
 import LicenciasList from './pages/licencias/LicenciasList';
+import FuncionariosForm from './pages/funcionarios/FuncionariosForm';
+import ActivosForm from './pages/activos/ActivosForm';
 
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 
@@ -62,6 +64,10 @@ function App() {
                                     <Route path="/actas/generar" element={<GenerarActa />} />
                                     <Route path="/importar" element={<ImportarDatos />} />
                                     <Route path="/tickets/nuevo" element={<TicketForm />} />
+                                    <Route path="/funcionarios/nuevo" element={<FuncionariosForm />} />
+                                    <Route path="/funcionarios/editar/:id" element={<FuncionariosForm />} />
+                                    <Route path="/activos/nuevo" element={<ActivosForm />} />
+                                    <Route path="/activos/editar/:id" element={<ActivosForm />} />
                                 </Route>
 
                                 {/* Solo ADMIN */}

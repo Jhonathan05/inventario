@@ -17,12 +17,12 @@ const AssetIcon = ({ tipo, categoria }) => (
 
 const getStatusBadge = (estado) => {
     const colors = {
-        'DISPONIBLE': 'bg-green-50 text-green-700 ring-green-600/20',
-        'ASIGNADO': 'bg-blue-50 text-blue-700 ring-blue-700/10',
-        'EN_MANTENIMIENTO': 'bg-yellow-50 text-yellow-800 ring-yellow-600/20',
-        'DADO_DE_BAJA': 'bg-red-50 text-red-700 ring-red-600/20',
+        'DISPONIBLE': 'bg-green-500/10 text-green-600 border-green-500/20',
+        'ASIGNADO': 'bg-blue-500/10 text-blue-600 border-blue-500/20',
+        'EN_MANTENIMIENTO': 'bg-amber-500/10 text-amber-600 border-amber-500/20',
+        'DADO_DE_BAJA': 'bg-rose-500/10 text-rose-600 border-rose-500/20',
     };
-    return colors[estado] || 'bg-gray-50 text-gray-600 ring-gray-500/10';
+    return colors[estado] || 'bg-gray-500/10 text-gray-600 border-gray-500/20';
 };
 
 /**
@@ -30,104 +30,104 @@ const getStatusBadge = (estado) => {
  */
 const ActivosTable = ({ activos, canEdit, onEdit, sortBy, sortOrder, onSort }) => {
     const renderSortIcon = (field) => {
-        if (sortBy !== field) return <ArrowsUpDownIcon className="h-3 w-3 ml-1.5 text-charcoal-300" />;
+        if (sortBy !== field) return <ArrowsUpDownIcon className="h-3 w-3 ml-2 opacity-0 group-hover:opacity-100 transition-opacity text-charcoal-400" />;
         return sortOrder === 'asc' 
-            ? <ChevronUpIcon className="h-4 w-4 ml-1 text-fnc-600 stroke-[3]" /> 
-            : <ChevronDownIcon className="h-4 w-4 ml-1 text-fnc-600 stroke-[3]" />;
+            ? <ChevronUpIcon className="h-3 w-3 ml-2 text-fnc-600" /> 
+            : <ChevronDownIcon className="h-3 w-3 ml-2 text-fnc-600" />;
     };
 
     return (
         <div className="hidden md:block">
             <div className="overflow-x-auto">
                 <table className="min-w-full divide-y divide-gray-200">
-                    <thead className="bg-gray-50">
-                        <tr>
-                            <th scope="col" className="px-6 py-3 text-left text-[10px] font-black text-gray-500 uppercase tracking-widest">
-                                <button onClick={() => onSort('activo')} className="flex items-center hover:text-fnc-600 transition-colors uppercase">
+                    <thead className="bg-transparent">
+                        <tr className="border-b border-gray-100">
+                            <th scope="col" className="px-6 py-5 text-left">
+                                <button onClick={() => onSort('activo')} className="group flex items-center text-[11px] font-semibold text-charcoal-400 capitalize hover:text-charcoal-700 transition-colors">
                                     Activo {renderSortIcon('activo')}
                                 </button>
                             </th>
-                            <th scope="col" className="px-6 py-3 text-left text-[10px] font-black text-gray-500 uppercase tracking-widest">
-                                <button onClick={() => onSort('categoria')} className="flex items-center hover:text-fnc-600 transition-colors uppercase">
+                            <th scope="col" className="px-6 py-5 text-left">
+                                <button onClick={() => onSort('categoria')} className="group flex items-center text-[11px] font-semibold text-charcoal-400 capitalize hover:text-charcoal-700 transition-colors">
                                     Categoría {renderSortIcon('categoria')}
                                 </button>
                             </th>
-                            <th scope="col" className="px-6 py-3 text-left text-[10px] font-black text-gray-500 uppercase tracking-widest">
-                                <button onClick={() => onSort('estado')} className="flex items-center hover:text-fnc-600 transition-colors uppercase">
+                            <th scope="col" className="px-6 py-5 text-left">
+                                <button onClick={() => onSort('estado')} className="group flex items-center text-[11px] font-semibold text-charcoal-400 capitalize hover:text-charcoal-700 transition-colors">
                                     Estado {renderSortIcon('estado')}
                                 </button>
                             </th>
-                            <th scope="col" className="px-6 py-3 text-left text-[10px] font-black text-gray-500 uppercase tracking-widest">
-                                <button onClick={() => onSort('ubicacion')} className="flex items-center hover:text-fnc-600 transition-colors uppercase">
+                            <th scope="col" className="px-6 py-5 text-left">
+                                <button onClick={() => onSort('ubicacion')} className="group flex items-center text-[11px] font-semibold text-charcoal-400 capitalize hover:text-charcoal-700 transition-colors">
                                     Ubicación {renderSortIcon('ubicacion')}
                                 </button>
                             </th>
-                            <th scope="col" className="px-6 py-3 text-left text-[10px] font-black text-gray-500 uppercase tracking-widest">
-                                <button onClick={() => onSort('funcionario')} className="flex items-center hover:text-fnc-600 transition-colors uppercase">
-                                    Asignado A {renderSortIcon('funcionario')}
+                            <th scope="col" className="px-6 py-5 text-left">
+                                <button onClick={() => onSort('funcionario')} className="group flex items-center text-[11px] font-semibold text-charcoal-400 capitalize hover:text-charcoal-700 transition-colors">
+                                    Asignado {renderSortIcon('funcionario')}
                                 </button>
                             </th>
-                            {canEdit && <th scope="col" className="px-6 py-3 text-right text-[10px] font-black text-gray-500 uppercase tracking-widest">Acciones</th>}
+                            {canEdit && <th scope="col" className="px-6 py-5 text-right text-[11px] font-semibold text-charcoal-400 capitalize">Acciones</th>}
                         </tr>
                     </thead>
-                    <tbody className="bg-white divide-y divide-gray-200">
+                    <tbody className="bg-white divide-y divide-gray-50">
                     {activos.map((activo) => (
-                        <tr key={activo.id} className="hover:bg-gray-50 transition-colors">
-                            <td className="px-6 py-4">
+                        <tr key={activo.id} className="group hover:bg-gray-50/50 transition-colors">
+                            <td className="px-6 py-6 transition-all duration-300">
                                 <div className="flex items-center gap-4">
-                                    <div className="h-12 w-12 flex-shrink-0 rounded-xl overflow-hidden bg-charcoal-50 border border-charcoal-100 shadow-sm">
+                                    <div className="h-10 w-10 flex-shrink-0 rounded-full overflow-hidden bg-gray-50 border border-gray-100/50 shadow-sm transition-transform group-hover:scale-105">
                                         {getImageUrl(activo.imagen)
-                                            ? <img className="h-12 w-12 object-cover" src={getImageUrl(activo.imagen)} alt="" />
+                                            ? <img className="h-10 w-10 object-cover" src={getImageUrl(activo.imagen)} alt="" />
                                             : <AssetIcon tipo={activo.tipo} categoria={activo.categoria} />}
                                     </div>
                                     <div>
-                                        <div className="font-bold text-charcoal-800">
+                                        <div className="font-semibold text-charcoal-800 text-[13px] capitalize tracking-tight">
                                             <Link to={`/activos/${activo.id}`} className="hover:text-fnc-600 transition-colors">
-                                                {activo.marca} {activo.modelo}
+                                                {activo.marca?.toLowerCase()} {activo.modelo?.toLowerCase()}
                                             </Link>
                                         </div>
-                                        <div className="text-sm text-charcoal-500 font-medium">
-                                            P: <span className="text-charcoal-700">{activo.placa}</span> | AF: <span className="text-charcoal-700">{activo.activoFijo || 'N/A'}</span>
+                                        <div className="text-[11px] text-charcoal-400 font-medium font-mono mt-0.5">
+                                            {activo.placa} <span className="mx-1 opacity-30">·</span> {activo.activoFijo || 'N/A'}
                                         </div>
                                     </div>
                                 </div>
                             </td>
-                            <td className="px-6 py-4 text-sm">
-                                <span className="text-charcoal-800 font-bold">{activo.categoria?.nombre}</span>
-                                <div className="text-[10px] text-charcoal-500 font-medium uppercase tracking-tight">{activo.tipo?.replace(/_/g, ' ')}</div>
+                            <td className="px-6 py-6">
+                                <div className="text-[12px] text-charcoal-700 font-semibold capitalize tracking-tight">{activo.categoria?.nombre?.toLowerCase()}</div>
+                                <div className="text-[11px] text-charcoal-400 font-medium capitalize mt-0.5 opacity-80">{activo.tipo?.replace(/_/g, ' ')?.toLowerCase()}</div>
                             </td>
-                            <td className="px-6 py-4">
-                                <span className={`inline-flex items-center rounded-lg px-2.5 py-1 text-[10px] font-black tracking-wider uppercase border border-opacity-50 ring-1 ring-inset ${getStatusBadge(activo.estado)}`}>
-                                    {activo.estado?.replace(/_/g, ' ')}
+                            <td className="px-6 py-6">
+                                <span className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-[10px] font-bold capitalize border ${getStatusBadge(activo.estado)}`}>
+                                    {activo.estado?.replace(/_/g, ' ')?.toLowerCase()}
                                 </span>
                             </td>
-                            <td className="px-6 py-4">
-                                <div className="text-sm text-charcoal-800 font-bold">{activo.ubicacion?.empresa}</div>
-                                <div className="text-xs text-charcoal-500 font-medium">{activo.ubicacion?.ciudad} · {activo.ubicacion?.sede}</div>
+                            <td className="px-6 py-6">
+                                <div className="text-[12px] text-charcoal-700 font-semibold capitalize tracking-tight">{activo.ubicacion?.empresa?.toLowerCase()}</div>
+                                <div className="text-[11px] text-charcoal-400 font-medium capitalize mt-0.5 opacity-80">{activo.ubicacion?.sede?.toLowerCase()}</div>
                             </td>
-                            <td className="px-6 py-4">
+                            <td className="px-6 py-6">
                                 {activo.funcionario ? (
                                     <div className="flex items-center">
-                                        <div className="h-8 w-8 rounded-lg bg-fnc-50 border border-fnc-100 text-fnc-700 flex items-center justify-center font-bold text-xs mr-3">
+                                        <div className="h-8 w-8 rounded-full bg-fnc-50 border border-fnc-100 text-fnc-700 flex items-center justify-center font-bold text-[11px] mr-3">
                                             {activo.funcionario.nombre?.charAt(0)}
                                         </div>
                                         <div>
-                                            <div className="text-sm text-charcoal-800 font-bold">{activo.funcionario.nombre}</div>
-                                            <div className="text-[10px] text-charcoal-500 font-medium uppercase tracking-wider">{activo.funcionario.area}</div>
+                                            <div className="text-[12px] text-charcoal-700 font-semibold capitalize tracking-tight">{activo.funcionario.nombre?.toLowerCase()}</div>
+                                            <div className="text-[11px] text-charcoal-400 font-medium capitalize mt-0.5 opacity-80">{activo.funcionario.area?.toLowerCase()}</div>
                                         </div>
                                     </div>
                                 ) : (
-                                    <span className="text-sm text-charcoal-400 italic">No asignado</span>
+                                    <span className="text-[12px] text-charcoal-300 italic font-medium">No asignado</span>
                                 )}
                             </td>
                             {canEdit && (
-                                <td className="px-6 py-4 text-right">
+                                <td className="px-6 py-6 text-right">
                                     <button
                                         onClick={() => onEdit(activo)}
-                                        className="inline-flex items-center justify-center gap-1.5 text-[10px] font-black uppercase tracking-widest text-fnc-600 bg-fnc-50 hover:bg-fnc-100 border border-fnc-200 rounded-lg px-3 py-1.5 transition-all shadow-sm"
+                                        className="inline-flex items-center justify-center w-8 h-8 rounded-full text-charcoal-300 hover:text-fnc-600 hover:bg-fnc-50 transition-all border border-transparent hover:border-fnc-100 shadow-none hover:shadow-sm"
+                                        title="Editar Activo"
                                     >
-                                        <PencilSquareIcon className="w-3.5 h-3.5" />
-                                        Editar
+                                        <PencilSquareIcon className="w-4 h-4" />
                                     </button>
                                 </td>
                             )}

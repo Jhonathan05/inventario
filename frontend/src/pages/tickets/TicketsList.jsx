@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
+import Select from 'react-select';
 import toast from 'react-hot-toast';
 import { ticketsService } from '../../api/tickets.service';
 import Pagination from '../../components/Pagination';
@@ -15,9 +16,54 @@ import {
     TicketIcon,
     ArrowPathIcon,
     UserIcon,
-    CalendarIcon
+    CalendarIcon,
+    ChevronRightIcon
 } from '@heroicons/react/24/outline';
 import { useAuth } from '../../context/AuthContext';
+
+const customSelectStyles = {
+    control: (base, state) => ({
+        ...base,
+        borderRadius: '9999px',
+        padding: '2px 8px',
+        fontSize: '12px',
+        fontWeight: '600',
+        borderColor: state.isFocused ? '#8d1024' : '#f3f4f6',
+        boxShadow: 'none',
+        backgroundColor: '#ffffff',
+        '&:hover': {
+            borderColor: '#8d1024'
+        },
+        transition: 'all 0.2s ease',
+        textTransform: 'capitalize'
+    }),
+    option: (base, state) => ({
+        ...base,
+        fontSize: '12px',
+        fontWeight: state.isSelected ? '700' : '600',
+        backgroundColor: state.isSelected ? '#f3f4f6' : state.isFocused ? '#f9fafb' : 'transparent',
+        color: state.isSelected ? '#111827' : '#4b5563',
+        cursor: 'pointer',
+        padding: '10px 16px',
+        textTransform: 'capitalize',
+        '&:active': {
+            backgroundColor: '#f3f4f6'
+        }
+    }),
+    valueContainer: (base) => ({
+        ...base,
+        textTransform: 'capitalize'
+    }),
+    menu: (base) => ({
+        ...base,
+        borderRadius: '16px',
+        overflow: 'hidden',
+        boxShadow: '0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1)',
+        border: '1px solid #f3f4f6',
+        padding: '4px',
+        zIndex: 50
+    })
+};
 
 const TicketsList = () => {
     const [searchTerm, setSearchTerm] = useState('');
@@ -44,26 +90,16 @@ const TicketsList = () => {
     const tickets = responseData?.data || [];
     const pagination = responseData?.pagination || { page: 1, pages: 1, total: tickets.length };
 
-    const handleSearchChange = (val) => {
-        setSearchTerm(val);
-        setCurrentPage(1);
-    };
-
-    const handleEstadoChange = (val) => {
-        setEstadoFiltro(val);
-        setCurrentPage(1);
-    };
-
     const getEstadoBadge = (estado) => {
         const config = {
-            'CREADO': { cls: 'bg-gray-50 text-gray-700 border-gray-100', Icon: QuestionMarkCircleIcon, label: 'Creado' },
-            'EN_CURSO': { cls: 'bg-blue-50 text-blue-700 border-blue-100', Icon: ClockIcon, label: 'En Curso' },
-            'SIN_RESPUESTA': { cls: 'bg-red-50 text-red-700 border-red-100', Icon: ExclamationCircleIcon, label: 'Sin Respuesta' },
-            'COMPLETADO': { cls: 'bg-green-50 text-green-700 border-green-100', Icon: CheckCircleIcon, label: 'Completado' }
+            'CREADO': { cls: 'bg-gray-500/10 text-gray-600 border-gray-500/20', Icon: QuestionMarkCircleIcon, label: 'creado' },
+            'EN_CURSO': { cls: 'bg-blue-500/10 text-blue-600 border-blue-500/20', Icon: ClockIcon, label: 'en curso' },
+            'SIN_RESPUESTA': { cls: 'bg-rose-500/10 text-rose-600 border-rose-500/20', Icon: ExclamationCircleIcon, label: 'sin respuesta' },
+            'COMPLETADO': { cls: 'bg-green-500/10 text-green-600 border-green-500/20', Icon: CheckCircleIcon, label: 'completado' }
         };
         const c = config[estado] || config['CREADO'];
         return (
-            <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-[10px] font-black uppercase border ${c.cls}`}>
+            <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-bold capitalize border ${c.cls}`}>
                 <c.Icon className="w-3.5 h-3.5" />
                 {c.label}
             </span>
@@ -72,205 +108,200 @@ const TicketsList = () => {
 
     const getPrioridadBadge = (prioridad) => {
         const config = {
-            'BAJA': 'bg-gray-100 text-gray-700',
-            'MEDIA': 'bg-blue-100 text-blue-700',
-            'ALTA': 'bg-orange-100 text-orange-700',
-            'CRITICA': 'bg-red-100 text-red-800 font-bold'
+            'BAJA': 'bg-gray-500/10 text-gray-500',
+            'MEDIA': 'bg-blue-500/10 text-blue-500',
+            'ALTA': 'bg-amber-500/10 text-amber-500',
+            'CRITICA': 'bg-rose-500/10 text-rose-600 font-bold'
         };
         return (
-            <span className={`inline-flex px-2 py-0.5 rounded text-[10px] font-black uppercase ${config[prioridad] || config['MEDIA']}`}>
-                {prioridad}
+            <span className={`inline-flex px-2 py-0.5 rounded-full text-[9px] font-bold capitalize border border-transparent ${config[prioridad] || config['MEDIA']}`}>
+                {prioridad?.toLowerCase()}
             </span>
         );
     };
 
-    const ticketsFiltrados = tickets.filter(t => {
-        const term = searchTerm.toLowerCase();
-        return (
-            t.titulo?.toLowerCase().includes(term) ||
-            t.funcionario?.nombre?.toLowerCase().includes(term) ||
-            String(t.id).includes(term)
-        );
-    });
-
     return (
         <div className="space-y-6">
-            <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
-                <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-                    <div>
-                        <h1 className="text-2xl font-black text-charcoal-900 flex items-center gap-3">
-                            <div className="bg-fnc-50 p-2 rounded-lg border border-fnc-100">
-                                <TicketIcon className="h-6 w-6 text-fnc-600" />
-                            </div>
-                            Mesa de Ayuda (ITSM)
-                        </h1>
-                        <p className="text-charcoal-500 text-sm mt-1 font-medium ml-11">
-                            Gestión de incidentes y requerimientos técnicos
-                        </p>
-                    </div>
-                    {canEdit && (
-                        <button
-                            onClick={() => navigate('/tickets/nuevo')}
-                            className="bg-fnc-600 text-white px-5 py-2.5 rounded-lg hover:bg-fnc-700 flex items-center gap-2 shrink-0 shadow-sm transition-all font-bold text-sm uppercase tracking-widest"
-                        >
-                            <PlusIcon className="w-5 h-5" />
-                            Nuevo Caso
-                        </button>
-                    )}
+            {/* Header Módulo Estilo Agenda */}
+            <div className="flex flex-col md:flex-row justify-between items-end gap-6 mb-8 mt-2 px-1">
+                <div>
+                    <h1 className="page-header-title">Mesa de Ayuda TIC</h1>
+                    <p className="page-header-subtitle">
+                        Centro de gestión de incidentes y servicios tecnológicos ({pagination.total || 0} tickets)
+                    </p>
                 </div>
+                {canEdit && (
+                    <button
+                        type="button"
+                        onClick={() => navigate('/tickets/nuevo')}
+                        className="btn-primary"
+                    >
+                        <PlusIcon className="w-5 h-5" />
+                        Nuevo Ticket
+                    </button>
+                )}
             </div>
 
-            <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
-                <div className="p-4 border-b border-gray-100 bg-gray-50/50">
-                    <div className="flex flex-col sm:flex-row gap-4 items-center">
-                        <div className="flex-1 w-full relative">
-                            <MagnifyingGlassIcon className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-5 h-5 pointer-events-none" />
+            <div className="bg-white rounded-3xl shadow-sm border border-gray-100 overflow-hidden">
+                <div className="p-6 border-b border-gray-100 bg-gray-50/50">
+                    <div className="flex flex-col xl:flex-row gap-4">
+                        <div className="relative group w-full xl:max-w-md">
+                            <MagnifyingGlassIcon className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-charcoal-400 group-focus-within:text-primary transition-colors" />
                             <input
                                 type="text"
-                                placeholder="Buscar por título, funcionario o ID..."
+                                placeholder="Busca por título, funcionario o ID..."
                                 value={searchTerm}
-                                onChange={(e) => handleSearchChange(e.target.value)}
-                                className="w-full pl-10 pr-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-fnc-500 focus:border-fnc-500 transition-all text-sm font-medium bg-white shadow-sm"
+                                onChange={(e) => { setSearchTerm(e.target.value); setCurrentPage(1); }}
+                                className="w-full bg-white border border-gray-100 rounded-full py-3 pl-11 pr-4 text-[13px] font-medium text-charcoal-800 placeholder:text-gray-300 focus:outline-none focus:ring-2 focus:ring-primary/10 focus:border-primary transition-all shadow-sm"
                             />
                         </div>
-                        <div className="w-full sm:w-64 relative">
-                            <FunnelIcon className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-4 h-4 pointer-events-none" />
-                            <select
-                                value={estadoFiltro}
-                                onChange={(e) => handleEstadoChange(e.target.value)}
-                                className="w-full pl-9 pr-8 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-fnc-500 bg-white text-sm appearance-none font-medium transition-all"
-                            >
-                                <option value="">Todos los estados</option>
-                                <option value="COMPLETADO">Completados</option>
-                                <option value="CREADO">Creados</option>
-                                <option value="EN_CURSO">En Curso</option>
-                                <option value="SIN_RESPUESTA">Sin Respuesta</option>
-                            </select>
+                        <div className="w-full xl:w-64">
+                            <Select
+                                styles={customSelectStyles}
+                                options={[
+                                    { value: '', label: 'Cualquier Estado' },
+                                    { value: 'COMPLETADO', label: 'Completado' },
+                                    { value: 'CREADO', label: 'Creado' },
+                                    { value: 'EN_CURSO', label: 'En curso' },
+                                    { value: 'SIN_RESPUESTA', label: 'Sin respuesta' }
+                                ]}
+                                value={{ value: estadoFiltro, label: estadoFiltro ? estadoFiltro.replace('_', ' ')?.toLowerCase() : 'Cualquier Estado' }}
+                                onChange={o => { setEstadoFiltro(o?.value || ''); setCurrentPage(1); }}
+                                isSearchable={false}
+                            />
                         </div>
+                        {(searchTerm || estadoFiltro) && (
+                            <button
+                                onClick={() => { setSearchTerm(''); setEstadoFiltro(''); setCurrentPage(1); }}
+                                className="p-3 text-charcoal-400 hover:text-rose-500 hover:bg-rose-50 rounded-full transition-all border border-transparent hover:border-rose-100"
+                                title="Limpiar filtros"
+                            >
+                                <ArrowPathIcon className="w-5 h-5" />
+                            </button>
+                        )}
                     </div>
                 </div>
 
                 <div className="p-0">
                     {loading ? (
                         <div className="text-center py-20">
-                            <ArrowPathIcon className="w-8 h-8 text-fnc-400 animate-spin mx-auto mb-3" />
-                            <p className="text-charcoal-400 font-bold italic text-sm uppercase tracking-widest">Cargando casos...</p>
+                            <ArrowPathIcon className="w-8 h-8 text-primary/40 animate-spin mx-auto mb-3" />
+                            <p className="text-charcoal-400 font-bold italic text-[11px] uppercase tracking-widest">Sincronizando casos...</p>
                         </div>
                     ) : (
                         <>
                             {/* Desktop View */}
                             <div className="hidden md:block">
-                                <div className="overflow-x-auto">
-                                    <table className="min-w-full divide-y divide-gray-200">
-                                        <thead className="bg-gray-50">
+                                <table className="min-w-full divide-y divide-gray-50">
+                                    <thead className="bg-transparent border-b border-gray-50">
+                                        <tr>
+                                            <th className="px-6 py-5 text-left text-[11px] font-semibold text-charcoal-400 capitalize">Ticket</th>
+                                            <th className="px-6 py-5 text-left text-[11px] font-semibold text-charcoal-400 capitalize">Solicitante</th>
+                                            <th className="px-6 py-5 text-left text-[11px] font-semibold text-charcoal-400 capitalize">Estado</th>
+                                            <th className="px-6 py-5 text-left text-[11px] font-semibold text-charcoal-400 capitalize">Responsable</th>
+                                            <th className="px-6 py-5 text-left text-[11px] font-semibold text-charcoal-400 capitalize">Fecha</th>
+                                            <th className="px-6 py-5 text-right text-[11px] font-semibold text-charcoal-400 capitalize">Detalle</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody className="bg-white divide-y divide-gray-50">
+                                        {tickets.length === 0 ? (
                                             <tr>
-                                                <th className="px-6 py-3 text-left text-[10px] font-black text-gray-500 uppercase tracking-widest">ID</th>
-                                                <th className="px-6 py-3 text-left text-[10px] font-black text-gray-500 uppercase tracking-widest">Caso</th>
-                                                <th className="px-6 py-3 text-left text-[10px] font-black text-gray-500 uppercase tracking-widest">Funcionario</th>
-                                                <th className="px-6 py-3 text-left text-[10px] font-black text-gray-500 uppercase tracking-widest">Estado</th>
-                                                <th className="px-6 py-3 text-left text-[10px] font-black text-gray-500 uppercase tracking-widest">Asignado a</th>
-                                                <th className="px-6 py-3 text-left text-[10px] font-black text-gray-500 uppercase tracking-widest">Fecha</th>
+                                                <td colSpan="6" className="px-6 py-20 text-center bg-gray-50/20">
+                                                    <p className="text-charcoal-400 font-bold italic text-[11px] uppercase tracking-widest">No se encontraron tickets registrados</p>
+                                                </td>
                                             </tr>
-                                        </thead>
-                                        <tbody className="bg-white divide-y divide-gray-100">
-                                            {ticketsFiltrados.length === 0 ? (
-                                                <tr>
-                                                    <td colSpan="6" className="px-6 py-20 text-center bg-gray-50/20">
-                                                        <ExclamationCircleIcon className="mx-auto h-12 w-12 text-gray-200 mb-3" />
-                                                        <p className="text-charcoal-400 font-bold italic text-sm uppercase tracking-widest">No se encontraron casos</p>
-                                                    </td>
-                                                </tr>
-                                            ) : (
-                                                ticketsFiltrados.map((ticket) => (
-                                                    <tr
-                                                        key={ticket.id}
-                                                        onClick={() => navigate(`/tickets/${ticket.id}`)}
-                                                        className="hover:bg-gray-50/50 cursor-pointer transition-colors"
-                                                    >
-                                                        <td className="px-6 py-4 text-sm font-black text-fnc-600">#{ticket.id}</td>
-                                                        <td className="px-6 py-4">
-                                                            <p className="text-sm font-bold text-charcoal-900 truncate max-w-xs">{ticket.titulo}</p>
-                                                            <div className="flex items-center gap-2 mt-0.5">
-                                                                <span className="text-[10px] font-bold text-charcoal-400 uppercase tracking-wider">{ticket.tipo}</span>
+                                        ) : (
+                                            tickets.map((ticket) => (
+                                                <tr
+                                                    key={ticket.id}
+                                                    onClick={() => navigate(`/tickets/${ticket.id}`)}
+                                                    className="hover:bg-gray-50/50 cursor-pointer transition-colors group"
+                                                >
+                                                    <td className="px-6 py-6">
+                                                        <div className="flex flex-col">
+                                                            <span className="text-[12px] font-black text-primary tracking-tight">#{ticket.id}</span>
+                                                            <p className="text-[13px] font-semibold text-charcoal-800 truncate max-w-[200px] capitalize tracking-tight">{ticket.titulo?.toLowerCase()}</p>
+                                                            <div className="flex items-center gap-1.5 mt-1">
+                                                                <span className="text-[10px] font-bold text-charcoal-400 capitalize opacity-70">{ticket.tipo?.toLowerCase()}</span>
                                                                 <span className="text-charcoal-200">•</span>
                                                                 {getPrioridadBadge(ticket.prioridad)}
                                                             </div>
-                                                        </td>
-                                                        <td className="px-6 py-4">
-                                                            <div className="flex items-center">
-                                                                <div className="h-8 w-8 rounded-full bg-fnc-50 text-fnc-700 flex items-center justify-center font-black text-xs mr-3 border border-fnc-100 shadow-sm">
-                                                                    {ticket.funcionario?.nombre?.charAt(0) || '?'}
-                                                                </div>
-                                                                <div>
-                                                                    <p className="text-sm font-bold text-charcoal-900">{ticket.funcionario?.nombre}</p>
-                                                                    <p className="text-[10px] font-bold text-charcoal-400 uppercase tracking-wider">{ticket.funcionario?.area || 'Sin área'}</p>
-                                                                </div>
+                                                        </div>
+                                                    </td>
+                                                    <td className="px-6 py-6">
+                                                        <div className="flex items-center gap-3">
+                                                            <div className="h-8 w-8 rounded-full bg-gray-50 text-charcoal-400 border border-gray-100 flex items-center justify-center font-bold text-[11px]">
+                                                                {ticket.funcionario?.nombre?.charAt(0) || '?'}
                                                             </div>
-                                                        </td>
-                                                        <td className="px-6 py-4">{getEstadoBadge(ticket.estado)}</td>
-                                                        <td className="px-6 py-4 text-xs font-bold text-charcoal-600">
-                                                            {ticket.asignadoA ? ticket.asignadoA.nombre : <span className="text-charcoal-300 italic font-normal">Sin asignar</span>}
-                                                        </td>
-                                                        <td className="px-6 py-4 text-xs font-bold text-charcoal-500">
-                                                            {new Date(ticket.creadoEn).toLocaleDateString('es-ES', { day: '2-digit', month: 'short', year: 'numeric' })}
-                                                        </td>
-                                                    </tr>
-                                                ))
-                                            )}
-                                        </tbody>
-                                    </table>
-                                </div>
+                                                            <div className="flex flex-col">
+                                                                <p className="text-[12px] font-semibold text-charcoal-700 capitalize tracking-tight">{ticket.funcionario?.nombre?.toLowerCase()}</p>
+                                                                <p className="text-[10px] font-bold text-charcoal-400 capitalize opacity-70">{ticket.funcionario?.area?.toLowerCase() || 'sin área'}</p>
+                                                            </div>
+                                                        </div>
+                                                    </td>
+                                                    <td className="px-6 py-6">{getEstadoBadge(ticket.estado)}</td>
+                                                    <td className="px-6 py-6 whitespace-nowrap">
+                                                        {ticket.asignadoA ? (
+                                                            <span className="text-[12px] text-charcoal-700 font-semibold capitalize tracking-tight bg-gray-50 px-3 py-1 rounded-full border border-gray-100">{ticket.asignadoA.nombre?.toLowerCase()}</span>
+                                                        ) : (
+                                                            <span className="text-[10px] text-charcoal-300 font-bold italic capitalize">esperando técnico</span>
+                                                        )}
+                                                    </td>
+                                                    <td className="px-6 py-6 text-[12px] font-mono text-charcoal-400 opacity-80">
+                                                        {new Date(ticket.creadoEn).toLocaleDateString()}
+                                                    </td>
+                                                    <td className="px-6 py-6 text-right">
+                                                        <button className="p-2 rounded-full text-charcoal-300 group-hover:text-primary transition-all">
+                                                            <ChevronRightIcon className="w-5 h-5" />
+                                                        </button>
+                                                    </td>
+                                                </tr>
+                                            ))
+                                        )}
+                                    </tbody>
+                                </table>
                             </div>
 
                             {/* Mobile View */}
-                            <div className="md:hidden space-y-3 p-4 bg-gray-50/30">
-                                {ticketsFiltrados.map((ticket) => (
+                            <div className="md:hidden space-y-4 p-4 bg-gray-50/20">
+                                {tickets.map((ticket) => (
                                     <div 
                                         key={ticket.id} 
                                         onClick={() => navigate(`/tickets/${ticket.id}`)}
-                                        className="bg-white p-4 rounded-xl border border-gray-100 shadow-sm space-y-3 active:bg-gray-50 transition-colors"
+                                        className="bg-white p-5 rounded-2xl border border-gray-100 shadow-sm space-y-4 active:bg-gray-50 transition-colors"
                                     >
                                         <div className="flex justify-between items-start">
-                                            <span className="text-[10px] font-black text-fnc-600 uppercase tracking-widest bg-fnc-50 px-2 py-0.5 rounded border border-fnc-100">#{ticket.id}</span>
+                                            <span className="text-[10px] font-black text-primary uppercase tracking-widest bg-primary/5 px-3 py-1 rounded-full border border-primary/10">#{ticket.id}</span>
                                             {getEstadoBadge(ticket.estado)}
                                         </div>
                                         <div>
-                                            <h3 className="font-bold text-charcoal-900 text-sm">{ticket.titulo}</h3>
-                                            <div className="flex items-center gap-2 mt-1">
-                                                <span className="text-[10px] font-bold text-charcoal-400 uppercase tracking-wider">{ticket.tipo}</span>
+                                            <h3 className="font-semibold text-charcoal-800 text-[13px] capitalize">{ticket.titulo?.toLowerCase()}</h3>
+                                            <div className="flex flex-wrap items-center gap-2 mt-2">
+                                                <span className="text-[10px] font-bold text-charcoal-400 capitalize opacity-70">{ticket.tipo?.toLowerCase()}</span>
                                                 <span className="text-charcoal-200">•</span>
                                                 {getPrioridadBadge(ticket.prioridad)}
                                             </div>
                                         </div>
-                                        <div className="flex justify-between items-center text-[10px] font-bold border-t border-gray-50 pt-3 text-charcoal-500 italic">
-                                            <span className="flex items-center gap-1"><UserIcon className="w-3 h-3" /> {ticket.funcionario?.nombre}</span>
-                                            <span className="flex items-center gap-1"><CalendarIcon className="w-3 h-3" /> {new Date(ticket.creadoEn).toLocaleDateString()}</span>
+                                        <div className="flex justify-between items-center text-[10px] font-bold border-t border-gray-50 pt-4 opacity-70">
+                                            <span className="flex items-center gap-1.5 capitalize"><UserIcon className="w-4 h-4 text-primary" /> {ticket.funcionario?.nombre?.toLowerCase()}</span>
+                                            <span className="flex items-center gap-1.5"><CalendarIcon className="w-4 h-4 text-primary" /> {new Date(ticket.creadoEn).toLocaleDateString()}</span>
                                         </div>
                                     </div>
                                 ))}
-                                {ticketsFiltrados.length === 0 && (
-                                    <div className="bg-white p-8 rounded-xl border border-gray-100 text-center">
-                                        <ExclamationCircleIcon className="mx-auto h-12 w-12 text-gray-200 mb-3" />
-                                        <p className="text-charcoal-400 font-bold italic text-sm uppercase tracking-widest">No se encontraron casos</p>
-                                    </div>
-                                )}
                             </div>
                         </>
                     )}
                 </div>
 
                 {!loading && tickets.length > 0 && (
-                    <div className="p-4 border-t border-gray-100 bg-gray-50/30">
+                    <div className="p-4 border-t border-gray-50">
                         <Pagination
                             currentPage={currentPage}
                             totalPages={pagination.pages || 1}
                             totalItems={pagination.total || tickets.length}
                             itemsPerPage={itemsPerPage}
                             currentCount={tickets.length}
-                            onPageChange={(p) => {
-                                setCurrentPage(p);
-                                window.scrollTo({ top: 0, behavior: 'smooth' });
-                            }}
+                            onPageChange={setCurrentPage}
                         />
                     </div>
                 )}

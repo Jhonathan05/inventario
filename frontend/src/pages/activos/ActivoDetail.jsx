@@ -1,9 +1,23 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
+import { 
+    ChevronLeftIcon,
+    PencilSquareIcon,
+    PlusIcon,
+    ComputerDesktopIcon,
+    ShieldCheckIcon,
+    DocumentTextIcon,
+    ClockIcon,
+    CpuChipIcon,
+    BanknotesIcon,
+    IdentificationIcon,
+    MapPinIcon,
+    TagIcon,
+    Cog6ToothIcon
+} from '@heroicons/react/24/outline';
 import api from '../../lib/axios';
 import { getImageUrl, formatCurrency, formatDate } from '../../lib/utils';
 import { useAuth } from '../../context/AuthContext';
-import ActivosForm from './ActivosForm';
 import HojaVidaForm from './components/HojaVidaForm';
 import EstadoHojaVidaForm from './components/EstadoHojaVidaForm';
 import DocumentosList from './components/DocumentosList';
@@ -18,7 +32,6 @@ const ActivoDetail = () => {
     const [activo, setActivo] = useState(null);
     const [loading, setLoading] = useState(true);
     const [activeTab, setActiveTab] = useState('general');
-    const [isEditModalOpen, setIsEditModalOpen] = useState(false);
     const [isHVModalOpen, setIsHVModalOpen] = useState(false);
     const [selectedHV, setSelectedHV] = useState(null);
     const [isStatusModalOpen, setIsStatusModalOpen] = useState(false);
@@ -43,313 +56,309 @@ const ActivoDetail = () => {
 
     const getStatusBadge = (estado) => {
         const colors = {
-            'DISPONIBLE': 'bg-green-50 text-green-700 ring-green-600/20',
-            'ASIGNADO': 'bg-blue-50 text-blue-700 ring-blue-700/10',
-            'EN_MANTENIMIENTO': 'bg-yellow-50 text-yellow-800 ring-yellow-600/20',
-            'DADO_DE_BAJA': 'bg-red-50 text-red-700 ring-red-600/20',
+            'DISPONIBLE': 'bg-green-500/10 text-green-600 border-green-500/10',
+            'ASIGNADO': 'bg-blue-500/10 text-blue-600 border-blue-500/10',
+            'EN_MANTENIMIENTO': 'bg-amber-500/10 text-amber-600 border-amber-500/10',
+            'DADO_DE_BAJA': 'bg-rose-500/10 text-rose-600 border-rose-500/10',
         };
-        return colors[estado] || 'bg-gray-50 text-gray-600 ring-gray-500/10';
+        return colors[estado] || 'bg-gray-500/10 text-gray-600 border-gray-500/10';
     };
 
     const getHVStatusBadge = (estado) => {
-        if (estado === 'CREADO') return 'bg-blue-50 text-blue-700 ring-blue-700/10';
-        if (estado === 'EN_PROCESO') return 'bg-yellow-50 text-yellow-800 ring-yellow-600/20';
-        if (estado === 'ESPERA_SUMINISTRO') return 'bg-orange-50 text-orange-700 ring-orange-600/20';
-        if (estado === 'PROCESO_GARANTIA') return 'bg-purple-50 text-purple-700 ring-purple-600/20';
-        if (estado === 'FINALIZADO' || estado === 'CERRADO') return 'bg-green-50 text-green-700 ring-green-600/20';
-        return 'bg-gray-50 text-gray-600 ring-gray-500/10';
+        if (estado === 'CREADO') return 'bg-blue-500/10 text-blue-600 border-blue-500/10';
+        if (estado === 'EN_PROCESO') return 'bg-amber-500/10 text-amber-600 border-amber-500/10';
+        if (estado === 'ESPERA_SUMINISTRO') return 'bg-orange-500/10 text-orange-600 border-orange-500/10';
+        if (estado === 'PROCESO_GARANTIA') return 'bg-purple-500/10 text-purple-600 border-purple-500/10';
+        if (estado === 'FINALIZADO' || estado === 'CERRADO') return 'bg-green-500/10 text-green-600 border-green-500/10';
+        return 'bg-gray-500/10 text-gray-600 border-gray-500/10';
     };
 
-    if (loading) return <div className="p-8 text-center text-gray-500">Cargando...</div>;
-    if (!activo) return <div className="p-8 text-center text-red-500">Activo no encontrado</div>;
+    if (loading) return (
+        <div className="text-center py-20">
+            <ClockIcon className="w-8 h-8 text-primary/40 animate-spin mx-auto mb-3" />
+            <p className="text-charcoal-400 font-bold italic text-[11px]">Sincronizando inventario técnico...</p>
+        </div>
+    );
+    if (!activo) return <div className="p-8 text-center text-rose-500 font-bold text-xs">Activo no encontrado</div>;
 
     const tabs = [
-        { key: 'general', label: 'General' },
-        { key: 'asignaciones', label: 'Asignaciones' },
-        { key: 'hojadevida', label: 'Hoja de Vida' },
-        { key: 'documentos', label: 'Documentos' },
-        { key: 'software', label: 'Software' },
+        { key: 'general', label: 'Estructura General', icon: ComputerDesktopIcon },
+        { key: 'asignaciones', label: 'Trazabilidad', icon: ClockIcon },
+        { key: 'hojadevida', label: 'Hoja de Vida', icon: ShieldCheckIcon },
+        { key: 'documentos', label: 'Anexos', icon: DocumentTextIcon },
+        { key: 'software', label: 'Licenciamiento', icon: Cog6ToothIcon },
     ];
 
-    const InfoItem = ({ label, value }) => (
-        <div>
-            <dt className="text-sm font-medium text-gray-500">{label}</dt>
-            <dd className="mt-1 text-sm text-gray-900">{value || '-'}</dd>
+    const InfoCard = ({ title, children, icon: Icon }) => (
+        <div className="bg-white p-6 rounded-3xl border border-gray-100 shadow-sm space-y-5">
+            <h3 className="text-[11px] font-bold text-charcoal-400 flex items-center gap-2 border-b border-gray-50 pb-3">
+                {Icon && <Icon className="w-4 h-4 text-primary" />}
+                {title}
+            </h3>
+            <dl className="grid grid-cols-1 sm:grid-cols-2 gap-x-8 gap-y-6">
+                {children}
+            </dl>
+        </div>
+    );
+
+    const toTitleCase = (str) => {
+        if (!str) return '';
+        return str.toString().toLowerCase()
+            .split(' ')
+            .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+            .join(' ');
+    };
+
+    const InfoItem = ({ label, value, isFullWidth }) => (
+        <div className={isFullWidth ? 'sm:col-span-2' : ''}>
+            <dt className="text-[10px] font-bold text-charcoal-400 mb-1 opacity-80">{toTitleCase(label)}</dt>
+            <dd className="text-[13px] font-bold text-charcoal-800 tracking-tight">{toTitleCase(value)}</dd>
         </div>
     );
 
     return (
-        <div className="px-2 sm:px-4 md:px-6 lg:px-8">
-            {/* Header */}
-            <div className="mb-6">
-                <button onClick={() => navigate('/activos')} className="text-sm text-indigo-600 hover:text-indigo-900 mb-2">
-                    &larr; Volver a lista
-                </button>
-                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-                    <div>
-                        <h1 className="text-xl sm:text-2xl font-bold text-gray-900">
-                            {activo.marca} {activo.modelo}
-                        </h1>
-                        <p className="text-sm text-gray-500">
-                            Placa: {activo.placa} | AF: {activo.activoFijo || 'N/A'} | Serial: {activo.serial}
-                        </p>
+        <div className="space-y-6">
+            {/* Header Módulo */}
+            <div className="bg-white p-8 rounded-3xl shadow-sm border border-gray-100/50">
+                <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
+                    <div className="flex items-center gap-6">
+                        <button 
+                            onClick={() => navigate('/activos')}
+                            className="bg-gray-50 p-3 rounded-full border border-gray-100 hover:bg-white hover:shadow-md transition-all group"
+                        >
+                            <ChevronLeftIcon className="w-5 h-5 text-charcoal-400 group-hover:text-primary" />
+                        </button>
+                        <div>
+                            <div className="flex items-center gap-3 mb-1">
+                                <h1 className="page-header-title">
+                                    {toTitleCase(`${activo.marca} ${activo.modelo}`)}
+                                </h1>
+                                <span className={`inline-flex items-center rounded-full px-3 py-0.5 text-[9px] font-bold border ${getStatusBadge(activo.estado)}`}>
+                                    {toTitleCase(activo.estado?.replace('_', ' '))}
+                                </span>
+                            </div>
+                            <p className="text-charcoal-400 text-xs font-medium">
+                                placa: <span className="font-mono font-bold text-charcoal-600 uppercase">{activo.placa}</span> | serial: <span className="font-mono font-bold text-charcoal-600 uppercase">{activo.serial}</span>
+                            </p>
+                        </div>
                     </div>
-                    <div className="flex items-center gap-2 flex-wrap">
-                        <span className={`inline-flex items-center rounded-md px-2 py-1 text-xs font-medium ring-1 ring-inset ${getStatusBadge(activo.estado)}`}>
-                            {activo.estado?.replace('_', ' ')}
-                        </span>
-                        {canEdit && (
-                            <button
-                                onClick={() => setIsEditModalOpen(true)}
-                                className="rounded-md bg-indigo-600 px-3 py-2 text-sm font-semibold text-white hover:bg-indigo-500"
-                            >
-                                Editar
-                            </button>
-                        )}
-                    </div>
+                    {canEdit && (
+                        <button
+                            onClick={() => navigate(`/activos/editar/${id}`)}
+                            className="btn-primary"
+                        >
+                            <PencilSquareIcon className="w-5 h-5" />
+                            Editar Información
+                        </button>
+                    )}
                 </div>
             </div>
 
-            {/* Tabs (scrollable on mobile) */}
-            <div className="border-b border-gray-200 mb-6 overflow-x-auto">
-                <nav className="-mb-px flex space-x-6 min-w-max" aria-label="Tabs">
-                    {tabs.map((tab) => (
-                        <button
-                            key={tab.key}
-                            onClick={() => setActiveTab(tab.key)}
-                            className={`${activeTab === tab.key
-                                ? 'border-indigo-500 text-indigo-600'
-                                : 'border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700'
-                                } whitespace-nowrap border-b-2 py-3 px-1 text-sm font-medium`}
-                        >
-                            {tab.label}
-                        </button>
-                    ))}
-                </nav>
+            {/* Navigation Tabs */}
+            <div className="bg-gray-100/50 p-2 rounded-full border border-gray-100 shadow-sm flex items-center gap-1 overflow-x-auto no-scrollbar">
+                {tabs.map((tab) => (
+                    <button
+                        key={tab.key}
+                        onClick={() => setActiveTab(tab.key)}
+                        className={`flex items-center gap-2 px-6 py-2.5 rounded-full text-[11px] font-bold transition-all shrink-0
+                            ${activeTab === tab.key 
+                                ? 'bg-primary text-white shadow-md shadow-primary/20' 
+                                : 'text-charcoal-400 hover:text-charcoal-600 hover:bg-white'}`}
+                    >
+                        <tab.icon className={`w-4 h-4 ${activeTab === tab.key ? 'text-white' : 'text-charcoal-300'}`} />
+                        {tab.label}
+                    </button>
+                ))}
             </div>
 
-            {/* Content */}
+            {/* Main Content Area */}
             <div className="pb-10">
                 {activeTab === 'general' && (
-                    <div className="space-y-8">
-                        {/* Row 1: Basic Info + Image */}
-                        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-                            <div className="lg:col-span-2">
-                                <h3 className="text-lg font-medium text-gray-900 mb-4">Información Básica</h3>
-                                <dl className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-4 bg-white p-4 rounded-lg shadow-sm ring-1 ring-gray-200">
-                                    <InfoItem label="Categoría" value={activo.categoria?.nombre} />
-                                    <InfoItem label="Tipo de Equipo" value={activo.tipo} />
-                                    <InfoItem label="Nombre de Equipo" value={activo.nombreEquipo} />
-                                    <InfoItem label="Ubicación" value={activo.ubicacion} />
-                                    <InfoItem label="Activo Fijo" value={activo.activoFijo} />
-                                    <InfoItem label="Valor Compra" value={formatCurrency(activo.valorCompra)} />
-                                    <InfoItem label="Fecha Compra" value={formatDate(activo.fechaCompra)} />
-                                    <InfoItem label="Garantía Hasta" value={formatDate(activo.garantiaHasta)} />
-                                    <InfoItem label="Color" value={activo.color} />
-                                    <div className="sm:col-span-2">
-                                        <InfoItem label="Observaciones" value={activo.observaciones || 'Ninguna'} />
-                                    </div>
-                                </dl>
-                            </div>
-                            <div>
-                                <h3 className="text-lg font-medium text-gray-900 mb-4">Imagen</h3>
-                                <div className="overflow-hidden rounded-lg bg-gray-100 ring-1 ring-gray-200">
-                                    <img src={getImageUrl(activo.imagen)} alt="" className="w-full object-cover max-h-64" />
+                    <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                        <div className="lg:col-span-2 space-y-6">
+                            <InfoCard title="Información Técnica Principal" icon={TagIcon}>
+                                <InfoItem label="Categoría" value={activo.categoria?.nombre?.toLowerCase()} />
+                                <InfoItem label="Subtipo" value={activo.tipo?.toLowerCase()} />
+                                <InfoItem label="Nombre de Red" value={activo.nombreEquipo?.toLowerCase()} />
+                                <InfoItem label="Localización" value={activo.ubicacion?.toLowerCase()} />
+                                <InfoItem label="Activo Fijo" value={activo.activoFijo} />
+                                <InfoItem label="Color / Estética" value={activo.color?.toLowerCase()} />
+                                <InfoItem label="Valor Adquisición" value={formatCurrency(activo.valorCompra)} />
+                                <InfoItem label="Fecha de Compra" value={formatDate(activo.fechaCompra)} />
+                                <InfoItem label="Vigencia Garantía" value={formatDate(activo.garantiaHasta)} />
+                                <InfoItem label="Observaciones" value={activo.observaciones?.toLowerCase()} isFullWidth />
+                            </InfoCard>
+
+                            <InfoCard title="Administración Patrimonial" icon={BanknotesIcon}>
+                                <InfoItem label="Empresa Propietaria" value={activo.empresaPropietaria?.toLowerCase()} />
+                                <InfoItem label="Dependencia Cargo" value={activo.dependencia?.toLowerCase()} />
+                                <InfoItem label="Fuente recurrentes" value={activo.fuenteRecurso?.toLowerCase()} />
+                                <InfoItem label="Modalidad" value={activo.tipoRecurso?.toLowerCase()} />
+                                <InfoItem label="Esquema Control" value={activo.tipoControl?.toLowerCase()} />
+                                <InfoItem label="Estado Operativo" value={activo.estadoOperativo?.toLowerCase()} />
+                            </InfoCard>
+
+                            <InfoCard title="Asignación Actual" icon={IdentificationIcon}>
+                                <InfoItem label="Personal Responsable" value={activo.nombreFuncionario?.toLowerCase()} />
+                                <InfoItem label="Cédula" value={activo.cedulaFuncionario} />
+                                <InfoItem label="Área / Proceso" value={activo.area?.toLowerCase()} />
+                                <InfoItem label="Cargo / Función" value={activo.cargo?.toLowerCase()} />
+                            </InfoCard>
+
+                            <InfoCard title="Arquitectura de Hardware" icon={CpuChipIcon}>
+                                <InfoItem label="Unidad Central (CPU)" value={activo.procesador?.toLowerCase()} />
+                                <InfoItem label="Memoria Operativa" value={activo.memoriaRam?.toLowerCase()} />
+                                <InfoItem label="Almacenamiento" value={activo.discoDuro?.toLowerCase()} />
+                                <InfoItem label="Núcleo de Software" value={activo.sistemaOperativo?.toLowerCase()} />
+                            </InfoCard>
+                        </div>
+
+                        <div className="space-y-6">
+                            <div className="bg-white p-6 rounded-3xl border border-gray-100 shadow-sm">
+                                <h3 className="text-[11px] font-bold text-charcoal-400 mb-4 border-b border-gray-50 pb-3">Registro Visual</h3>
+                                <div className="aspect-square rounded-2xl overflow-hidden bg-gray-50 border border-gray-100 shadow-inner group">
+                                    <img 
+                                        src={getImageUrl(activo.imagen)} 
+                                        alt="" 
+                                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" 
+                                    />
                                 </div>
                             </div>
-                        </div>
-
-                        {/* Row 2: Administration */}
-                        <div>
-                            <h3 className="text-lg font-medium text-gray-900 mb-4">Administración</h3>
-                            <dl className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-x-6 gap-y-4 bg-white p-4 rounded-lg shadow-sm ring-1 ring-gray-200">
-                                <InfoItem label="Empresa Propietaria" value={activo.empresaPropietaria} />
-                                <InfoItem label="Dependencia" value={activo.dependencia} />
-                                <InfoItem label="Fuente de Recurso" value={activo.fuenteRecurso} />
-                                <InfoItem label="Tipo de Recurso" value={activo.tipoRecurso} />
-                                <InfoItem label="Tipo de Control" value={activo.tipoControl} />
-                                <InfoItem label="Estado Operativo" value={activo.estadoOperativo} />
-                                <InfoItem label="Razón de Estado" value={activo.razonEstado} />
-                            </dl>
-                        </div>
-
-                        {/* Row 3: Funcionario */}
-                        <div>
-                            <h3 className="text-lg font-medium text-gray-900 mb-4">Funcionario Asociado</h3>
-                            <dl className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-x-6 gap-y-4 bg-white p-4 rounded-lg shadow-sm ring-1 ring-gray-200">
-                                <InfoItem label="Empresa Funcionario" value={activo.empresaFuncionario} />
-                                <InfoItem label="Tipo de Personal" value={activo.tipoPersonal} />
-                                <InfoItem label="Cédula" value={activo.cedulaFuncionario} />
-                                <InfoItem label="Nombre / Shortname" value={activo.nombreFuncionario ? `${activo.nombreFuncionario} (${activo.shortname || '-'})` : '-'} />
-                                <InfoItem label="Departamento" value={activo.departamento} />
-                                <InfoItem label="Ciudad" value={activo.ciudad} />
-                                <InfoItem label="Cargo" value={activo.cargo} />
-                                <InfoItem label="Área" value={activo.area} />
-                            </dl>
-                        </div>
-
-                        {/* Row 4: Technical Specs */}
-                        <div>
-                            <h3 className="text-lg font-medium text-gray-900 mb-4">Especificaciones Técnicas</h3>
-                            <dl className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-4 bg-white p-4 rounded-lg shadow-sm ring-1 ring-gray-200">
-                                <InfoItem label="Procesador" value={activo.procesador} />
-                                <InfoItem label="Memoria RAM" value={activo.memoriaRam} />
-                                <InfoItem label="Disco Duro" value={activo.discoDuro} />
-                                <InfoItem label="Sistema Operativo" value={activo.sistemaOperativo} />
-                            </dl>
                         </div>
                     </div>
                 )}
 
                 {activeTab === 'asignaciones' && (
-                    <div>
-                        <h3 className="text-lg font-medium text-gray-900 mb-4">Historial de Asignaciones</h3>
-                        {/* Desktop table */}
-                        <div className="hidden md:block bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
-                        <div className="overflow-x-auto">
-                            <table className="min-w-full divide-y divide-gray-200">
-                                <thead className="bg-gray-50">
-                                    <tr>
-                                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Funcionario</th>
-                                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Tipo</th>
-                                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Fecha Inicio</th>
-                                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Fecha Fin</th>
-                                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Obs</th>
-                                    </tr>
-                                </thead>
-                                <tbody className="bg-white divide-y divide-gray-200">
-                                    {activo.asignaciones?.map((asig) => (
-                                        <tr key={asig.id}>
-                                            <td className="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-medium text-gray-900">
-                                                {asig.funcionario.nombre}
-                                            </td>
-                                            <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500">{asig.tipo}</td>
-                                            <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500">{formatDate(asig.fechaInicio)}</td>
-                                            <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500">{formatDate(asig.fechaFin)}</td>
-                                            <td className="px-3 py-4 text-sm text-gray-500">{asig.observaciones}</td>
-                                        </tr>
-                                    ))}
-                                    {(!activo.asignaciones || activo.asignaciones.length === 0) && (
-                                        <tr><td colSpan="5" className="py-6 text-center text-gray-500">Sin historial</td></tr>
-                                    )}
-                                </tbody>
-                            </table>
+                    <div className="bg-white rounded-3xl shadow-sm border border-gray-100 overflow-hidden">
+                        <div className="p-8 border-b border-gray-100 bg-gray-50/50">
+                            <h3 className="text-[13px] font-black text-charcoal-900 capitalize tracking-tight flex items-center gap-2">
+                                <ClockIcon className="w-5 h-5 text-primary" />
+                                Historial de Trazabilidad
+                            </h3>
                         </div>
-                    </div>
-                        {/* Mobile cards */}
-                        <div className="md:hidden space-y-3">
-                            {(!activo.asignaciones || activo.asignaciones.length === 0) && (
-                                <div className="py-6 text-center text-gray-500 bg-white rounded-lg shadow">Sin historial</div>
-                            )}
-                            {activo.asignaciones?.map((asig) => (
-                                <div key={asig.id} className="bg-white rounded-lg shadow ring-1 ring-black/5 p-4">
-                                    <div className="flex items-center justify-between mb-2">
-                                        <span className="font-medium text-gray-900 text-sm">{asig.funcionario.nombre}</span>
-                                        <span className="text-xs bg-indigo-50 text-indigo-700 px-2 py-0.5 rounded ring-1 ring-inset ring-indigo-700/10">{asig.tipo}</span>
-                                    </div>
-                                    <div className="text-xs text-gray-500 space-y-1">
-                                        <div>📅 Inicio: {formatDate(asig.fechaInicio)}</div>
-                                        <div>📅 Fin: {formatDate(asig.fechaFin)}</div>
-                                        {asig.observaciones && <div className="text-gray-600 mt-1">📝 {asig.observaciones}</div>}
-                                    </div>
-                                </div>
-                            ))}
+                        <div className="p-0">
+                            <div className="hidden md:block">
+                                <table className="min-w-full divide-y divide-gray-50">
+                                    <thead className="bg-transparent border-b border-gray-50">
+                                        <tr>
+                                            <th className="px-8 py-5 text-left text-[11px] font-semibold text-charcoal-400 capitalize">Funcionario</th>
+                                            <th className="px-8 py-5 text-left text-[11px] font-semibold text-charcoal-400 capitalize">Tipo</th>
+                                            <th className="px-8 py-5 text-left text-[11px] font-semibold text-charcoal-400 capitalize">Ciclo de Vida</th>
+                                            <th className="px-8 py-5 text-left text-[11px] font-semibold text-charcoal-400 capitalize">Anotaciones</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody className="bg-white divide-y divide-gray-50">
+                                        {activo.asignaciones?.map((asig) => (
+                                            <tr key={asig.id} className="hover:bg-gray-50/50 transition-colors">
+                                                <td className="px-8 py-6">
+                                                    <div className="flex items-center gap-3">
+                                                        <div className="w-8 h-8 rounded-full bg-gray-50 border border-gray-100 flex items-center justify-center text-[11px] font-bold text-charcoal-400">
+                                                            {asig.funcionario.nombre?.charAt(0)}
+                                                        </div>
+                                                        <span className="font-semibold text-charcoal-800 text-[13px] capitalize">{asig.funcionario.nombre?.toLowerCase()}</span>
+                                                    </div>
+                                                </td>
+                                                <td className="px-8 py-6">
+                                                    <span className="bg-charcoal-50 text-charcoal-600 px-3 py-1 rounded-full text-[10px] font-bold border border-charcoal-100 capitalize">
+                                                        {asig.tipo?.toLowerCase()}
+                                                    </span>
+                                                </td>
+                                                <td className="px-8 py-6 space-y-1">
+                                                    <p className="text-[11px] font-bold text-charcoal-600 flex items-center gap-2">
+                                                        <span className="w-2 h-2 rounded-full bg-green-500"></span>
+                                                        {formatDate(asig.fechaInicio)}
+                                                    </p>
+                                                    <p className="text-[11px] font-bold text-charcoal-300 flex items-center gap-2">
+                                                        <span className="w-2 h-2 rounded-full bg-charcoal-200"></span>
+                                                        {asig.fechaFin ? formatDate(asig.fechaFin) : 'VIGENTE'}
+                                                    </p>
+                                                </td>
+                                                <td className="px-8 py-6 text-xs text-charcoal-500 italic max-w-xs truncate">{asig.observaciones}</td>
+                                            </tr>
+                                        ))}
+                                        {(!activo.asignaciones || activo.asignaciones.length === 0) && (
+                                            <tr><td colSpan="4" className="py-20 text-center text-charcoal-300 italic font-bold text-[11px]">Sin registros de trazabilidad</td></tr>
+                                        )}
+                                    </tbody>
+                                </table>
+                            </div>
                         </div>
                     </div>
                 )}
 
                 {activeTab === 'hojadevida' && (
-                    <div>
-                        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 mb-4">
-                            <h3 className="text-lg font-medium text-gray-900">Mantenimientos y Eventos</h3>
+                    <div className="space-y-6">
+                        <div className="bg-white p-8 rounded-3xl shadow-sm border border-gray-100/50 flex justify-between items-center">
+                            <div>
+                                <h3 className="text-xl font-black text-charcoal-900 tracking-tight capitalize">Eventos de Mantenimiento</h3>
+                                <p className="text-charcoal-400 text-xs mt-1 font-medium capitalize">Cronología de soporte técnico y siniestros</p>
+                            </div>
                             {canEdit && (
                                 <button
                                     onClick={() => setIsHVModalOpen(true)}
-                                    className="cursor-pointer inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700"
+                                    className="btn-primary"
                                 >
-                                    + Registrar Evento
+                                    <PlusIcon className="w-5 h-5" />
+                                    Registrar Evento
                                 </button>
                             )}
                         </div>
-                        {/* Desktop table */}
-                        <div className="hidden md:block bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
-                        <div className="overflow-x-auto">
-                            <table className="min-w-full divide-y divide-gray-200">
-                                <thead className="bg-gray-50">
-                                    <tr>
-                                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Fecha</th>
-                                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Tipo</th>
-                                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Descripción</th>
-                                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Analista</th>
-                                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Costo</th>
-                                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Caso Aranda</th>
-                                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Estado</th>
-                                        <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Acciones</th>
-                                    </tr>
-                                </thead>
-                                <tbody className="bg-white divide-y divide-gray-200">
-                                    {activo.hojaVida?.map((hv) => (
-                                        <tr key={hv.id}>
-                                            <td className="whitespace-nowrap py-4 pl-4 pr-3 text-sm text-gray-900">{formatDate(hv.fecha)}</td>
-                                            <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500">{hv.tipo}</td>
-                                            <td className="px-3 py-4 text-sm text-gray-500 max-w-xs truncate">{hv.descripcion}</td>
-                                            <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500">{hv.responsable?.nombre || hv.tecnico || '-'}</td>
-                                            <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500">{formatCurrency(hv.costo)}</td>
-                                            <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500">{hv.casoAranda || '-'}</td>
-                                            <td className="whitespace-nowrap px-3 py-4 text-sm">
-                                                <span className={`inline-flex items-center rounded-md px-2 py-1 text-xs font-medium ring-1 ring-inset ${getHVStatusBadge(hv.estado)}`}>
-                                                    {hv.estado?.replace('_', ' ') || 'EN PROCESO'}
-                                                </span>
-                                            </td>
-                                            <td className="whitespace-nowrap px-3 py-4 text-sm text-right">
-                                                <button
-                                                    onClick={() => { setSelectedHV(hv); setIsStatusModalOpen(true); }}
-                                                    className="text-indigo-600 hover:text-indigo-900 font-medium"
-                                                >
-                                                    {(hv.estado === 'FINALIZADO' || hv.estado === 'CERRADO' || !canEdit) ? 'Ver' : 'Gestionar'}
-                                                </button>
-                                            </td>
+
+                        <div className="bg-white rounded-3xl shadow-sm border border-gray-100 overflow-hidden">
+                            <div className="p-0">
+                                <table className="min-w-full divide-y divide-gray-50">
+                                    <thead className="bg-transparent border-b border-gray-50">
+                                        <tr>
+                                            <th className="px-8 py-5 text-left text-[11px] font-semibold text-charcoal-400 capitalize">Registro</th>
+                                            <th className="px-8 py-5 text-left text-[11px] font-semibold text-charcoal-400 capitalize">Tipo</th>
+                                            <th className="px-8 py-5 text-left text-[11px] font-semibold text-charcoal-400 capitalize">Analista</th>
+                                            <th className="px-8 py-5 text-left text-[11px] font-semibold text-charcoal-400 capitalize">Valorización</th>
+                                            <th className="px-8 py-5 text-left text-[11px] font-semibold text-charcoal-400 capitalize">Estado</th>
+                                            <th className="px-8 py-5 text-right text-[11px] font-semibold text-charcoal-400 capitalize">Acción</th>
                                         </tr>
-                                    ))}
-                                    {(!activo.hojaVida || activo.hojaVida.length === 0) && (
-                                        <tr><td colSpan="8" className="py-6 text-center text-gray-500">No hay registros de mantenimiento</td></tr>
-                                    )}
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
-                        {/* Mobile cards */}
-                        <div className="md:hidden space-y-3">
-                            {(!activo.hojaVida || activo.hojaVida.length === 0) && (
-                                <div className="py-6 text-center text-gray-500 bg-white rounded-lg shadow">No hay registros</div>
-                            )}
-                            {activo.hojaVida?.map((hv) => (
-                                <div key={hv.id} className="bg-white rounded-lg shadow ring-1 ring-black/5 p-4">
-                                    <div className="flex items-start justify-between mb-2">
-                                        <div>
-                                            <span className="font-medium text-gray-900 text-sm">{hv.tipo}</span>
-                                            <span className="text-xs text-gray-500 ml-2">{formatDate(hv.fecha)}</span>
-                                        </div>
-                                        <span className={`inline-flex items-center rounded-md px-2 py-0.5 text-xs font-medium ring-1 ring-inset ${getHVStatusBadge(hv.estado)}`}>
-                                            {hv.estado?.replace('_', ' ')}
-                                        </span>
-                                    </div>
-                                    <p className="text-sm text-gray-600 line-clamp-2">{hv.descripcion}</p>
-                                    <div className="text-xs text-gray-500 mt-2 space-y-0.5">
-                                        <div>🔧 {hv.responsable?.nombre || hv.tecnico || 'Sin analista'}</div>
-                                        {hv.casoAranda && <div>🎫 Aranda: {hv.casoAranda}</div>}
-                                        <div>💰 {formatCurrency(hv.costo)}</div>
-                                    </div>
-                                    <div className="mt-3 pt-3 border-t border-gray-100 flex justify-end">
-                                        <button
-                                            onClick={() => { setSelectedHV(hv); setIsStatusModalOpen(true); }}
-                                            className="text-xs text-indigo-700 bg-indigo-50 rounded-md px-3 py-1.5 font-medium hover:bg-indigo-100"
-                                        >
-                                            {(hv.estado === 'FINALIZADO' || hv.estado === 'CERRADO' || !canEdit) ? 'Ver Detalles' : 'Gestionar'}
-                                        </button>
-                                    </div>
-                                </div>
-                            ))}
+                                    </thead>
+                                    <tbody className="bg-white divide-y divide-gray-50">
+                                        {activo.hojaVida?.map((hv) => (
+                                            <tr key={hv.id} className="hover:bg-gray-50/50 transition-colors group">
+                                                <td className="px-8 py-6">
+                                                    <p className="text-[12px] font-bold text-charcoal-800">{formatDate(hv.fecha)}</p>
+                                                    <p className="text-[10px] text-charcoal-400 font-bold opacity-60">Caso: {hv.casoAranda || 'N/A'}</p>
+                                                </td>
+                                                <td className="px-8 py-6">
+                                                    <span className="bg-primary/5 text-primary px-3 py-1 rounded-full text-[10px] font-bold border border-primary/10 capitalize">
+                                                        {hv.tipo?.toLowerCase()}
+                                                    </span>
+                                                </td>
+                                                <td className="px-8 py-6">
+                                                    <div className="flex items-center gap-3">
+                                                        <div className="w-7 h-7 rounded-full bg-charcoal-800 flex items-center justify-center text-white text-[10px] font-bold">
+                                                            {(hv.responsable?.nombre || hv.tecnico)?.charAt(0) || '?'}
+                                                        </div>
+                                                        <span className="text-[12px] text-charcoal-700 font-semibold capitalize">{(hv.responsable?.nombre || hv.tecnico || 'anonimo')?.toLowerCase()}</span>
+                                                    </div>
+                                                </td>
+                                                <td className="px-8 py-6 text-[12px] font-bold text-charcoal-900">{formatCurrency(hv.costo)}</td>
+                                                <td className="px-8 py-6">
+                                                    <span className={`inline-flex items-center rounded-full px-3 py-0.5 text-[9px] font-bold border ${getHVStatusBadge(hv.estado)}`}>
+                                                        {hv.estado?.replace('_', ' ')?.toLowerCase() || 'en proceso'}
+                                                    </span>
+                                                </td>
+                                                <td className="px-8 py-6 text-right">
+                                                    <button
+                                                        onClick={() => { setSelectedHV(hv); setIsStatusModalOpen(true); }}
+                                                        className="text-primary font-bold text-[11px] hover:underline"
+                                                    >
+                                                        {(hv.estado === 'FINALIZADO' || hv.estado === 'CERRADO' || !canEdit) ? 'Detalle' : 'Gestionar'}
+                                                    </button>
+                                                </td>
+                                            </tr>
+                                        ))}
+                                        {(!activo.hojaVida || activo.hojaVida.length === 0) && (
+                                            <tr><td colSpan="6" className="py-20 text-center text-charcoal-300 italic font-bold text-[11px]">Sin registros técnicos vinculados</td></tr>
+                                        )}
+                                    </tbody>
+                                </table>
+                            </div>
                         </div>
                     </div>
                 )}
@@ -370,14 +379,6 @@ const ActivoDetail = () => {
                     />
                 )}
             </div>
-
-            {isEditModalOpen && (
-                <ActivosForm
-                    open={isEditModalOpen}
-                    onClose={() => { setIsEditModalOpen(false); fetchActivo(); }}
-                    activo={activo}
-                />
-            )}
 
             {isHVModalOpen && (
                 <HojaVidaForm

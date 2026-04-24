@@ -1,4 +1,4 @@
-import { ChatBubbleLeftIcon } from '@heroicons/react/24/outline';
+import { ChatBubbleLeftRightIcon, CloudArrowUpIcon } from '@heroicons/react/24/outline';
 
 export const TechnicalNotes = ({ 
     ticket, 
@@ -8,38 +8,40 @@ export const TechnicalNotes = ({
     saving 
 }) => {
     return (
-        <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100 print-section">
-            <h2 className="text-base font-bold text-gray-900 mb-4 flex items-center gap-2 print-section-title">
-                <ChatBubbleLeftIcon className="w-5 h-5 text-indigo-500 no-print" /> Documentación de la Solución Técnica
+        <div className="bg-white p-10 rounded-3xl shadow-sm border border-gray-100 print-section">
+            <h2 className="text-[15px] font-black text-charcoal-900 mb-8 flex items-center gap-3 border-b border-gray-50 pb-5 print-section-title">
+                <ChatBubbleLeftRightIcon className="w-6 h-6 text-primary" /> 
+                Documentación de la Solución Técnica
             </h2>
-            <div className="space-y-4">
+            <div className="space-y-8">
                 <div className="grid-1-col">
-                    <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest block mb-1.5">Diagnóstico y Solución Técnica Aplicada</label>
+                    <label className="text-[10px] font-bold text-charcoal-400 uppercase tracking-widest block mb-2.5 opacity-70">Bitácora de Procedimiento Aplicado</label>
                     <textarea
                         rows="6"
                         value={localTicket?.solucionTecnica ?? ticket?.solucionTecnica ?? ''}
                         onChange={e => setLocalTicket(prev => ({ ...(prev || ticket), solucionTecnica: e.target.value }))}
-                        className="w-full text-sm p-3 bg-gray-50 border border-gray-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all resize-none font-mono"
+                        className="w-full text-[13px] font-medium p-5 bg-gray-50/50 border border-gray-100 rounded-2xl focus:bg-white focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all resize-none leading-relaxed text-charcoal-700"
                         placeholder="Documenta aquí los pasos técnicos realizados..."
                     />
                 </div>
                 <div className="grid-1-col">
-                    <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest block mb-1.5">Conclusiones y Recomendaciones</label>
+                    <label className="text-[10px] font-bold text-charcoal-400 uppercase tracking-widest block mb-2.5 opacity-70">Conclusiones y Recomendaciones</label>
                     <textarea
                         rows="3"
                         value={localTicket?.conclusiones ?? ticket?.conclusiones ?? ''}
                         onChange={e => setLocalTicket(prev => ({ ...(prev || ticket), conclusiones: e.target.value }))}
-                        className="w-full text-sm p-3 bg-gray-50 border border-gray-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all resize-none"
+                        className="w-full text-[13px] font-medium p-5 bg-gray-50/50 border border-gray-100 rounded-2xl focus:bg-white focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all resize-none leading-relaxed text-charcoal-700"
                         placeholder="Resumen final del cierre del caso..."
                     />
                 </div>
-                <div className="flex justify-end no-print">
+                <div className="flex justify-end no-print pt-4">
                     <button
                         onClick={handleGuardarNotasTecnicas}
                         disabled={saving}
-                        className="px-4 py-2 bg-indigo-600 text-white rounded-lg text-sm font-semibold hover:bg-indigo-700 shadow-lg shadow-indigo-100 transition-all active:scale-95 disabled:opacity-50"
+                        className="bg-charcoal-900 text-white px-10 py-4 rounded-full hover:bg-black flex items-center gap-2 shadow-lg shadow-charcoal-900/10 transition-all font-black text-[11px] uppercase tracking-widest border border-charcoal-900 disabled:opacity-50"
                     >
-                        {saving ? 'Guardando...' : 'Guardar Notas Técnicas'}
+                        <CloudArrowUpIcon className="w-5 h-5" />
+                        {saving ? 'Procesando...' : 'Fijar Memoria Técnica'}
                     </button>
                 </div>
             </div>

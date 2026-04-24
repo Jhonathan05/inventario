@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import Select from 'react-select';
 import { licenciasService } from '../../api/licencias.service';
 import { useAuth } from '../../context/AuthContext';
 import { formatCurrency, formatDate } from '../../lib/utils';
@@ -16,10 +17,53 @@ import {
     TrashIcon,
     XMarkIcon,
     ArrowPathIcon,
-    ChevronLeftIcon,
     ChevronRightIcon
 } from '@heroicons/react/24/outline';
 import Pagination from '../../components/Pagination';
+
+const customSelectStyles = {
+    control: (base, state) => ({
+        ...base,
+        borderRadius: '9999px',
+        padding: '2px 8px',
+        fontSize: '12px',
+        fontWeight: '600',
+        borderColor: state.isFocused ? '#8d1024' : '#f3f4f6',
+        boxShadow: 'none',
+        backgroundColor: '#ffffff',
+        '&:hover': {
+            borderColor: '#8d1024'
+        },
+        transition: 'all 0.2s ease',
+        textTransform: 'capitalize'
+    }),
+    option: (base, state) => ({
+        ...base,
+        fontSize: '12px',
+        fontWeight: state.isSelected ? '700' : '600',
+        backgroundColor: state.isSelected ? '#f3f4f6' : state.isFocused ? '#f9fafb' : 'transparent',
+        color: state.isSelected ? '#111827' : '#4b5563',
+        cursor: 'pointer',
+        padding: '10px 16px',
+        textTransform: 'capitalize',
+        '&:active': {
+            backgroundColor: '#f3f4f6'
+        }
+    }),
+    valueContainer: (base) => ({
+        ...base,
+        textTransform: 'capitalize'
+    }),
+    menu: (base) => ({
+        ...base,
+        borderRadius: '16px',
+        overflow: 'hidden',
+        boxShadow: '0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1)',
+        border: '1px solid #f3f4f6',
+        padding: '4px',
+        zIndex: 50
+    })
+};
 
 const LicenciasList = () => {
     const { user } = useAuth();
@@ -55,12 +99,11 @@ const LicenciasList = () => {
             search, 
             tipoLicencia: tipoFiltro, 
             asignada: asignadaFiltro 
-        }),
-        keepPreviousData: true
+        })
     });
 
     const licencias = licenciasResponse?.data || [];
-    const pagination = licenciasResponse?.pagination || { page: 1, pages: 1 };
+    const pagination = licenciasResponse?.pagination || { page: 1, pages: 1, total: 0 };
 
     const saveMutation = useMutation({
         mutationFn: (data) => isEditing ? licenciasService.update(currentId, data) : licenciasService.create(data),
@@ -121,210 +164,211 @@ const LicenciasList = () => {
 
     return (
         <div className="space-y-6">
-            {/* Sección de Encabezado: Título y Descripción */}
-            <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
-                <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-                    <div>
-                        <h1 className="text-2xl font-black text-charcoal-900 flex items-center gap-3">
-                            <div className="bg-fnc-50 p-2 rounded-lg border border-fnc-100">
-                                <KeyIcon className="w-6 h-6 text-fnc-600" />
-                            </div>
-                            Licencias de Software
-                        </h1>
-                        <p className="text-charcoal-500 text-sm mt-1 font-medium ml-11">
-                            Gestión de suscripciones, claves OEM y software por volumen institucional
-                        </p>
-                    </div>
-                    {canEdit && (
-                        <button
-                            onClick={handleOpenNew}
-                            className="bg-fnc-600 text-white px-5 py-2.5 rounded-lg hover:bg-fnc-700 flex items-center gap-2 shrink-0 shadow-sm transition-all font-bold text-sm uppercase tracking-widest"
-                        >
-                            <PlusIcon className="w-5 h-5" />
-                            Registrar Licencia
-                        </button>
-                    )}
+            {/* Header Módulo Estilo Agenda */}
+            <div className="flex flex-col md:flex-row justify-between items-end gap-6 mb-8 mt-2 px-1">
+                <div>
+                    <h1 className="page-header-title">Software & Licencias</h1>
+                    <p className="page-header-subtitle">
+                        Gestión centralizada de activos digitales e institucionales ({pagination.total || 0} activos)
+                    </p>
                 </div>
+                {canEdit && (
+                    <button
+                        type="button"
+                        onClick={handleOpenNew}
+                        className="btn-primary"
+                    >
+                        <PlusIcon className="w-5 h-5" />
+                        Registrar Software
+                    </button>
+                )}
             </div>
 
-            {/* Sección de Contenido: Filtros y Tabla */}
-            <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
-                <div className="p-4 border-b border-gray-100 bg-gray-50/50">
-                    <div className="flex flex-col sm:flex-row gap-4 items-center">
-                        <div className="flex-1 w-full relative">
-                            <MagnifyingGlassIcon className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-5 h-5 pointer-events-none" />
+            <div className="bg-white rounded-3xl shadow-sm border border-gray-100 overflow-hidden">
+                <div className="p-6 border-b border-gray-100 bg-gray-50/50">
+                    <div className="flex flex-col xl:flex-row gap-4">
+                        <div className="relative group w-full xl:max-w-md">
+                            <MagnifyingGlassIcon className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-charcoal-400 group-focus-within:text-primary transition-colors" />
                             <input
                                 type="text"
-                                placeholder="Buscar software, key o placa..."
+                                placeholder="Busca por software, llave o placa..."
                                 value={search}
                                 onChange={e => { setSearch(e.target.value); setPage(1); }}
-                                className="w-full pl-10 pr-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-fnc-500 focus:border-fnc-500 text-sm bg-white transition-all shadow-sm font-medium"
+                                className="w-full bg-white border border-gray-100 rounded-full py-3 pl-11 pr-4 text-[13px] font-medium text-charcoal-800 placeholder:text-gray-300 focus:outline-none focus:ring-2 focus:ring-primary/10 focus:border-primary transition-all shadow-sm"
                             />
                         </div>
-                        <div className="flex gap-4 w-full sm:w-auto">
-                            <div className="relative flex-1 sm:flex-none">
-                                <FunnelIcon className="absolute left-2.5 top-1/2 -translate-y-1/2 text-gray-400 w-4 h-4 pointer-events-none" />
-                                <select
-                                    value={tipoFiltro}
-                                    onChange={e => { setTipoFiltro(e.target.value); setPage(1); }}
-                                    className="w-full pl-8 pr-8 py-2 rounded-lg border border-gray-200 shadow-sm focus:ring-2 focus:ring-fnc-500 text-[10px] uppercase font-black tracking-widest bg-white appearance-none transition-all cursor-pointer"
-                                >
-                                    <option value="">TODOS LOS TIPOS</option>
-                                    <option value="PERPETUA">PERPETUA</option>
-                                    <option value="SUSCRIPCION">SUSCRIPCIÓN</option>
-                                    <option value="OEM">OEM</option>
-                                    <option value="OPEN">VOLUME/OPEN</option>
-                                </select>
-                            </div>
-                            <div className="relative flex-1 sm:flex-none">
-                                <CheckBadgeIcon className="absolute left-2.5 top-1/2 -translate-y-1/2 text-gray-400 w-4 h-4 pointer-events-none" />
-                                <select
-                                    value={asignadaFiltro}
-                                    onChange={e => { setAsignadaFiltro(e.target.value); setPage(1); }}
-                                    className="w-full pl-8 pr-8 py-2 rounded-lg border border-gray-200 shadow-sm focus:ring-2 focus:ring-fnc-500 text-[10px] uppercase font-black tracking-widest bg-white appearance-none transition-all cursor-pointer"
-                                >
-                                    <option value="">DISPONIBILIDAD</option>
-                                    <option value="false">DISPONIBLES</option>
-                                    <option value="true">EN USO</option>
-                                </select>
-                            </div>
+                        <div className="w-full xl:w-56">
+                            <Select
+                                styles={customSelectStyles}
+                                options={[
+                                    { value: '', label: 'Cualquier Tipo' },
+                                    { value: 'PERPETUA', label: 'Perpetua' },
+                                    { value: 'SUSCRIPCION', label: 'Suscripción' },
+                                    { value: 'OEM', label: 'Oem / Fábrica' },
+                                    { value: 'OPEN', label: 'Volumen / Open' }
+                                ]}
+                                value={{ value: tipoFiltro, label: tipoFiltro ? (tipoFiltro === 'OEM' ? 'OEM' : (tipoFiltro === 'OPEN' ? 'Volumen' : tipoFiltro?.toLowerCase())) : 'Cualquier Tipo' }}
+                                onChange={o => { setTipoFiltro(o?.value || ''); setPage(1); }}
+                                isSearchable={false}
+                            />
                         </div>
+                        <div className="w-full xl:w-56">
+                            <Select
+                                styles={customSelectStyles}
+                                options={[
+                                    { value: '', label: 'Disponibilidad' },
+                                    { value: 'false', label: 'Disponibles' },
+                                    { value: 'true', label: 'En Uso' }
+                                ]}
+                                value={{ value: asignadaFiltro, label: asignadaFiltro === 'true' ? 'En Uso' : (asignadaFiltro === 'false' ? 'Disponibles' : 'Disponibilidad') }}
+                                onChange={o => { setAsignadaFiltro(o?.value || ''); setPage(1); }}
+                                isSearchable={false}
+                            />
+                        </div>
+                        {(search || tipoFiltro || asignadaFiltro) && (
+                            <button
+                                onClick={() => { setSearch(''); setTipoFiltro(''); setAsignadaFiltro(''); setPage(1); }}
+                                className="p-3 text-charcoal-400 hover:text-rose-500 hover:bg-rose-50 rounded-full transition-all border border-transparent hover:border-rose-100"
+                                title="Limpiar filtros"
+                            >
+                                <ArrowPathIcon className="w-5 h-5" />
+                            </button>
+                        )}
                     </div>
                 </div>
 
                 <div className="p-0">
                     {isLoading ? (
-                        <div className="text-center py-16 text-charcoal-400 font-medium">Cargando licencias...</div>
-                    ) : licencias.length === 0 ? (
-                        <div className="text-center py-16 text-charcoal-400 font-bold italic">
-                            No se encontraron licencias con los criterios de búsqueda.
+                        <div className="text-center py-20">
+                            <ArrowPathIcon className="w-8 h-8 text-primary/40 animate-spin mx-auto mb-3" />
+                            <p className="text-charcoal-400 font-bold italic text-[11px] uppercase tracking-widest">Sincronizando licencias...</p>
                         </div>
                     ) : (
                         <>
                             {/* Desktop View */}
                             <div className="hidden md:block">
-                                <div className="overflow-x-auto">
-                                    <table className="min-w-full divide-y divide-gray-200">
-                                        <thead className="bg-gray-50">
+                                <table className="min-w-full divide-y divide-gray-50">
+                                    <thead className="bg-transparent border-b border-gray-50">
+                                        <tr>
+                                            <th className="px-6 py-5 text-left text-[11px] font-semibold text-charcoal-400 capitalize">Software</th>
+                                            <th className="px-6 py-5 text-left text-[11px] font-semibold text-charcoal-400 capitalize">Tipo</th>
+                                            <th className="px-6 py-5 text-left text-[11px] font-semibold text-charcoal-400 capitalize">Llave de activación</th>
+                                            <th className="px-6 py-5 text-left text-[11px] font-semibold text-charcoal-400 capitalize">Vencimiento</th>
+                                            <th className="px-6 py-5 text-left text-[11px] font-semibold text-charcoal-400 capitalize">Asignación</th>
+                                            {canEdit && <th className="px-6 py-5 text-right text-[11px] font-semibold text-charcoal-400 capitalize">Acción</th>}
+                                        </tr>
+                                    </thead>
+                                    <tbody className="bg-white divide-y divide-gray-50">
+                                        {licencias.length === 0 ? (
                                             <tr>
-                                                <th className="px-6 py-3 text-left text-[10px] font-black text-gray-500 uppercase tracking-widest">Software</th>
-                                                <th className="px-6 py-3 text-left text-[10px] font-black text-gray-500 uppercase tracking-widest">Tipo</th>
-                                                <th className="px-6 py-3 text-left text-[10px] font-black text-gray-500 uppercase tracking-widest">Key / SN</th>
-                                                <th className="px-6 py-3 text-left text-[10px] font-black text-gray-500 uppercase tracking-widest">Vencimiento</th>
-                                                <th className="px-6 py-3 text-left text-[10px] font-black text-gray-500 uppercase tracking-widest">Asignación</th>
-                                                {canEdit && <th className="px-6 py-3 text-right text-[10px] font-black text-gray-500 uppercase tracking-widest">Acciones</th>}
+                                                <td colSpan="6" className="px-6 py-20 text-center bg-gray-50/20">
+                                                    <p className="text-charcoal-400 font-bold italic text-[11px] uppercase tracking-widest">No se encontraron licencias registradas</p>
+                                                </td>
                                             </tr>
-                                        </thead>
-                                        <tbody className="bg-white divide-y divide-gray-100">
-                                            {licencias.map(lic => (
-                                                 <tr key={lic.id} className="hover:bg-gray-50/50 transition-colors">
-                                                     <td className="px-6 py-4">
-                                                         <p className="font-bold text-charcoal-900 text-sm">{lic.software} {lic.version}</p>
-                                                         <p className="text-[10px] text-fnc-500 font-black uppercase tracking-widest mt-0.5">{formatCurrency(lic.costo)}</p>
-                                                     </td>
-                                                     <td className="px-6 py-4">
-                                                         <span className="inline-flex items-center px-2 py-0.5 rounded-lg text-[10px] font-black uppercase border border-blue-100 bg-blue-50 text-blue-700">
-                                                             {lic.tipoLicencia}
-                                                         </span>
-                                                     </td>
-                                                     <td className="px-6 py-4">
-                                                         <p className="font-mono text-xs font-bold text-charcoal-500 truncate max-w-[150px]">{lic.llaveLicencia || 'N/A'}</p>
-                                                     </td>
-                                                     <td className="px-6 py-4 whitespace-nowrap text-xs font-bold">
-                                                         {lic.tipoLicencia === 'SUSCRIPCION' ? (
-                                                             <div className="flex items-center gap-1.5">
-                                                                 <CalendarIcon className="w-3.5 h-3.5 text-charcoal-400" />
-                                                                 <span className={lic.vencimiento && new Date(lic.vencimiento) < new Date() ? 'text-red-600' : 'text-charcoal-600'}>
-                                                                     {formatDate(lic.vencimiento) || '-'}
-                                                                 </span>
-                                                             </div>
-                                                         ) : <span className="text-charcoal-300 italic font-medium">N/A</span>}
-                                                     </td>
-                                                     <td className="px-6 py-4">
-                                                         {lic.activo ? (
-                                                             <button 
-                                                                 onClick={() => window.location.href = `/activos/${lic.activoId}`}
-                                                                 className="text-fnc-600 hover:text-fnc-700 font-black text-[10px] uppercase tracking-widest flex items-center gap-2 bg-fnc-50 px-2 py-1 rounded-lg border border-fnc-100 shadow-sm transition-all"
-                                                             >
-                                                                 <ComputerDesktopIcon className="w-3.5 h-3.5" />
-                                                                 {lic.activo.placa}
-                                                             </button>
-                                                         ) : (
-                                                             <span className="text-green-700 text-[10px] font-black bg-green-50 px-2.5 py-1 rounded-lg border border-green-100 uppercase tracking-widest">Disponible</span>
-                                                         )}
-                                                     </td>
-                                                     {canEdit && (
-                                                         <td className="px-6 py-4 text-right">
-                                                             <div className="flex justify-end gap-1">
-                                                                 <button 
-                                                                     onClick={() => handleOpenEdit(lic)} 
-                                                                     className="text-charcoal-400 hover:text-fnc-600 p-2 rounded-lg transition-all"
-                                                                     title="Editar"
-                                                                 >
-                                                                     <PencilSquareIcon className="w-4 h-4" />
-                                                                 </button>
-                                                                 <button 
-                                                                     onClick={() => handleDelete(lic.id, lic.software)} 
-                                                                     className="text-charcoal-400 hover:text-red-600 p-2 rounded-lg transition-all"
-                                                                     title="Eliminar"
-                                                                 >
-                                                                     <TrashIcon className="w-4 h-4" />
-                                                                 </button>
-                                                             </div>
-                                                         </td>
-                                                     )}
-                                                 </tr>
-                                             ))}
-                                        </tbody>
-                                    </table>
-                                </div>
+                                        ) : (
+                                            licencias.map((lic) => (
+                                                <tr key={lic.id} className="hover:bg-gray-50/50 transition-colors group">
+                                                    <td className="px-6 py-6">
+                                                        <div className="flex flex-col">
+                                                            <span className="text-[13px] font-semibold text-charcoal-800 capitalize tracking-tight">{lic.software?.toLowerCase()} {lic.version?.toLowerCase()}</span>
+                                                            <span className="text-[10px] font-bold text-primary tracking-tight opacity-80">{formatCurrency(lic.costo)}</span>
+                                                        </div>
+                                                    </td>
+                                                    <td className="px-6 py-6 transition-transform group-hover:translate-x-1">
+                                                        <span className="inline-flex items-center px-3 py-1 rounded-full text-[10px] font-bold capitalize border border-blue-500/10 bg-blue-500/5 text-blue-600">
+                                                            {lic.tipoLicencia?.toLowerCase() === 'open' ? 'volumen' : lic.tipoLicencia?.toLowerCase()}
+                                                        </span>
+                                                    </td>
+                                                    <td className="px-6 py-6">
+                                                        <p className="font-mono text-[11px] font-semibold text-charcoal-400 truncate max-w-[150px] opacity-70 group-hover:opacity-100 transition-opacity">{lic.llaveLicencia || 'Sin registro'}</p>
+                                                    </td>
+                                                    <td className="px-6 py-6 whitespace-nowrap text-[12px] font-medium">
+                                                        {lic.tipoLicencia === 'SUSCRIPCION' ? (
+                                                            <div className="flex items-center gap-2">
+                                                                <CalendarIcon className="w-4 h-4 text-charcoal-300" />
+                                                                <span className={lic.vencimiento && new Date(lic.vencimiento) < new Date() ? 'text-rose-600 font-bold' : 'text-charcoal-500'}>
+                                                                    {formatDate(lic.vencimiento) || '-'}
+                                                                </span>
+                                                            </div>
+                                                        ) : <span className="text-charcoal-300 italic text-[11px]">Vitalicia</span>}
+                                                    </td>
+                                                    <td className="px-6 py-6">
+                                                        {lic.activo ? (
+                                                            <button 
+                                                                onClick={() => window.location.href = `/activos/${lic.activoId}`}
+                                                                className="text-primary hover:text-primary/80 font-bold text-[10px] flex items-center gap-2 bg-primary/5 px-3 py-1.5 rounded-full border border-primary/10 transition-all hover:shadow-sm"
+                                                            >
+                                                                <ComputerDesktopIcon className="w-3.5 h-3.5" />
+                                                                Placa: {lic.activo.placa}
+                                                            </button>
+                                                        ) : (
+                                                            <span className="text-green-600 text-[10px] font-bold bg-green-500/10 px-3 py-1.5 rounded-full border border-green-500/10">En Bodega</span>
+                                                        )}
+                                                    </td>
+                                                    {canEdit && (
+                                                        <td className="px-6 py-6 text-right">
+                                                            <div className="flex justify-end gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                                                                <button onClick={() => handleOpenEdit(lic)} className="p-2 text-charcoal-300 hover:text-primary rounded-full hover:bg-primary/5 transition-all">
+                                                                    <PencilSquareIcon className="w-4 h-4" />
+                                                                </button>
+                                                                <button onClick={() => handleDelete(lic.id, lic.software)} className="p-2 text-charcoal-300 hover:text-rose-500 rounded-full hover:bg-rose-50 transition-all">
+                                                                    <TrashIcon className="w-4 h-4" />
+                                                                </button>
+                                                            </div>
+                                                        </td>
+                                                    )}
+                                                </tr>
+                                            ))
+                                        )}
+                                    </tbody>
+                                </table>
                             </div>
 
                             {/* Mobile View */}
-                            <div className="md:hidden space-y-3 p-4 bg-gray-50/30">
-                                {licencias.map(lic => (
-                                    <div key={lic.id} className="bg-white p-4 rounded-xl border border-gray-100 shadow-sm space-y-4 hover:border-fnc-200 transition-all">
+                            <div className="md:hidden space-y-4 p-4 bg-gray-50/20">
+                                {licencias.map((lic) => (
+                                    <div key={lic.id} className="bg-white p-5 rounded-2xl border border-gray-100 shadow-sm space-y-4">
                                         <div className="flex justify-between items-start">
                                             <div className="min-w-0">
-                                                <h3 className="font-bold text-charcoal-900 text-sm truncate">{lic.software} {lic.version}</h3>
-                                                <p className="text-[10px] text-fnc-500 font-black uppercase tracking-widest mt-0.5">{formatCurrency(lic.costo)}</p>
+                                                <h3 className="font-semibold text-charcoal-800 text-[13px] capitalize truncate">{lic.software?.toLowerCase()} {lic.version?.toLowerCase()}</h3>
+                                                <p className="text-[10px] text-primary font-bold tracking-tight mt-1">{formatCurrency(lic.costo)}</p>
                                             </div>
-                                            <span className="inline-flex items-center px-2 py-0.5 rounded-lg text-[10px] font-black uppercase border border-blue-100 bg-blue-50 text-blue-700 shadow-sm">
-                                                {lic.tipoLicencia}
+                                            <span className="inline-flex items-center px-3 py-1 rounded-full text-[9px] font-bold capitalize border border-blue-500/10 bg-blue-500/5 text-blue-600">
+                                                {lic.tipoLicencia?.toLowerCase()}
                                             </span>
                                         </div>
 
-                                        <div className="grid grid-cols-2 gap-3 text-[10px] font-bold">
+                                        <div className="grid grid-cols-2 gap-4 pt-2 border-t border-gray-50">
                                             <div className="space-y-1">
-                                                <p className="text-charcoal-400 uppercase tracking-widest">Key / ID</p>
-                                                <p className="font-mono text-charcoal-600 truncate">{lic.llaveLicencia || 'N/A'}</p>
+                                                <p className="text-[10px] text-charcoal-400 font-bold">Identificador</p>
+                                                <p className="font-mono text-[11px] text-charcoal-600 truncate opacity-80">{lic.llaveLicencia || 'N/A'}</p>
                                             </div>
                                             <div className="space-y-1 text-right">
-                                                <p className="text-charcoal-400 uppercase tracking-widest text-right">Estado</p>
+                                                <p className="text-[10px] text-charcoal-400 font-bold">Disponibilidad</p>
                                                 <div className="mt-1 flex justify-end">
                                                     {lic.activo ? (
-                                                        <span className="text-fnc-600 bg-fnc-50 px-2 py-0.5 rounded border border-fnc-100 uppercase tracking-widest">Asignada a {lic.activo.placa}</span>
+                                                        <span className="text-primary bg-primary/5 px-2.5 py-1 rounded-full border border-primary/10 text-[9px] font-bold">Ocupada ({lic.activo.placa})</span>
                                                     ) : (
-                                                        <span className="text-green-700 bg-green-50 px-2 py-0.5 rounded border border-green-100 uppercase tracking-widest">Disponible</span>
+                                                        <span className="text-green-600 bg-green-500/10 px-2.5 py-1 rounded-full border border-green-500/10 text-[9px] font-bold">Stock</span>
                                                     )}
                                                 </div>
                                             </div>
                                         </div>
 
                                         {canEdit && (
-                                            <div className="grid grid-cols-2 gap-2 pt-3 border-t border-gray-50">
+                                            <div className="grid grid-cols-2 gap-3 pt-4 border-t border-gray-50">
                                                 <button
                                                     onClick={() => handleOpenEdit(lic)}
-                                                    className="flex items-center justify-center gap-1.5 py-2 text-[10px] font-black text-fnc-600 bg-fnc-50 rounded-lg uppercase tracking-widest hover:bg-fnc-100 transition-all shadow-sm"
+                                                    className="flex items-center justify-center gap-2 py-2 text-[10px] font-bold text-primary bg-primary/5 rounded-full capitalize hover:bg-primary transition-all hover:text-white"
                                                 >
-                                                    <PencilSquareIcon className="w-3.5 h-3.5" />
+                                                    <PencilSquareIcon className="w-4 h-4" />
                                                     Editar
                                                 </button>
                                                 <button
                                                     onClick={() => handleDelete(lic.id, lic.software)}
-                                                    className="flex items-center justify-center gap-1.5 py-2 text-[10px] font-black text-red-600 bg-red-50 rounded-lg uppercase tracking-widest hover:bg-red-100 transition-all shadow-sm"
+                                                    className="flex items-center justify-center gap-2 py-2 text-[10px] font-bold text-rose-600 bg-rose-50 rounded-full capitalize hover:bg-rose-500 transition-all hover:text-white"
                                                 >
-                                                    <TrashIcon className="w-3.5 h-3.5" />
+                                                    <TrashIcon className="w-4 h-4" />
                                                     Borrar
                                                 </button>
                                             </div>
@@ -337,7 +381,7 @@ const LicenciasList = () => {
                 </div>
 
                 {!isLoading && licencias.length > 0 && (
-                    <div className="p-4 border-t border-gray-100 bg-gray-50/30">
+                    <div className="p-4 border-t border-gray-50">
                         <Pagination
                             currentPage={page}
                             totalPages={pagination.pages || 1}
@@ -350,80 +394,83 @@ const LicenciasList = () => {
                 )}
             </div>
 
+            {/* Modal */}
             {showModal && (
                 <div className="fixed inset-0 z-[10001] flex items-center justify-center p-4">
                     <div className="absolute inset-0 bg-charcoal-900/40 backdrop-blur-sm" onClick={() => setShowModal(false)}></div>
-                    <div className="relative bg-white rounded-2xl shadow-2xl w-full max-w-lg overflow-hidden transform transition-all">
-                        <div className="px-6 py-5 border-b border-gray-100 flex justify-between items-center bg-gray-50/50">
+                    <div className="relative bg-white rounded-3xl shadow-2xl w-full max-w-lg overflow-hidden animate-slide-up">
+                        <div className="px-8 py-6 border-b border-gray-50 flex justify-between items-center bg-gray-50/30">
                             <div>
-                                <h3 className="text-lg font-black text-charcoal-900 uppercase tracking-widest flex items-center gap-2">
-                                    <KeyIcon className="w-5 h-5 text-fnc-600" />
-                                    {isEditing ? 'Editar Licencia' : 'Registrar Software'}
+                                <h3 className="text-lg font-black text-charcoal-900 capitalize tracking-tight flex items-center gap-3">
+                                    <div className="bg-primary/5 p-1.5 rounded-full border border-primary/10">
+                                        <KeyIcon className="w-5 h-5 text-primary" />
+                                    </div>
+                                    {isEditing ? 'editar licencia' : 'registrar software'}
                                 </h3>
-                                <p className="text-[10px] font-black text-charcoal-400 uppercase tracking-widest mt-0.5">Gestión de activos digitales</p>
+                                <p className="text-[11px] font-bold text-charcoal-400 capitalize mt-1.5 ml-10">Gestión de activos digitales e institucionales</p>
                             </div>
                             <button 
                                 onClick={() => setShowModal(false)} 
-                                className="p-2 hover:bg-white rounded-full transition-colors text-charcoal-400 shadow-sm border border-transparent hover:border-gray-100"
+                                className="p-2 hover:bg-gray-100 rounded-full transition-colors text-charcoal-400"
                             >
                                 <XMarkIcon className="w-6 h-6" />
                             </button>
                         </div>
-                        <form onSubmit={handleSave} className="p-6 space-y-4">
-                            <div className="grid grid-cols-2 gap-4">
-                                <div className="col-span-2">
-                                    <label className="block text-[10px] font-black text-charcoal-400 uppercase tracking-widest mb-1.5">Nombre del Software *</label>
-                                    <input required type="text" className="block w-full border border-gray-200 rounded-lg p-2.5 text-sm font-bold bg-white focus:ring-2 focus:ring-fnc-500 focus:border-fnc-500 transition-all outline-none" value={formData.software} onChange={e => setFormData({...formData, software: e.target.value})} placeholder="Ej: Microsoft Office LTSC" />
+                        <form onSubmit={handleSave} className="p-8 space-y-6">
+                            <div className="grid grid-cols-2 gap-6">
+                                <div className="col-span-2 space-y-1.5">
+                                    <label className="text-[11px] font-bold text-charcoal-400 uppercase tracking-widest ml-1">Nombre del Software *</label>
+                                    <input required type="text" className="w-full bg-white border border-gray-100 rounded-full py-3 px-5 text-[13px] font-medium text-charcoal-800 focus:outline-none focus:ring-2 focus:ring-primary/10 focus:border-primary transition-all shadow-sm" value={formData.software} onChange={e => setFormData({...formData, software: e.target.value})} placeholder="Ej: Microsoft Office LTSC" />
                                 </div>
-                                <div className="col-span-1">
-                                    <label className="block text-[10px] font-black text-charcoal-400 uppercase tracking-widest mb-1.5">Versión/Edición</label>
-                                    <input type="text" className="block w-full border border-gray-200 rounded-lg p-2.5 text-sm font-bold bg-white focus:ring-2 focus:ring-fnc-500 outline-none" value={formData.version} onChange={e => setFormData({...formData, version: e.target.value})} placeholder="Ej: 2021 Pro Plus" />
+                                <div className="col-span-1 space-y-1.5">
+                                    <label className="text-[11px] font-bold text-charcoal-400 uppercase tracking-widest ml-1">Versión / Edición</label>
+                                    <input type="text" className="w-full bg-white border border-gray-100 rounded-full py-3 px-5 text-[13px] font-medium text-charcoal-800 focus:outline-none focus:ring-2 focus:ring-primary/10 focus:border-primary transition-all shadow-sm" value={formData.version} onChange={e => setFormData({...formData, version: e.target.value})} placeholder="Ej: 2021 Pro Plus" />
                                 </div>
-                                <div className="col-span-1">
-                                    <label className="block text-[10px] font-black text-charcoal-400 uppercase tracking-widest mb-1.5">Tipo de Licencia *</label>
-                                    <select required className="block w-full border border-gray-200 rounded-lg p-2.5 text-sm font-bold bg-white focus:ring-2 focus:ring-fnc-500 outline-none appearance-none" value={formData.tipoLicencia} onChange={e => setFormData({...formData, tipoLicencia: e.target.value})}>
+                                <div className="col-span-1 space-y-1.5">
+                                    <label className="text-[11px] font-bold text-charcoal-400 uppercase tracking-widest ml-1">Tipo licencia *</label>
+                                    <select required className="w-full bg-white border border-gray-100 rounded-full py-3 px-5 text-[13px] font-medium text-charcoal-800 focus:outline-none focus:ring-2 focus:ring-primary/10 focus:border-primary transition-all shadow-sm appearance-none" value={formData.tipoLicencia} onChange={e => setFormData({...formData, tipoLicencia: e.target.value})}>
                                         <option value="PERPETUA">PERPETUA</option>
                                         <option value="SUSCRIPCION">SUSCRIPCIÓN</option>
                                         <option value="OEM">OEM</option>
-                                        <option value="OPEN">OPEN/VOLUMEN</option>
+                                        <option value="OPEN">OPEN / VOLUMEN</option>
                                     </select>
                                 </div>
-                                <div className="col-span-2">
-                                    <label className="block text-[10px] font-black text-charcoal-400 uppercase tracking-widest mb-1.5">Llave de Activación / SN</label>
-                                    <input type="text" className="block w-full border border-gray-200 rounded-lg p-2.5 text-sm font-mono font-bold bg-gray-50 focus:ring-2 focus:ring-fnc-500 outline-none" value={formData.llaveLicencia} onChange={e => setFormData({...formData, llaveLicencia: e.target.value})} placeholder="XXXXX-XXXXX-XXXXX" />
+                                <div className="col-span-2 space-y-1.5">
+                                    <label className="text-[11px] font-bold text-charcoal-400 uppercase tracking-widest ml-1">Llave de activación / Key</label>
+                                    <input type="text" className="w-full bg-gray-50 border border-transparent rounded-full py-3 px-5 text-[13px] font-mono text-primary focus:outline-none focus:ring-2 focus:ring-primary/10 focus:border-primary transition-all shadow-inner" value={formData.llaveLicencia} onChange={e => setFormData({...formData, llaveLicencia: e.target.value})} placeholder="XXXXX-XXXXX-XXXXX" />
                                 </div>
-                                <div className="col-span-1">
-                                    <label className="block text-[10px] font-black text-charcoal-400 uppercase tracking-widest mb-1.5">Fecha de Compra</label>
-                                    <input type="date" className="block w-full border border-gray-200 rounded-lg p-2.5 text-sm font-bold bg-white focus:ring-2 focus:ring-fnc-500 outline-none" value={formData.fechaCompra} onChange={e => setFormData({...formData, fechaCompra: e.target.value})} />
+                                <div className="col-span-1 space-y-1.5">
+                                    <label className="text-[11px] font-bold text-charcoal-400 uppercase tracking-widest ml-1">Fecha compra</label>
+                                    <input type="date" className="w-full bg-white border border-gray-100 rounded-full py-3 px-5 text-[13px] font-medium text-charcoal-800 focus:outline-none focus:ring-2 focus:ring-primary/10 focus:border-primary transition-all shadow-sm" value={formData.fechaCompra} onChange={e => setFormData({...formData, fechaCompra: e.target.value})} />
                                 </div>
-                                <div className="col-span-1">
-                                    <label className="block text-[10px] font-black text-charcoal-400 uppercase tracking-widest mb-1.5">Valor Unitario</label>
-                                    <input type="number" step="0.01" className="block w-full border border-gray-200 rounded-lg p-2.5 text-sm font-bold bg-white focus:ring-2 focus:ring-fnc-500 outline-none" value={formData.costo} onChange={e => setFormData({...formData, costo: e.target.value})} placeholder="0.00" />
+                                <div className="col-span-1 space-y-1.5">
+                                    <label className="text-[11px] font-bold text-charcoal-400 uppercase tracking-widest ml-1">Inversión unitaria</label>
+                                    <input type="number" step="0.01" className="w-full bg-white border border-gray-100 rounded-full py-3 px-5 text-[13px] font-medium text-charcoal-800 focus:outline-none focus:ring-2 focus:ring-primary/10 focus:border-primary transition-all shadow-sm" value={formData.costo} onChange={e => setFormData({...formData, costo: e.target.value})} placeholder="0.00" />
                                 </div>
                                 {formData.tipoLicencia === 'SUSCRIPCION' && (
-                                    <div className="col-span-2 p-3 bg-red-50 border border-red-100 rounded-xl">
-                                        <label className="block text-[10px] font-black text-red-600 uppercase tracking-widest mb-1.5">Fecha de Vencimiento *</label>
-                                        <input required type="date" className="block w-full border border-red-200 rounded-lg p-2.5 text-sm font-bold bg-white focus:ring-2 focus:ring-red-500 outline-none" value={formData.vencimiento} onChange={e => setFormData({...formData, vencimiento: e.target.value})} />
+                                    <div className="col-span-2 space-y-1.5 p-5 bg-rose-50 rounded-2xl border border-rose-100">
+                                        <label className="text-[10px] font-black text-rose-600 uppercase tracking-widest ml-1">vencimiento obligatorio *</label>
+                                        <input required type="date" className="w-full border border-rose-200 rounded-full py-3.5 px-5 text-[13px] font-bold text-charcoal-800 focus:outline-none focus:ring-2 focus:ring-rose-500 outline-none" value={formData.vencimiento} onChange={e => setFormData({...formData, vencimiento: e.target.value})} />
                                     </div>
                                 )}
-                                <div className="col-span-2">
-                                    <label className="block text-[10px] font-black text-charcoal-400 uppercase tracking-widest mb-1.5">Observaciones Adicionales</label>
-                                    <textarea rows={2} className="block w-full border border-gray-200 rounded-lg p-2.5 text-sm font-medium bg-white focus:ring-2 focus:ring-fnc-500 outline-none" value={formData.observaciones} onChange={e => setFormData({...formData, observaciones: e.target.value})} placeholder="..." />
+                                <div className="col-span-2 space-y-1.5">
+                                    <label className="text-[11px] font-bold text-charcoal-400 uppercase tracking-widest ml-1">Notas técnicas</label>
+                                    <textarea rows={2} className="w-full bg-white border border-gray-100 rounded-2xl py-3 px-5 text-[13px] font-medium text-charcoal-800 focus:outline-none focus:ring-2 focus:ring-primary/10 focus:border-primary transition-all shadow-sm resize-none" value={formData.observaciones} onChange={e => setFormData({...formData, observaciones: e.target.value})} placeholder="..." />
                                 </div>
                             </div>
                             <div className="pt-6 flex gap-3">
                                 <button 
                                     type="submit" 
                                     disabled={saveMutation.isLoading} 
-                                    className="flex-1 bg-fnc-600 text-white rounded-xl py-3 text-xs font-black uppercase tracking-widest shadow-lg hover:bg-fnc-700 disabled:opacity-50 transition-all flex items-center justify-center gap-2"
+                                    className="flex-1 btn-primary"
                                 >
                                     {saveMutation.isLoading && <ArrowPathIcon className="w-4 h-4 animate-spin" />}
-                                    {isEditing ? 'Actualizar Datos' : 'Registrar Software'}
+                                    {isEditing ? 'Actualizar Registro' : 'Registrar Software'}
                                 </button>
                                 <button 
                                     type="button" 
                                     onClick={() => setShowModal(false)} 
-                                    className="flex-1 bg-white border border-gray-200 text-charcoal-600 rounded-xl py-3 text-xs font-black uppercase tracking-widest hover:bg-gray-50 transition-all shadow-sm"
+                                    className="flex-1 btn-secondary"
                                 >
                                     Descartar
                                 </button>

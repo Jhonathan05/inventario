@@ -1,5 +1,5 @@
+import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../../context/AuthContext';
-import ActivosForm from '../ActivosForm';
 import Pagination from '../../../components/Pagination';
 import { useActivosList } from './useActivosList';
 import ActivosFilters from './ActivosFilters';
@@ -21,13 +21,13 @@ import {
 } from '@heroicons/react/24/outline';
 
 const ActivosList = () => {
+    const navigate = useNavigate();
     const { user } = useAuth();
     const canEdit = user?.rol === 'ADMIN' || user?.rol === 'ANALISTA_TIC';
 
     const {
         activos, pagination, loading, categorias, funcionarios, catalogs,
         search, setSearch,
-        isModalOpen, selectedActivo,
         showFilters, setShowFilters,
         currentPage, itemsPerPage,
         filterCategoria, setFilterCategoria,
@@ -41,70 +41,65 @@ const ActivosList = () => {
         activeFilterCount,
         showHistorial, setShowHistorial,
         historialData, historialLoading,
-        handleCreate, handleEdit, handleCloseModal,
         clearFilters, changePage,
         handleViewHistorial,
         isExporting, getExportData,
         sortBy, sortOrder, handleSort,
     } = useActivosList();
 
+    const handleCreate = () => { navigate('/activos/nuevo'); };
+    const handleEdit = (activo) => { navigate(`/activos/editar/${activo.id}`); };
+
     const totalPages = pagination.pages || 1;
     const totalItems = pagination.total || activos.length;
 
     return (
         <div className="space-y-6">
-            {/* Sección de Encabezado: Título, Descripción y Acciones Globales */}
-            <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
-                <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-                    <div>
-                        <h1 className="text-2xl font-black text-charcoal-900 flex items-center gap-3">
-                            <div className="bg-fnc-50 p-2 rounded-lg border border-fnc-100">
-                                <ComputerDesktopIcon className="w-6 h-6 text-fnc-600" />
-                            </div>
-                            Activos Tecnológicos
-                        </h1>
-                        <p className="text-charcoal-500 text-sm mt-1 font-medium ml-11">
-                            Inventario completo de equipos y periféricos ({totalItems} registros)
-                        </p>
-                    </div>
-                    <div className="flex flex-wrap gap-2">
-                        {activos.length > 0 && (
-                            <>
-                                <button
-                                    onClick={async () => {
-                                        const allData = await getExportData();
-                                        exportActivosExcel(allData);
-                                    }}
-                                    disabled={isExporting}
-                                    className="bg-green-600 text-white px-4 py-2.5 rounded-lg text-xs font-black uppercase tracking-widest hover:bg-green-700 shadow-sm disabled:opacity-50 transition-all flex items-center gap-2"
-                                >
-                                    <TableCellsIcon className="w-4 h-4" />
-                                    Excel
-                                </button>
-                                <button
-                                    onClick={async () => {
-                                        const allData = await getExportData();
-                                        exportActivosPDF(allData, funcionarios, filterFuncionario);
-                                    }}
-                                    disabled={isExporting}
-                                    className="bg-red-600 text-white px-4 py-2.5 rounded-lg text-xs font-black uppercase tracking-widest hover:bg-red-700 shadow-sm disabled:opacity-50 transition-all flex items-center gap-2"
-                                >
-                                    <DocumentTextIcon className="w-4 h-4" />
-                                    PDF
-                                </button>
-                            </>
-                        )}
-                        {canEdit && (
+            {/* Header Módulo Estilo Agenda */}
+            <div className="flex flex-col md:flex-row justify-between items-end gap-6 mb-8 mt-2 px-1">
+                <div>
+                    <h1 className="page-header-title">Activos Tecnológicos</h1>
+                    <p className="page-header-subtitle">
+                        Inventario completo de equipos y periféricos ({totalItems} registros)
+                    </p>
+                </div>
+                <div className="flex flex-wrap gap-3">
+                    {activos.length > 0 && (
+                        <>
                             <button
-                                type="button"
-                                onClick={handleCreate}
-                                className="bg-fnc-600 text-white px-5 py-2.5 rounded-lg hover:bg-fnc-700 flex items-center gap-2 shrink-0 shadow-sm transition-all font-black text-xs uppercase tracking-widest"
+                                onClick={async () => {
+                                    const allData = await getExportData();
+                                    exportActivosExcel(allData);
+                                }}
+                                disabled={isExporting}
+                                className="btn-secondary"
                             >
-                                <PlusIcon className="w-5 h-5" />
-                                Nuevo Activo
+                                <TableCellsIcon className="w-3.5 h-3.5" />
+                                Excel
                             </button>
-                        )}
-                    </div>
+                            <button
+                                onClick={async () => {
+                                    const allData = await getExportData();
+                                    exportActivosPDF(allData, funcionarios, filterFuncionario);
+                                }}
+                                disabled={isExporting}
+                                className="btn-secondary"
+                            >
+                                <DocumentTextIcon className="w-3.5 h-3.5" />
+                                PDF
+                            </button>
+                        </>
+                    )}
+                    {canEdit && (
+                        <button
+                            type="button"
+                            onClick={handleCreate}
+                            className="btn-primary"
+                        >
+                            <PlusIcon className="w-5 h-5" />
+                            Nuevo Activo
+                        </button>
+                    )}
                 </div>
             </div>
 
@@ -162,10 +157,6 @@ const ActivosList = () => {
                     )}
                 </div>
             </div>
-
-            {isModalOpen && (
-                <ActivosForm open={isModalOpen} onClose={handleCloseModal} activo={selectedActivo} />
-            )}
 
             <HistorialModal
                 show={showHistorial}

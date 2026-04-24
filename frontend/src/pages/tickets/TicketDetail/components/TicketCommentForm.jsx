@@ -1,4 +1,4 @@
-import { PaperClipIcon, PaperAirplaneIcon } from '@heroicons/react/24/outline';
+import { PaperClipIcon, PaperAirplaneIcon, XMarkIcon } from '@heroicons/react/24/outline';
 
 export const TicketCommentForm = ({ 
     nuevoComentario, 
@@ -11,26 +11,27 @@ export const TicketCommentForm = ({
     saving 
 }) => {
     return (
-        <form onSubmit={handleAgregarComentario} className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden no-print">
-            <div className="p-4">
+        <form onSubmit={handleAgregarComentario} className="bg-white rounded-3xl shadow-sm border border-gray-100 overflow-hidden no-print transition-all hover:shadow-md">
+            <div className="p-6">
+                <h3 className="text-[11px] font-bold uppercase text-charcoal-400 tracking-widest mb-4 opacity-80">Agregar Intervención Técnica</h3>
                 <textarea
-                    rows="2"
+                    rows="3"
                     value={nuevoComentario}
                     onChange={e => setNuevoComentario(e.target.value)}
-                    placeholder="Añade una actualización o nota sobre este caso..."
-                    className="block w-full rounded-lg border border-gray-200 bg-gray-50 text-sm p-2.5 focus:border-blue-500 focus:ring-blue-500 resize-none"
+                    placeholder="Describe los avances o novedades sobre este caso..."
+                    className="block w-full rounded-2xl border border-gray-100 bg-gray-50/50 text-[13px] font-medium p-4 focus:bg-white focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all resize-none outline-none leading-relaxed text-charcoal-700"
                 />
 
                 {/* Preview de archivos a adjuntar */}
                 {archivosComentario.length > 0 && (
-                    <div className="mt-2 flex flex-wrap gap-2 px-4">
+                    <div className="mt-4 flex flex-wrap gap-2">
                         {archivosComentario.map((f, i) => (
-                            <span key={i} className="inline-flex items-center gap-1 text-xs bg-blue-50 text-blue-700 rounded-full px-2.5 py-1 border border-blue-100">
-                                <PaperClipIcon className="w-3 h-3" />
-                                <span className="max-w-[120px] truncate">{f.name}</span>
+                            <span key={i} className="inline-flex items-center gap-2 text-[10px] bg-primary/5 text-primary rounded-full px-3 py-1.5 border border-primary/10 font-bold uppercase tracking-tight">
+                                <PaperClipIcon className="w-3.5 h-3.5" />
+                                <span className="max-w-[150px] truncate">{f.name}</span>
                                 <button type="button" onClick={() => handleRemoveFile(i)}
-                                    className="ml-0.5 text-blue-400 hover:text-red-500">
-                                    ×
+                                    className="ml-1 text-primary hover:text-rose-500 transition-colors">
+                                    <XMarkIcon className="w-3.5 h-3.5" />
                                 </button>
                             </span>
                         ))}
@@ -39,20 +40,26 @@ export const TicketCommentForm = ({
             </div>
 
             {/* Action bar */}
-            <div className="px-4 py-2.5 bg-gray-50 border-t border-gray-100 flex items-center justify-between">
+            <div className="px-6 py-4 bg-gray-50/50 border-t border-gray-50 flex items-center justify-between">
                 <div className="flex items-center gap-2">
                     <input ref={fileInputRef} type="file" multiple accept="image/*,.pdf,.doc,.docx,.xls,.xlsx"
                         onChange={handleFileSelect} className="hidden" />
-                    <button type="button" onClick={() => fileInputRef.current?.click()}
-                        className="inline-flex items-center gap-1.5 text-xs text-gray-500 hover:text-blue-600 font-medium px-2 py-1 rounded hover:bg-blue-50 transition-colors">
+                    <button 
+                        type="button" 
+                        onClick={() => fileInputRef.current?.click()}
+                        className="inline-flex items-center gap-2 text-[11px] text-charcoal-500 hover:text-primary font-bold px-4 py-2 rounded-full hover:bg-white border border-transparent hover:border-gray-100 transition-all uppercase tracking-widest"
+                    >
                         <PaperClipIcon className="w-4 h-4" />
-                        Adjuntar archivo
+                        Anexar Recurso
                     </button>
                 </div>
-                <button type="submit" disabled={(nuevoComentario.trim().length === 0 && archivosComentario.length === 0) || saving}
-                    className="inline-flex items-center gap-1.5 px-4 py-1.5 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700 disabled:opacity-50 transition-colors shadow-sm">
+                <button 
+                    type="submit" 
+                    disabled={(nuevoComentario.trim().length === 0 && archivosComentario.length === 0) || saving}
+                    className="bg-primary text-white px-8 py-3 rounded-full hover:bg-primary/90 flex items-center gap-2 shadow-lg shadow-primary/20 transition-all font-bold text-[11px] uppercase tracking-widest border border-primary disabled:opacity-50 disabled:grayscale"
+                >
                     <PaperAirplaneIcon className="w-4 h-4" />
-                    {saving ? 'Enviando...' : 'Enviar Nota'}
+                    {saving ? 'Transmitiendo...' : 'Publicar Nota'}
                 </button>
             </div>
         </form>

@@ -1,9 +1,12 @@
 import { useState, useEffect } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { useNavigate, useParams } from 'react-router-dom';
+import toast from 'react-hot-toast';
 import { funcionariosService } from '../../api/funcionarios.service';
 import SelectWithAdd from '../../components/SelectWithAdd';
 import CatalogModal from '../../components/CatalogModal';
 import { MUNICIPIOS_TOLIMA } from '../../lib/constants';
+import { ArrowPathIcon } from '@heroicons/react/24/outline';
 
 const DEFAULT_STATE = {
     nombre: '',
@@ -26,47 +29,59 @@ const DEFAULT_STATE = {
     piso: ''
 };
 
-// Sub-components moved outside to avoid re-renders and focus loss
-const SectionHeader = ({ title, icon }) => (
-    <div className="flex items-center gap-2 mb-4 border-b pb-2">
-        <span className="text-xl">{icon}</span>
-        <h4 className="text-md font-bold text-gray-800 uppercase tracking-tight">{title}</h4>
+const SectionCard = ({ title, subtitle, icon, children, className = "" }) => (
+    <div className={`bg-white rounded-3xl shadow-sm border border-gray-100 p-8 space-y-7 ${className}`}>
+        <div>
+            <h3 className="text-xl font-black text-charcoal-900 tracking-tight capitalize">{title}</h3>
+            {subtitle && <p className="text-[10px] font-bold text-charcoal-400 uppercase tracking-widest mt-1 opacity-80">{subtitle}</p>}
+        </div>
+        <div className="space-y-5">
+            {children}
+        </div>
     </div>
 );
 
-const Field = ({ label, id, children, required }) => (
-    <div className="flex flex-col">
-        <label htmlFor={id} className="block text-xs font-semibold text-gray-600 uppercase mb-1 cursor-pointer">
-            {label} {required && <span className="text-red-500">*</span>}
-        </label>
+const Field = ({ label, id, children, required, className = "" }) => (
+    <div className={`flex flex-col space-y-1.5 ${className}`}>
+        {label && (
+            <label htmlFor={id} className="block text-[10px] font-bold text-charcoal-400 uppercase tracking-widest ml-1 opacity-70">
+                {label} {required && <span className="text-primary">*</span>}
+            </label>
+        )}
         {children}
     </div>
 );
 
 const sortList = (list) => {
+    if (!list) return [];
     return [...list].sort((a, b) => {
-        const valA = (a.nombre || a.valor || a).toString().toUpperCase();
-        const valB = (b.nombre || b.valor || b).toString().toUpperCase();
+        const valA = (a.nombre || a.valor || a || '').toString().toUpperCase();
+        const valB = (b.nombre || b.valor || b || '').toString().toUpperCase();
         return valA.localeCompare(valB);
     });
 };
 
-const FuncionariosForm = ({ open, onClose, funcionario }) => {
+const FuncionariosForm = () => {
+    const navigate = useNavigate();
+    const { id } = useParams();
     const queryClient = useQueryClient();
     const [formData, setFormData] = useState(DEFAULT_STATE);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
 
-    // Visibility states
-    const [showLaboral, setShowLaboral] = useState(false);
-    const [showUbicacion, setShowUbicacion] = useState(false);
-
-    // Catalog Modal State
     const [activeModal, setActiveModal] = useState({ open: false, domain: '', title: '' });
 
+    // Fetch options
     const { data: rawOptions = { areas: [], cargos: [], ciudades: [], seccionales: [] } } = useQuery({
         queryKey: ['funcionarios', 'options'],
         queryFn: funcionariosService.getOptions
+    });
+
+    // Fetch funcionario if editing
+    const { data: funcionario, isLoading: fetchingFuncionario } = useQuery({
+        queryKey: ['funcionarios', id],
+        queryFn: () => funcionariosService.getById(id),
+        enabled: !!id
     });
 
     const options = {
@@ -79,32 +94,11 @@ const FuncionariosForm = ({ open, onClose, funcionario }) => {
     useEffect(() => {
         if (funcionario) {
             setFormData({
-                nombre: funcionario.nombre || '',
-                shortname: funcionario.shortname || '',
-                cedula: funcionario.cedula || '',
-                codigoPersonal: funcionario.codigoPersonal || '',
-                cargo: funcionario.cargo || '',
-                area: funcionario.area || '',
-                email: funcionario.email || '',
-                telefono: funcionario.telefono || '',
+                ...DEFAULT_STATE,
+                ...funcionario,
                 activo: funcionario.activo ?? true,
-                vinculacion: funcionario.vinculacion || '',
-                empresaFuncionario: funcionario.empresaFuncionario || '',
-                proyecto: funcionario.proyecto || '',
-                departamento: funcionario.departamento || 'TOLIMA',
-                ciudad: funcionario.ciudad || '',
-                seccional: funcionario.seccional || '',
-                municipio: funcionario.municipio || '',
-                ubicacion: funcionario.ubicacion || '',
-                piso: funcionario.piso || ''
+                departamento: funcionario.departamento || 'TOLIMA'
             });
-            // Inteligencia: Expandir secciones si tienen datos
-            if (funcionario.cargo || funcionario.area || funcionario.vinculacion) setShowLaboral(true);
-            if (funcionario.ciudad || funcionario.seccional || funcionario.municipio) setShowUbicacion(true);
-        } else {
-            setFormData(DEFAULT_STATE);
-            setShowLaboral(false);
-            setShowUbicacion(false);
         }
     }, [funcionario]);
 
@@ -124,69 +118,35 @@ const FuncionariosForm = ({ open, onClose, funcionario }) => {
 
         setFormData(prev => {
             const next = { ...prev, [name]: newValue };
-
-            // Lógica de sincronización de Ciudad -> Municipio y Ubicación
             if (name === 'ciudad') {
-                next.municipio = newValue; // Sync always to municipio
+                next.municipio = newValue;
                 if (!prev.ubicacion || prev.ubicacion === prev.ciudad) {
                     next.ubicacion = newValue;
                 }
             }
-
             return next;
         });
     };
 
     const handleSubmit = async (e) => {
         e.preventDefault();
-
-        // Validación de campos obligatorios
-        const requiredFields = [
-            { key: 'nombre', label: 'Nombre Completo' },
-            { key: 'cedula', label: 'Cédula' },
-            { key: 'email', label: 'Email' },
-            { key: 'cargo', label: 'Cargo' },
-            { key: 'departamento', label: 'Departamento' },
-            { key: 'ciudad', label: 'Ciudad' },
-            { key: 'seccional', label: 'Seccional' },
-            { key: 'municipio', label: 'Municipio' },
-            { key: 'ubicacion', label: 'Ubicación' }
-        ];
-
-        const missing = requiredFields.filter(f => !formData[f.key]);
-        if (missing.length > 0) {
-            setError(`Los siguientes campos son obligatorios: ${missing.map(f => f.label).join(', ')}`);
-
-            if (missing.some(f => ['cargo'].includes(f.key))) setShowLaboral(true);
-            if (missing.some(f => ['departamento', 'ciudad', 'seccional', 'municipio', 'ubicacion'].includes(f.key))) setShowUbicacion(true);
-
-            const modalElement = e.target.closest('.overflow-y-auto');
-            if (modalElement) modalElement.scrollTo({ top: 0, behavior: 'smooth' });
-            return;
-        }
-
         setLoading(true);
         setError('');
 
-        // Email validation
-        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-        if (formData.email && !emailRegex.test(formData.email)) {
-            setError('Por favor ingrese un correo electrónico válido');
-            setLoading(false);
-            return;
-        }
-
         try {
-            if (funcionario) {
-                await funcionariosService.update(funcionario.id, formData);
+            if (id) {
+                await funcionariosService.update(id, formData);
+                toast.success('Funcionario actualizado');
             } else {
                 await funcionariosService.create(formData);
+                toast.success('Funcionario creado');
             }
             queryClient.invalidateQueries({ queryKey: ['funcionarios'] });
-            queryClient.invalidateQueries({ queryKey: ['activos'] }); // sync denormalized data
-            onClose(true);
+            navigate('/funcionarios');
         } catch (err) {
-            setError(err.response?.data?.error || 'Error al guardar funcionario');
+            const msg = err.response?.data?.error || 'Error al guardar funcionario';
+            setError(msg);
+            toast.error(msg);
         } finally {
             setLoading(false);
         }
@@ -196,207 +156,156 @@ const FuncionariosForm = ({ open, onClose, funcionario }) => {
         setActiveModal({ open: true, domain, title });
     };
 
-    const handleCatalogSuccess = () => {
-        queryClient.invalidateQueries({ queryKey: ['funcionarios', 'options'] });
-    };
-
-    if (!open) return null;
-
-    const inputCls = "mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm border p-2 bg-white uppercase";
+    const inputCls = "w-full bg-gray-100/60 border-1.5 border-transparent rounded-full py-2 px-6 text-[11px] font-bold text-charcoal-800 placeholder:text-gray-300 focus:outline-none focus:ring-0 focus:border-primary transition-all uppercase min-h-[36px] h-[36px]";
     const emailCls = inputCls.replace('uppercase', 'lowercase');
 
+    if (fetchingFuncionario) {
+        return (
+            <div className="flex flex-col items-center justify-center min-h-[50vh] space-y-4">
+                <ArrowPathIcon className="w-10 h-10 text-primary animate-spin" />
+                <p className="text-charcoal-400 font-bold uppercase tracking-widest text-[11px]">Sincronizando registro corporativo...</p>
+            </div>
+        );
+    }
+
     return (
-        <div className="fixed inset-0 z-[10001] overflow-y-auto" role="dialog" aria-modal="true">
-            <div className="flex items-center justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
-                <div className="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity" onClick={() => onClose(false)}></div>
-                <span className="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
-                <div className="relative inline-block align-bottom bg-white rounded-lg px-4 pt-5 pb-4 text-left shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-5xl sm:w-full sm:p-6 w-full max-h-[95vh] overflow-y-auto">
-                    <div className="flex items-center justify-between mb-4 border-b pb-4">
-                        <h3 className="text-2xl font-black text-gray-900 flex items-center gap-2">
-                            <span className="bg-indigo-600 text-white p-1 rounded">👤</span>
-                            {funcionario ? 'EDITAR FUNCIONARIO' : 'NUEVO FUNCIONARIO'}
-                        </h3>
-                        <button onClick={() => onClose(false)} className="text-gray-400 hover:text-gray-500">
-                            <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                            </svg>
-                        </button>
-                    </div>
-
-                    {error && (
-                        <div className="mb-6 p-4 bg-red-50 border-l-4 border-red-500 text-red-700 rounded shadow-sm">
-                            <p className="font-bold">Error de validación</p>
-                            <p className="text-sm">{error}</p>
-                        </div>
-                    )}
-
-                    <form onSubmit={handleSubmit} className="space-y-8">
-                        {/* SECCIÓN 1: DATOS PERSONALES */}
-                        <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
-                            <div className="bg-gray-50 px-4 py-3 border-b border-gray-200">
-                                <SectionHeader title="Información Personal y Contacto" icon="📋" />
-                            </div>
-                            <div className="p-4 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                                <Field label="Nombre Completo" id="nombre" required>
-                                    <input type="text" id="nombre" name="nombre" value={formData.nombre} onChange={handleChange} className={inputCls} placeholder="EJ. JUAN PEREZ" autoComplete="name" />
-                                </Field>
-                                <Field label="Alias / Nombre Corto" id="shortname">
-                                    <input type="text" id="shortname" name="shortname" value={formData.shortname} onChange={handleChange} className={inputCls} placeholder="EJ. JPEREZ" autoComplete="username" />
-                                </Field>
-                                <Field label="Cédula" id="cedula" required>
-                                    <input type="text" id="cedula" name="cedula" value={formData.cedula} onChange={handleChange} className={inputCls} autoComplete="off" />
-                                </Field>
-                                <Field label="Email (Corporativo)" id="email" required>
-                                    <input type="email" id="email" name="email" value={formData.email} onChange={handleChange} className={emailCls} placeholder="ejemplo@empresa.com" autoComplete="email" />
-                                </Field>
-                                <Field label="Teléfono de Contacto" id="telefono">
-                                    <input type="text" id="telefono" name="telefono" value={formData.telefono} onChange={handleChange} className={inputCls} autoComplete="tel" />
-                                </Field>
-                                <div className="flex items-end pb-2">
-                                    <label className="relative inline-flex items-center cursor-pointer">
-                                        <input type="checkbox" id="activo" name="activo" checked={formData.activo} onChange={handleChange} className="sr-only peer" />
-                                        <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-indigo-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-indigo-600"></div>
-                                        <span className="ml-3 text-sm font-bold text-gray-700 uppercase">Funcionario Activo</span>
-                                    </label>
-                                </div>
-                            </div>
-                        </div>
-
-                        {/* SECCIÓN 2: INFORMACIÓN LABORAL */}
-                        <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
-                            <div className="bg-indigo-50 px-4 py-3 border-b border-indigo-100 flex items-center justify-between">
-                                <SectionHeader title="Información Laboral Corporativa" icon="🏢" />
-                                <button 
-                                    type="button" 
-                                    onClick={() => setShowLaboral(!showLaboral)}
-                                    className="text-xs font-bold text-indigo-700 bg-white px-3 py-1 rounded-full border border-indigo-200 shadow-sm"
-                                >
-                                    {showLaboral ? '▲ CONTRAER' : '▼ EXPANDIR'}
-                                </button>
-                            </div>
-                            {showLaboral && (
-                                <div className="p-4 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 animate-fadeIn">
-                                    <Field label="Cód. Personal (Interno)" id="codigoPersonal">
-                                        <input type="text" id="codigoPersonal" name="codigoPersonal" value={formData.codigoPersonal} onChange={handleChange} className={inputCls} autoComplete="off" />
-                                    </Field>
-                                    <SelectWithAdd
-                                        label="Vinculación"
-                                        name="vinculacion"
-                                        value={formData.vinculacion}
-                                        onChange={handleChange}
-                                        options={sortList(['EMPLEADO', 'CONTRATISTA', 'EXTERNO', 'PASANTE'])}
-                                    />
-                                    <SelectWithAdd
-                                        label="Cargo"
-                                        name="cargo"
-                                        required
-                                        value={formData.cargo}
-                                        onChange={handleChange}
-                                        options={options.cargos}
-                                        canAdd
-                                        onAdd={() => handleOpenCatalogModal('CARGO', 'Nuevo Cargo')}
-                                    />
-                                    <SelectWithAdd
-                                        label="Área / Dependencia"
-                                        name="area"
-                                        value={formData.area}
-                                        onChange={handleChange}
-                                        options={options.areas}
-                                        canAdd
-                                        onAdd={() => handleOpenCatalogModal('AREA', 'Nueva Área')}
-                                    />
-                                    <Field label="Empresa (Tercero)" id="empresaFuncionario">
-                                        <input type="text" id="empresaFuncionario" name="empresaFuncionario" value={formData.empresaFuncionario} onChange={handleChange} className={inputCls} autoComplete="organization" />
-                                    </Field>
-                                    <Field label="Proyecto / Centro de Costos" id="proyecto">
-                                        <input type="text" id="proyecto" name="proyecto" value={formData.proyecto} onChange={handleChange} className={inputCls} autoComplete="off" />
-                                    </Field>
-                                </div>
-                            )}
-                        </div>
-
-                        {/* SECCIÓN 3: UBICACIÓN */}
-                        <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
-                            <div className="bg-emerald-50 px-4 py-3 border-b border-emerald-100 flex items-center justify-between">
-                                <SectionHeader title="Ubicación y Sede" icon="📍" />
-                                <button 
-                                    type="button" 
-                                    onClick={() => setShowUbicacion(!showUbicacion)}
-                                    className="text-xs font-bold text-emerald-700 bg-white px-3 py-1 rounded-full border border-emerald-200 shadow-sm"
-                                >
-                                    {showUbicacion ? '▲ CONTRAER' : '▼ EXPANDIR'}
-                                </button>
-                            </div>
-                            {showUbicacion && (
-                                <div className="p-4 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 animate-fadeIn">
-                                    <Field label="Departamento" id="departamento" required>
-                                        <input type="text" id="departamento" name="departamento" value={formData.departamento} onChange={handleChange} className={inputCls} autoComplete="address-level1" />
-                                    </Field>
-                                    <SelectWithAdd
-                                        label="Municipio / Ciudad"
-                                        name="ciudad"
-                                        required
-                                        value={formData.ciudad}
-                                        onChange={handleChange}
-                                        options={options.ciudades}
-                                        canAdd
-                                        onAdd={() => handleOpenCatalogModal('CIUDAD', 'Nueva Ciudad')}
-                                    />
-                                    <SelectWithAdd
-                                        label="Seccional / Oficina Principal"
-                                        name="seccional"
-                                        required
-                                        value={formData.seccional}
-                                        onChange={handleChange}
-                                        options={options.seccionales}
-                                        canAdd
-                                        onAdd={() => handleOpenCatalogModal('SECCIONAL', 'Nueva Seccional')}
-                                    />
-                                    <Field label="Ubicación / Sede Fija" id="ubicacion" required>
-                                        <input type="text" id="ubicacion" name="ubicacion" value={formData.ubicacion} onChange={handleChange} className={inputCls} autoComplete="street-address" placeholder="EJ. PRIMER PISO, SEDE MURILLO" />
-                                    </Field>
-                                    <Field label="Piso / Oficina / Puesto" id="piso">
-                                        <input type="text" id="piso" name="piso" value={formData.piso} onChange={handleChange} className={inputCls} autoComplete="off" placeholder="EJ. OFICINA 201" />
-                                    </Field>
-                                </div>
-                            )}
-                        </div>
-
-                        <div className="flex gap-4 justify-end pt-6 border-t border-gray-100">
-                            <button
-                                type="button"
-                                onClick={() => onClose(false)}
-                                className="px-6 py-2.5 text-sm font-bold text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 shadow-sm transition-all"
-                            >
-                                CANCELAR
-                            </button>
-                            <button
-                                type="submit"
-                                disabled={loading}
-                                className="px-8 py-2.5 text-sm font-black text-white bg-indigo-600 rounded-lg hover:bg-indigo-700 shadow-md hover:shadow-lg disabled:opacity-50 transition-all flex items-center gap-2"
-                            >
-                                {loading ? 'GUARDANDO...' : (
-                                    <>
-                                        <span>✓</span>
-                                        <span>GUARDAR FUNCIONARIO</span>
-                                    </>
-                                )}
-                            </button>
-                        </div>
-                    </form>
+        <div className="max-w-7xl mx-auto py-10 animate-slide-up space-y-10 px-4 md:px-0">
+            {/* Header Ejecutivo Estilo Agenda */}
+            <div className="flex flex-col md:flex-row justify-between items-end gap-6 px-4 md:px-0">
+                <div>
+                    <h1 className="page-header-title">
+                        {id ? 'Editar Registro de Funcionario' : 'Crear Nuevo Funcionario'}
+                    </h1>
+                    <p className="page-header-subtitle">
+                        Complete los detalles para registrar un nuevo empleado en el sistema corporativo.
+                    </p>
+                </div>
+                <div className="flex items-center gap-3">
+                    <button
+                        type="button"
+                        onClick={() => navigate('/funcionarios')}
+                        className="btn-secondary"
+                    >
+                        Cancelar
+                    </button>
+                    <button
+                        type="submit"
+                        form="funcionario-form"
+                        disabled={loading}
+                        className="btn-primary"
+                    >
+                        {loading ? 'Procesando...' : 'Guardar Funcionario'}
+                    </button>
                 </div>
             </div>
+
+            {error && (
+                <div className="p-5 bg-rose-50 border border-rose-100 text-rose-800 rounded-3xl flex items-center gap-4">
+                    <span className="w-8 h-8 bg-rose-200 rounded-full flex items-center justify-center text-sm font-bold opacity-70">!</span>
+                    <p className="text-sm font-bold uppercase tracking-tight">{error}</p>
+                </div>
+            )}
+
+            <form id="funcionario-form" onSubmit={handleSubmit} className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+                
+                {/* Columna Principal: Identificación */}
+                <div className="lg:col-span-7 space-y-8">
+                    <SectionCard title="Identificación y Contacto" subtitle="Información personal básica.">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-6">
+                            <Field label="Nombre Completo" id="nombre" required className="md:col-span-2">
+                                <input type="text" id="nombre" name="nombre" value={formData.nombre} onChange={handleChange} className={inputCls} placeholder="Ej. Juan Carlos Pérez" required />
+                            </Field>
+                            <Field label="Documento de Identidad" id="cedula" required>
+                                <input type="text" id="cedula" name="cedula" value={formData.cedula} onChange={handleChange} className={inputCls} placeholder="Número de Documento" required />
+                            </Field>
+                            <Field label="Alias Técnico / Shortname" id="shortname">
+                                <input type="text" id="shortname" name="shortname" value={formData.shortname} onChange={handleChange} className={inputCls} placeholder="Ej. JuanP" />
+                            </Field>
+                            <Field label="Correo Electrónico" id="email" required className="md:col-span-2">
+                                <input type="email" id="email" name="email" value={formData.email} onChange={handleChange} className={emailCls} placeholder="juan.perez@fnc.com" required />
+                            </Field>
+                            <Field label="Teléfono Móvil" id="telefono">
+                                <input type="text" id="telefono" name="telefono" value={formData.telefono} onChange={handleChange} className={inputCls} placeholder="+57 300 000 0000" />
+                            </Field>
+                            <div className="flex items-center pt-6">
+                                <label className="flex items-center gap-3 cursor-pointer group">
+                                    <input type="checkbox" name="activo" checked={formData.activo} onChange={handleChange} className="w-5 h-5 rounded-lg border-gray-300 text-primary focus:ring-primary/20 transition-all" />
+                                    <span className="text-[11px] font-black text-charcoal-400 uppercase tracking-widest group-hover:text-charcoal-800 transition-colors">Vínculo Activo</span>
+                                </label>
+                            </div>
+                        </div>
+                    </SectionCard>
+                </div>
+
+                {/* Columna Lateral: Laboral y Ubicación */}
+                <div className="lg:col-span-5 space-y-8">
+                    <SectionCard title="Información Laboral">
+                        <SelectWithAdd
+                            label="Cargo u Oficio"
+                            name="cargo"
+                            required
+                            value={formData.cargo}
+                            onChange={handleChange}
+                            options={options.cargos}
+                            canAdd
+                            onAdd={() => handleOpenCatalogModal('CARGO', 'Nuevo Cargo')}
+                        />
+                        <SelectWithAdd
+                            label="Área / Departamento"
+                            name="area"
+                            required
+                            value={formData.area}
+                            onChange={handleChange}
+                            options={options.areas}
+                            canAdd
+                            onAdd={() => handleOpenCatalogModal('AREA', 'Nueva Área')}
+                        />
+                        <SelectWithAdd
+                            label="Tipo de Contrato"
+                            name="vinculacion"
+                            value={formData.vinculacion}
+                            onChange={handleChange}
+                            options={sortList(['EMPLEADO', 'CONTRATISTA', 'EXTERNO', 'PASANTE'])}
+                            canAdd={false}
+                        />
+                    </SectionCard>
+
+                    <SectionCard title="Ubicación y Sede">
+                        <SelectWithAdd
+                            label="Sede Principal / Seccional"
+                            required
+                            name="seccional"
+                            value={formData.seccional}
+                            onChange={handleChange}
+                            options={options.seccionales}
+                            canAdd
+                            onAdd={() => handleOpenCatalogModal('SECCIONAL', 'Nueva Seccional')}
+                        />
+                        <SelectWithAdd
+                            label="Ciudad / Municipio"
+                            required
+                            name="ciudad"
+                            value={formData.ciudad}
+                            onChange={handleChange}
+                            options={options.ciudades}
+                            canAdd={false}
+                        />
+                        <Field label="Piso / Oficina">
+                            <input type="text" name="piso" value={formData.piso} onChange={handleChange} className={inputCls} placeholder="Ej. Piso 2 / Oficina 204" />
+                        </Field>
+                    </SectionCard>
+                </div>
+            </form>
 
             <CatalogModal 
                 open={activeModal.open} 
                 onClose={() => setActiveModal(prev => ({ ...prev, open: false }))}
                 domain={activeModal.domain} 
                 title={activeModal.title}
-                onSaveSuccess={handleCatalogSuccess}
+                onSaveSuccess={() => queryClient.invalidateQueries({ queryKey: ['funcionarios', 'options'] })}
             /> 
         </div>
     );
 };
 
 export default FuncionariosForm;
-
