@@ -8,8 +8,7 @@ COPY package.json ./
 RUN npm install --no-audit --no-fund --prefer-offline
 
 COPY . .
-# Comentado para desarrollo - el contenedor usa Vite dev server
-# RUN npm run build
+RUN npm run build
 
 # Etapa 2: Servidor Nginx
 FROM nginx:alpine
