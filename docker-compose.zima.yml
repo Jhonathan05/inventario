@@ -3,69 +3,146 @@ x-casaos:
   architectures:
     - amd64
     - arm64
-  main: frontend
+  main: web
   description:
-    en_us: "IT Inventory and Help Desk System. Manage assets, technical history, and support tickets in one place."
-    es_es: "Sistema de Inventario TIC y Mesa de Ayuda. Gestiona activos, hojas de vida tecnica y tickets de soporte."
+    en_us: "IT Inventory and Help Desk System. Manage assets, technical history, and support tickets."
+    es_es: "Sistema de Inventario TIC y Mesa de Ayuda. Gestiona activos, hojas de vida técnica y tickets de soporte."
   tagline:
     en_us: "Asset Management & Help Desk"
-    es_es: "Gestion de Activos y Mesa de Ayuda"
+    es_es: "Gestión de Activos y Mesa de Ayuda"
   developer: "puntijhon"
-  author: "Jhonathan"
-  icon: "https://raw.githubusercontent.com/IceWhaleTech/CasaOS-AppStore/main/Apps/OpenSpeedTest/icon.png"
+  author: "puntijhon"
+  icon: "https://cdn-icons-png.flaticon.com/512/2897/2897785.png"
   thumbnail: ""
   title:
     en_us: "Inventario TIC"
     es_es: "Inventario TIC"
   category: "Utilities"
   port_map: "3080"
+  scheme: http
+  index: /
 
 services:
-  postgres:
-    image: postgres:15-alpine
+  # ─────────── PostgreSQL 16 ───────────
+  db:
+    image: postgres:16-alpine
     container_name: inventario-db-zima
     restart: unless-stopped
     environment:
-      POSTGRES_DB: inventario_db
       POSTGRES_USER: inventario_user
-      POSTGRES_PASSWORD: inventario_password
+      POSTGRES_PASSWORD: CHANGE_ME
+      POSTGRES_DB: inventario_db
     volumes:
-      - postgres_data_zima:/var/lib/postgresql/data
+      - /media/CAFE/Apps/inventario-tic/db:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U inventario_user -d inventario_db"]
+      interval: 5s
+      timeout: 5s
+      retries: 15
+      start_period: 30s
     networks:
-      - inventario-network
+      - inventario-net
 
-  backend:
-    image: puntijhon/inventario-backend:v1.4.0
+  # ─────────── Backend API ───────────
+  api:
+    image: puntijhon/inventario-backend:v1.9.0
     container_name: inventario-api-zima
     restart: unless-stopped
     environment:
+      DATABASE_URL: postgresql://inventario_user:CHANGE_ME@db:5432/inventario_db
+      JWT_SECRET: CHANGE_ME_SECRET_KEY
       NODE_ENV: production
-      DATABASE_URL: postgresql://inventario_user:inventario_password@postgres:5432/inventario_db
-      JWT_SECRET: cambiar_por_clave_secreta_segura
       PORT: 3001
       UPLOAD_DIR: /app/uploads
+      ADMIN_INITIAL_PASSWORD: "CambiarEsto2024*"
+      BACKUP_ENCRYPTION_KEY: ""
     volumes:
-      - uploads_zima:/app/uploads
-    networks:
-      - inventario-network
+      - /media/CAFE/Apps/inventario-tic/uploads:/app/uploads
+      - /media/CAFE/Apps/inventario-tic/shared:/shared
     depends_on:
-      - postgres
+      db:
+        condition: service_healthy
+    networks:
+      - inventario-net
 
-  frontend:
-    image: puntijhon/inventario-frontend:v1.4.0
+  # ─────────── Frontend Web ───────────
+  web:
+    image: puntijhon/inventario-frontend:v1.9.0
     container_name: inventario-web-zima
     restart: unless-stopped
     ports:
       - "3080:80"
-    networks:
-      - inventario-network
     depends_on:
-      - backend
+      - api
+    networks:
+      - inventario-net
+
+  # ─────────── Backup Service (R2) ───────────
+  db-backup:
+    image: postgres:16-alpine
+    container_name: inventario-backup-zima
+    restart: unless-stopped
+    environment:
+      TZ: America/Bogota
+      PGHOST: db
+      PGPORT: 5432
+      PGUSER: inventario_user
+      PGDATABASE: inventario_db
+      POSTGRES_PASSWORD: CHANGE_ME
+      SKIP_AUTO_RESTORE: "true"
+    volumes:
+      - /media/CAFE/Apps/inventario-tic/scripts/backup-portable.sh:/backup.sh:ro
+      - /media/CAFE/Apps/inventario-tic/scripts/init-restore-portable.sh:/init-restore.sh:ro
+      - /media/CAFE/Apps/inventario-tic/backups:/backups
+      - /media/CAFE/Apps/inventario-tic/shared:/shared
+    entrypoint:
+      - /bin/sh
+      - -c
+      - |
+        apk add --no-cache python3 openssl aws-cli curl
+        mkdir -p /var/log && touch /var/log/backup.log
+        # Guardar env inicial
+        printenv > /var/tmp/cron_env.sh
+        # Intentar auto-restauración si la DB está vacía
+        sh /init-restore.sh
+        # Configurar Cron diario a media noche
+        echo "0 0 * * * set -a; . /var/tmp/cron_env.sh; [ -f /shared/backup.env ] && . /shared/backup.env; set +a; /bin/sh /backup.sh >> /var/log/backup.log 2>&1" > /etc/crontabs/root
+        # mini-servidor para triggers manuales y logs
+        python3 -c "
+        import http.server, subprocess, os
+        class H(http.server.BaseHTTPRequestHandler):
+            def do_GET(self):
+                path = self.path.split('?')[0].strip('/')
+                if path == 'logs':
+                    try:
+                        with open('/var/log/backup.log', 'r') as f:
+                            lines = f.readlines()[-100:]
+                        self.send_response(200)
+                        self.send_header('Content-Type', 'text/plain; charset=utf-8')
+                        self.end_headers()
+                        self.wfile.write(''.join(lines).encode('utf-8'))
+                    except:
+                        self.send_response(404)
+                        self.end_headers()
+                elif path == 'trigger':
+                    subprocess.Popen(['/bin/sh', '/backup.sh'], stdout=open('/var/log/backup.log', 'a'), stderr=subprocess.STDOUT, start_new_session=True)
+                    self.send_response(200)
+                    self.send_header('Content-Type', 'application/json')
+                    self.end_headers()
+                    self.wfile.write(b'{\"status\":\"ok\"}')
+                else:
+                    self.send_response(404)
+                    self.end_headers()
+            def log_message(self, *a): pass
+        http.server.HTTPServer(('0.0.0.0', 8080), H).serve_forever()
+        " &
+        crond -f -l 2
+    depends_on:
+      db:
+        condition: service_healthy
+    networks:
+      - inventario-net
 
 networks:
-  inventario-network:
+  inventario-net:
     driver: bridge
-
-volumes:
-  postgres_data_zima:
-  uploads_zima:

@@ -36,19 +36,19 @@ echo "✅ Base de datos conectada con éxito."
 
 # Generar cliente Prisma (por si no se hizo en el build o hay cambios de volumen)
 echo "💎 Generando cliente Prisma..."
-npx prisma generate
+./node_modules/.bin/prisma generate
 
 # Sincronizamos el esquema de forma no interactiva tras la restauración
 if [ "$NODE_ENV" = "development" ]; then
   echo "📐 Sincronizando esquema (db push)..."
-  npx prisma db push --accept-data-loss
+  ./node_modules/.bin/prisma db push --accept-data-loss
 else
   echo "🚀 [PROD] Ejecutando migraciones..."
-  npx prisma migrate deploy
+  ./node_modules/.bin/prisma migrate deploy
 fi
 
-# echo "🌱 Ejecutando carga de datos (Seeds)..."
-# node prisma/seed.js || echo "⚠️ Seed base omitido o con advertencias."
+echo "🌱 Ejecutando carga de datos (Seeds)..."
+node prisma/seed.js || echo "⚠️ Seed base omitido o con advertencias."
 # node prisma/seed_catalogos.js || echo "⚠️ Seed de catálogos omitido o con advertencias."
 
 if [ "$NODE_ENV" = "development" ]; then

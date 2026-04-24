@@ -3,7 +3,16 @@ const router = express.Router();
 const multer = require('multer');
 const path = require('path');
 const fs = require('fs');
-const { exportBackup, importBackup } = require('../controllers/respaldo.controller');
+const { 
+    exportBackup, 
+    importBackup, 
+    getBackupConfig, 
+    updateBackupConfig, 
+    listR2Backups, 
+    restoreR2Backup, 
+    triggerBackup, 
+    getBackupLogs 
+} = require('../controllers/respaldo.controller');
 const { authMiddleware, requireRole } = require('../middleware/auth.middleware');
 
 // Configuración de multer para carga temporal de backups
@@ -35,5 +44,11 @@ const upload = multer({
 // Rutas (Protegidas: Solo Admin)
 router.get('/export', [authMiddleware, requireRole('ADMIN')], exportBackup);
 router.post('/import', [authMiddleware, requireRole('ADMIN'), upload.array('backups', 60)], importBackup);
+router.get('/config', [authMiddleware, requireRole('ADMIN')], getBackupConfig);
+router.patch('/config', [authMiddleware, requireRole('ADMIN')], updateBackupConfig);
+router.get('/r2-list', [authMiddleware, requireRole('ADMIN')], listR2Backups);
+router.post('/r2-restore', [authMiddleware, requireRole('ADMIN')], restoreR2Backup);
+router.post('/trigger', [authMiddleware, requireRole('ADMIN')], triggerBackup);
+router.get('/logs', [authMiddleware, requireRole('ADMIN')], getBackupLogs);
 
 module.exports = router;

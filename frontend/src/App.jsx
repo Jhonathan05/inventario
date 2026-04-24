@@ -5,7 +5,6 @@ import ErrorBoundary from './components/ErrorBoundary';
 import ClientLayout from './layouts/ClientLayout';
 import Login from './pages/Login';
 import Dashboard from './pages/Dashboard';
-import Usuarios from './pages/usuarios/UsuariosList';
 import Categorias from './pages/categorias/CategoriasList';
 import Activos from './pages/activos/ActivosList';
 import ActivoDetail from './pages/activos/ActivoDetail';
@@ -15,7 +14,7 @@ import ActasList from './pages/actas/ActasList';
 import GenerarActa from './pages/actas/GenerarActa';
 import ImportarDatos from './pages/importar/ImportarDatos';
 import MantenimientosList from './pages/mantenimientos/MantenimientosList';
-import BackupSoporte from './pages/backup/BackupSoporte';
+import Administracion from './pages/administracion/Administracion';
 import TicketsList from './pages/tickets/TicketsList';
 import TicketForm from './pages/tickets/TicketForm';
 import TicketDetail from './pages/tickets/TicketDetail';
@@ -72,8 +71,7 @@ function App() {
 
                                 {/* Solo ADMIN */}
                                 <Route element={<ProtectedRoute allowedRoles={['ADMIN']} />}>
-                                    <Route path="/usuarios" element={<Usuarios />} />
-                                    <Route path="/soporte" element={<BackupSoporte />} />
+                                    <Route path="/administracion" element={<Administracion />} />
                                 </Route>
 
                                 <Route path="*" element={<Navigate to="/" replace />} />

@@ -382,6 +382,15 @@ model Acta {
 }
 
 // ==========================================
+// CONFIGURACIÓN DEL SISTEMA (Secrets, R2, etc)
+// ==========================================
+model SystemConfig {
+  key   String @id
+  value String
+  @@map("system_config")
+}
+
+// ==========================================
 // ITSM - MESA DE AYUDA (Tickets/Casos)
 // ==========================================
 

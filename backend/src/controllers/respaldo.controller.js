@@ -1,10 +1,27 @@
-const { spawn } = require('child_process');
+const { spawn, exec } = require('child_process');
+const { promisify } = require('util');
 const path = require('path');
 const fs = require('fs');
 const AdmZip = require('adm-zip');
+const prisma = require('../lib/prisma');
+const { S3Client, ListObjectsV2Command, GetObjectCommand } = require('@aws-sdk/client-s3');
+
+const execAsync = promisify(exec);
 
 const UPLOADS_DIR = process.env.UPLOAD_DIR || path.join(__dirname, '../../uploads');
 const BACKUP_TEMP_DIR = path.join(__dirname, '../../temp_backup');
+const SHARED_DIR = '/shared';
+const ENV_FILE = `${SHARED_DIR}/backup.env`;
+
+const KEY_MAP = {
+    R2_ACCESS_KEY: 'R2_ACCESS_KEY_ID',
+    R2_SECRET_KEY: 'R2_SECRET_ACCESS_KEY',
+    R2_BUCKET_NAME: 'R2_BUCKET_NAME',
+    R2_ENDPOINT: 'R2_ENDPOINT',
+    TELEGRAM_TOKEN: 'TELEGRAM_TOKEN',
+    TELEGRAM_CHAT_ID: 'TELEGRAM_CHAT_ID',
+    BACKUP_ENCRYPTION_KEY: 'BACKUP_ENCRYPTION_KEY'
+};
 
 // Helper: parse DATABASE_URL safely
 const parseDbUrl = () => {
@@ -307,4 +324,270 @@ const importBackup = async (req, res) => {
     }
 };
 
-module.exports = { exportBackup, importBackup };
+const propagateCredentials = async () => {
+    try {
+        const configs = await prisma.systemConfig.findMany();
+        const configMap = {};
+        configs.forEach(c => {
+            configMap[c.key] = c.value;
+        });
+
+        const lines = [
+            `# Auto-generado por el Sistema de Inventario TIC — ${new Date().toISOString()}`,
+            `# NO editar manualmente.`,
+        ];
+
+        for (const [dbKey, envKey] of Object.entries(KEY_MAP)) {
+            const value = configMap[dbKey] || process.env[envKey] || '';
+            if (value) {
+                const escaped = value.replace(/'/g, "'\\''");
+                lines.push(`${envKey}='${escaped}'`);
+            }
+        }
+
+        // DATABASE URL variables for the script
+        const dbInfo = parseDbUrl();
+        lines.push(`POSTGRES_USER='${dbInfo.user}'`);
+        lines.push(`POSTGRES_PASSWORD='${dbInfo.pass}'`);
+        lines.push(`POSTGRES_DB='${dbInfo.name}'`);
+        lines.push(`POSTGRES_HOST='${dbInfo.host}'`);
+        lines.push(`POSTGRES_PORT='${dbInfo.port}'`);
+
+        if (!fs.existsSync(SHARED_DIR)) {
+            fs.mkdirSync(SHARED_DIR, { recursive: true, mode: 0o700 });
+        }
+        
+        fs.writeFileSync(ENV_FILE, lines.join('\n') + '\n', { mode: 0o600 });
+        return true;
+    } catch (err) {
+        console.error('[Config] Error propagando credenciales:', err.message);
+        return false;
+    }
+};
+
+const getBackupConfig = async (req, res) => {
+    try {
+        const configs = await prisma.systemConfig.findMany();
+        const configMap = {};
+        configs.forEach(c => {
+            configMap[c.key] = c.value;
+        });
+
+        const fallbacks = {
+            TELEGRAM_TOKEN: !!process.env.TELEGRAM_TOKEN,
+            TELEGRAM_CHAT_ID: !!process.env.TELEGRAM_CHAT_ID,
+            R2_ACCESS_KEY: !!process.env.R2_ACCESS_KEY_ID,
+            R2_SECRET_KEY: !!process.env.R2_SECRET_ACCESS_KEY,
+            R2_BUCKET_NAME: !!(process.env.R2_BUCKET_NAME || process.env.R2_BUCKET),
+            R2_ENDPOINT: !!process.env.R2_ENDPOINT,
+            BACKUP_ENCRYPTION_KEY: !!process.env.BACKUP_ENCRYPTION_KEY,
+        };
+
+        res.json({ config: configMap, fallbacks });
+    } catch (err) {
+        res.status(500).json({ message: 'Error al obtener configuración', error: err.message });
+    }
+};
+
+const updateBackupConfig = async (req, res) => {
+    try {
+        const filteredBody = req.body;
+        
+        const updates = Object.entries(filteredBody).map(([key, value]) => {
+            return prisma.systemConfig.upsert({
+                where: { key },
+                update: { value: String(value) },
+                create: { key, value: String(value) },
+            });
+        });
+
+        await prisma.$transaction(updates);
+        const propagated = await propagateCredentials();
+
+        res.json({ 
+            message: 'Configuración actualizada correctamente', 
+            propagated 
+        });
+    } catch (err) {
+        res.status(500).json({ message: 'Error al actualizar configuración', error: err.message });
+    }
+};
+
+const getR2Credentials = async () => {
+    try {
+        const configs = await prisma.systemConfig.findMany();
+        const configMap = {};
+        configs.forEach(c => {
+            configMap[c.key] = c.value;
+        });
+
+        const accessKeyId = configMap.R2_ACCESS_KEY || process.env.R2_ACCESS_KEY_ID || '';
+        const secretAccessKey = configMap.R2_SECRET_KEY || process.env.R2_SECRET_ACCESS_KEY || '';
+        const bucketName = configMap.R2_BUCKET_NAME || process.env.R2_BUCKET_NAME || process.env.R2_BUCKET || '';
+        const endpoint = configMap.R2_ENDPOINT || process.env.R2_ENDPOINT || '';
+
+        if (!accessKeyId || !secretAccessKey || !endpoint || !bucketName) {
+            return null;
+        }
+
+        return { accessKeyId, secretAccessKey, bucketName, endpoint };
+    } catch {
+        return null;
+    }
+};
+
+const listR2Backups = async (req, res) => {
+    try {
+        const creds = await getR2Credentials();
+        if (!creds) {
+            return res.status(400).json({ message: 'Credenciales de R2 no configuradas' });
+        }
+
+        const s3 = new S3Client({
+            region: 'auto',
+            endpoint: creds.endpoint,
+            credentials: {
+                accessKeyId: creds.accessKeyId,
+                secretAccessKey: creds.secretAccessKey,
+            },
+            forcePathStyle: false,
+        });
+
+        const response = await s3.send(new ListObjectsV2Command({ Bucket: creds.bucketName }));
+        const objects = response.Contents ?? [];
+
+        const backups = objects
+            .filter(obj => {
+                const k = obj.Key ?? '';
+                // Soportar .sql.gz.enc o .zip (aunque Agenda usa .sql.gz.enc)
+                return k.endsWith('.sql.gz.enc') || k.endsWith('.zip');
+            })
+            .map(obj => ({
+                filename: obj.Key ?? '',
+                date: obj.LastModified?.toISOString() ?? '',
+                size: obj.Size ?? 0,
+            }))
+            .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+
+        res.json({ backups });
+    } catch (err) {
+        console.error('[R2 List] Error:', err.message);
+        res.status(500).json({ message: 'Error al listar backups de R2', error: err.message });
+    }
+};
+
+const restoreR2Backup = async (req, res) => {
+    try {
+        const { filename, encryptionKey } = req.body;
+        
+        const creds = await getR2Credentials();
+        if (!creds) {
+            return res.status(400).json({ message: 'Credenciales de R2 no configuradas' });
+        }
+
+        const configs = await prisma.systemConfig.findMany();
+        const configMap = {};
+        configs.forEach(c => {
+            configMap[c.key] = c.value;
+        });
+
+        const BACKUP_ENCRYPTION_KEY = encryptionKey || configMap.BACKUP_ENCRYPTION_KEY || process.env.BACKUP_ENCRYPTION_KEY || '';
+        if (!BACKUP_ENCRYPTION_KEY) {
+            return res.status(400).json({ message: 'Clave de cifrado no proporcionada' });
+        }
+
+        if (!fs.existsSync(BACKUP_TEMP_DIR)) {
+            fs.mkdirSync(BACKUP_TEMP_DIR, { recursive: true });
+        }
+        
+        const localFile = path.join(BACKUP_TEMP_DIR, filename);
+
+        // 1. Descargar
+        const s3 = new S3Client({
+            region: 'auto',
+            endpoint: creds.endpoint,
+            credentials: {
+                accessKeyId: creds.accessKeyId,
+                secretAccessKey: creds.secretAccessKey,
+            },
+            forcePathStyle: false,
+        });
+
+        const s3Response = await s3.send(new GetObjectCommand({
+            Bucket: creds.bucketName,
+            Key: filename,
+        }));
+
+        const bodyStream = s3Response.Body;
+        if (!bodyStream) throw new Error('El archivo está vacío en R2');
+
+        const writeStream = fs.createWriteStream(localFile);
+        
+        // Convertir stream de Node a pipe (en SDK v3 suele ser un Readable)
+        await new Promise((resolve, reject) => {
+            bodyStream.pipe(writeStream)
+                .on('finish', resolve)
+                .on('error', reject);
+        });
+
+        // 2. Restaurar (Asumiendo que es un .sql.gz.enc)
+        const DATABASE_URL = process.env.DATABASE_URL;
+        const script = [
+            'set -e',
+            `psql "${DATABASE_URL}" -c "DROP SCHEMA public CASCADE; CREATE SCHEMA public; GRANT ALL ON SCHEMA public TO public;" --quiet`,
+            `openssl enc -d -aes-256-cbc -pbkdf2 -iter 100000 -pass pass:"$ENC_KEY" -in "${localFile}" | gunzip | psql "${DATABASE_URL}" --quiet`,
+            `rm -f "${localFile}"`,
+        ].join('\n');
+
+        await execAsync(script, {
+            shell: '/bin/sh',
+            env: { ...process.env, ENC_KEY: BACKUP_ENCRYPTION_KEY }
+        });
+
+        res.json({ message: 'Base de datos restaurada correctamente desde R2' });
+
+    } catch (err) {
+        console.error('[R2 Restore] Error:', err.message);
+        res.status(500).json({ message: 'Error durante la restauración desde R2', error: err.message });
+    }
+};
+
+const triggerBackup = async (req, res) => {
+    try {
+        const response = await fetch('http://db-backup:8080/trigger', { method: 'GET' });
+        if (response.ok) {
+            res.json({ message: 'Backup manual iniciado correctamente. El proceso corre en segundo plano.' });
+        } else {
+            res.status(500).json({ message: 'No se pudo iniciar el respaldo manual.' });
+        }
+    } catch (err) {
+        console.error('[Backup Trigger] Error:', err.message);
+        res.status(500).json({ message: 'Error al conectar con el servicio de backup', error: err.message });
+    }
+};
+
+const getBackupLogs = async (req, res) => {
+    try {
+        const response = await fetch('http://db-backup:8080/logs', { method: 'GET' });
+        if (response.ok) {
+            const logs = await response.text();
+            res.send(logs);
+        } else {
+            res.status(404).json({ message: 'Logs no encontrados.' });
+        }
+    } catch (err) {
+        console.error('[Backup Logs] Error:', err.message);
+        res.status(500).json({ message: 'Error al obtener los logs del servicio', error: err.message });
+    }
+};
+
+module.exports = { 
+    exportBackup, 
+    importBackup, 
+    getBackupConfig, 
+    updateBackupConfig, 
+    listR2Backups, 
+    restoreR2Backup,
+    triggerBackup,
+    getBackupLogs
+};

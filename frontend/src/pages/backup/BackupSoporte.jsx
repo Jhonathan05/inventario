@@ -98,15 +98,8 @@ const BackupSoporte = () => {
     };
 
     return (
-        <div className="max-w-4xl mx-auto px-4 py-8 relative">
+        <div className="relative">
             {/* Efectos de fondo extra para resaltar el glassmorphism si se desea */}
-            <div className="absolute top-0 right-0 -mr-20 -mt-20 w-64 h-64 rounded-full bg-fnc-500/10 blur-3xl pointer-events-none -z-10" />
-            <div className="absolute bottom-0 left-0 -ml-20 -mb-20 w-80 h-80 rounded-full bg-charcoal-400/10 blur-3xl pointer-events-none -z-10" />
-
-            <div className="mb-8">
-                <h1 className="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-charcoal-800 to-fnc-700">Copia de Seguridad y Soporte</h1>
-                <p className="text-sm text-charcoal-500 mt-1 font-medium">Gestión de respaldos para recuperación ante desastres y migración de servidor.</p>
-            </div>
 
             {status.message && (
                 <div className={`mb-6 p-4 rounded-xl flex items-center gap-3 border shadow-sm ${status.type === 'success' ? 'bg-emerald-50/80 backdrop-blur-sm border-emerald-200 text-emerald-700' :
@@ -117,7 +110,7 @@ const BackupSoporte = () => {
                         status.type === 'error' ? <ExclamationTriangleIcon className="h-5 w-5 flex-shrink-0" /> :
                             <CloudArrowUpIcon className="h-5 w-5 flex-shrink-0 animate-pulse" />
                     }
-                    <p className="text-sm font-medium">{status.message}</p>
+                    <p className="text-sm font-medium">{String(status.message)}</p>
                 </div>
             )}
 

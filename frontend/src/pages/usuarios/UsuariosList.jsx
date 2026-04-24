@@ -59,42 +59,8 @@ const UsuariosList = () => {
 
     return (
         <div className="space-y-6">
-            {/* Header Módulo Estilo Agenda */}
-            <div className="flex flex-col lg:flex-row justify-between items-end gap-6 mb-8 mt-2 px-1">
-                <div>
-                    <h1 className="page-header-title">Panel de Gestión</h1>
-                    <p className="page-header-subtitle">
-                        Administración de usuarios y configuración del sistema ({usuarios.length} registros)
-                    </p>
-                </div>
-
-                {/* Switcher Estilo Agenda */}
-                <div className="switcher-container">
-                    <button className="switcher-item switcher-item-active">
-                        Usuarios
-                    </button>
-                    <button 
-                        onClick={() => navigate('/soporte')}
-                        className="switcher-item switcher-item-inactive"
-                    >
-                        Backups & R2
-                    </button>
-                </div>
-
-                <div>
-                    <button
-                        type="button"
-                        onClick={handleCreate}
-                        className="btn-primary"
-                    >
-                        <UserPlusIcon className="w-5 h-5" />
-                        Crear Usuario
-                    </button>
-                </div>
-            </div>
-
             <div className="bg-white rounded-3xl shadow-sm border border-gray-100 overflow-hidden">
-                <div className="p-6 border-b border-gray-100 bg-gray-50/50">
+                <div className="p-6 border-b border-gray-100 bg-gray-50/50 flex flex-col md:flex-row justify-between items-center gap-4">
                     <div className="relative group w-full max-w-md">
                         <MagnifyingGlassIcon className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-charcoal-400 group-focus-within:text-primary transition-colors" />
                         <input
@@ -105,6 +71,15 @@ const UsuariosList = () => {
                             onChange={e => { setSearch(e.target.value); setCurrentPage(1); }}
                         />
                     </div>
+
+                    <button
+                        type="button"
+                        onClick={handleCreate}
+                        className="btn-primary w-full md:w-auto"
+                    >
+                        <UserPlusIcon className="w-5 h-5" />
+                        Crear Usuario
+                    </button>
                 </div>
 
                 <div className="p-0">
@@ -199,7 +174,7 @@ const UsuariosList = () => {
                     )}
                 </div>
 
-                {error && <div className="p-6 text-rose-600 bg-rose-50/50 border-t border-rose-100 font-bold text-[11px] uppercase tracking-widest">{error}</div>}
+                {error && <div className="p-6 text-rose-600 bg-rose-50/50 border-t border-rose-100 font-bold text-[11px] uppercase tracking-widest">{error.message}</div>}
 
                 {!loading && filteredUsuarios.length > 0 && (
                     <div className="p-4 border-t border-gray-50">

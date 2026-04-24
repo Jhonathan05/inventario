@@ -11,12 +11,20 @@ import {
     ArrowDownTrayIcon,
     UsersIcon,
     CircleStackIcon,
-    KeyIcon
+    KeyIcon,
+    ArrowLeftOnRectangleIcon
 } from '@heroicons/react/24/outline';
 import { useAuth } from '../context/AuthContext';
+import { useNavigate } from 'react-router-dom';
 
 const Sidebar = () => {
-    const { user } = useAuth();
+    const { user, logout } = useAuth();
+    const navigate = useNavigate();
+
+    const handleLogout = async () => {
+        await logout();
+        navigate('/login');
+    };
 
     const navigation = [
         { name: 'Inicio', href: '/', icon: HomeIcon, roles: ['ADMIN', 'ANALISTA_TIC', 'CONSULTA'] },
@@ -54,7 +62,17 @@ const Sidebar = () => {
                 </NavLink>
             ))}
 
-            <div className="hidden md:block mt-auto w-full"></div>
+            <button
+                onClick={handleLogout}
+                className="nav-item flex-shrink-0 mt-auto w-full text-red-600 hover:bg-red-50 hover:text-red-700 transition-colors"
+            >
+                <ArrowLeftOnRectangleIcon className="h-6 w-6 md:h-5 md:w-5 mb-1 md:mb-0 flex-shrink-0" />
+                <span className="md:inline text-[10px] md:text-sm text-center md:text-left mt-0.5 md:mt-0 font-medium whitespace-nowrap">
+                    Cerrar Sesión
+                </span>
+            </button>
+
+            <div className="hidden md:block w-full"></div>
         </nav>
     );
 };

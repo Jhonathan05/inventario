@@ -1,3 +1,4 @@
+require('dotenv').config();
 const { PrismaClient } = require('@prisma/client');
 const bcrypt = require('bcryptjs');
 
@@ -77,9 +78,11 @@ async function main() {
     console.log(`✅ ${areas.length} áreas y ${cargos.length} cargos añadidos al catálogo`);
 
     // Usuario administrador por defecto
-    const adminPassword = await bcrypt.hash('C0m1t3*', 10);
+    const ADMIN_PASSWORD = process.env.ADMIN_INITIAL_PASSWORD || 'CambiarEsto2024*';
+    const adminPassword = await bcrypt.hash(ADMIN_PASSWORD, 10);
+    
     await prisma.usuario.upsert({
-        where: { email: 'admin@cafedecolombia.com' },
+        where: { email: 'administrador@cafedecolombia.com' },
         update: {
             nombre: 'Administrador',
             password: adminPassword,
@@ -87,26 +90,12 @@ async function main() {
         },
         create: {
             nombre: 'Administrador',
-            email: 'admin@cafedecolombia.com',
+            email: 'administrador@cafedecolombia.com',
             password: adminPassword,
             rol: 'ADMIN',
         },
     });
-    console.log('✅ Usuario admin creado: admin@cafedecolombia.com / C0m1t3*');
-
-    // Usuario invitado (Consulta) por defecto
-    const invitadoPassword = await bcrypt.hash('C0m1t3*', 10);
-    await prisma.usuario.upsert({
-        where: { email: 'invitado@cafedecolombia.com' },
-        update: {},
-        create: {
-            nombre: 'Usuario Consulta',
-            email: 'invitado@cafedecolombia.com',
-            password: invitadoPassword,
-            rol: 'CONSULTA',
-        },
-    });
-    console.log('✅ Usuario invitado creado: invitado@cafedecolombia.com / C0m1t3*');
+    console.log(`✅ Usuario admin creado: administrador@cafedecolombia.com (Password: ${process.env.ADMIN_INITIAL_PASSWORD ? 'Enviada por ENV' : 'Por defecto'})`);
 
     console.log('🎉 Seed completado exitosamente');
 }
